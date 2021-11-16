@@ -1064,6 +1064,7 @@ func (sp *serverPeer) enforceNodeBloomFlag(cmd string) bool {
 			// Disconnect the peer regardless of whether it was
 			// banned.
 			sp.addBanScore(100, 0, cmd)
+			sp.Disconnect()
 			return false
 		}
 
@@ -1561,8 +1562,6 @@ func (s *server) handleAddPeerMsg(state *peerState, sp *serverPeer) bool {
 		log.Infof("Peer %s is no longer banned", host)
 		delete(state.banned, host)
 	}
-
-	sp.banScore = s.banMgr.GetScore(host)
 
 	// TODO: Check for max peers from a single IP.
 

@@ -982,10 +982,6 @@ func (s *ChainService) GetBlockHeight(hash *chainhash.Hash) (int32, er.R) {
 // disconnected.
 func (sp *ServerPeer) addBanScore(persistent, transient uint32, reason string) {
 	if sp.server.banMgr.AddBanScore(sp.Addr(), persistent, transient, reason) {
-		err := sp.server.BanPeer(sp.Addr(), banman.ExceededBanThreshold)
-		if err != nil {
-			log.Errorf("Unable to ban peer %v: %v", sp.Addr(), err)
-		}
 		sp.Disconnect()
 	}
 }

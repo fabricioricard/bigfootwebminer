@@ -981,36 +981,12 @@ func (s *ChainService) GetBlockHeight(hash *chainhash.Hash) (int32, er.R) {
 // the score is above the ban threshold, the peer will be banned and
 // disconnected.
 func (sp *ServerPeer) addBanScore(persistent, transient uint32, reason string) {
-	banScore := sp.banMgr.GetScore(sp.Addr())
-	if transient == 0 && persistent == 0 {
-		// The score is not being increased, but a warning message is
-		// still logged if the score is above the warn threshold.
-		score := banScore.Int()
-		if score > BanWarnThreshold {
-			log.Warnf("Misbehaving peer %s: %s -- ban score is "+
-				"%d, it was not increased this time", sp,
-				reason, score)
+	if sp.server.banMgr.AddBanScore(sp.Addr(), persistent, transient, reason) {
+		err := sp.server.BanPeer(sp.Addr(), banman.ExceededBanThreshold)
+		if err != nil {
+			log.Errorf("Unable to ban peer %v: %v", sp.Addr(), err)
 		}
-		return
-	}
-
-	score := banScore.Increase(persistent, transient)
-	if score > BanWarnThreshold {
-		log.Warnf("Misbehaving peer %s: %s -- ban score increased to %d",
-			sp, reason, score)
-
-		if score > BanThreshold {
-			peerAddr := sp.Addr()
-			err := sp.server.BanPeer(
-				peerAddr, banman.ExceededBanThreshold,
-			)
-			if err != nil {
-				log.Errorf("Unable to ban peer %v: %v",
-					peerAddr, err)
-			}
-
-			sp.Disconnect()
-		}
+		sp.Disconnect()
 	}
 }
 
@@ -1029,26 +1005,7 @@ func (s *ChainService) BanPeer(addr string, reason banman.Reason) er.R {
 
 // IsBanned returns true if the peer is banned, and false otherwise.
 func (s *ChainService) IsBanned(addr string) bool {
-	ipNet, err := banman.ParseIPNet(addr, nil)
-	if err != nil {
-		log.Errorf("Unable to parse IP network for peer %v: %v", addr,
-			err)
-		return false
-	}
-	banStatus, err := s.banStore.Status(ipNet)
-	if err != nil {
-		log.Errorf("Unable to determine ban status for peer %v: %v",
-			addr, err)
-		return false
-	}
-
-	// Log how much time left the peer will remain banned for, if any.
-	if time.Now().Before(banStatus.Expiration) {
-		log.Debugf("Peer %v is banned for another %v", addr,
-			time.Until(banStatus.Expiration))
-	}
-
-	return banStatus.Banned
+	return s.banMgr.IsBanned(addr)
 }
 
 func (s *ChainService) BanStore() banman.Store {

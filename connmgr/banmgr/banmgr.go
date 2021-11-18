@@ -16,10 +16,10 @@ type Config struct {
 }
 
 type BanInfo struct {
-	addr           string
-	reason         string
-	banScore       uint32
-	banExpiresTime time.Time
+	Addr           string
+	Reason         string
+	BanScore       int32
+	BanExpiresTime time.Time
 }
 
 type BannedPeers struct {
@@ -81,29 +81,37 @@ func (b *BanMgr) IsBanned(ip string) bool {
 	return false
 }
 
-func (b *BanMgr) ForEachIp(f func(bi BanInfo)) er.R {
+func (b *BanMgr) ForEachIp(f func(bi BanInfo) er.R) er.R {
 	b.m.Lock()
-	var toRemove []string
 	var notExpired []BanInfo
 	//Go through banned peers
 	for ip, peer := range b.banned {
 		if !time.Now().Before(peer.time) {
-			toRemove = append(toRemove, ip)
+			delete(b.banned, ip)
 		} else {
-			notExpired = append(notExpired, BanInfo{addr: ip, reason: peer.reason})
+			notExpired = append(notExpired, BanInfo{Addr: ip, Reason: peer.reason, BanScore: -1, BanExpiresTime: peer.time})
 		}
 	}
 	//Go through suspicious peers
 	for ip, peer := range b.suspicious {
-		notExpired = append(notExpired, BanInfo{addr: ip, reason: *peer.banReason})
-	}
+		score := peer.dynamicBanScore.bs.Int()
 
-	for _, addr := range toRemove {
-		delete(b.banned, addr)
+		if score == 0 {
+			delete(b.suspicious, ip)
+		} else {
+			notExpired = append(notExpired, BanInfo{Addr: ip, Reason: *peer.banReason, BanScore: int32(score), BanExpiresTime: time.Time{}})
+		}
 	}
 	b.m.Unlock()
 	for _, item := range notExpired {
-		f(item)
+		err := f(item)
+		if err != nil {
+			if er.IsLoopBreak(err) {
+				return nil
+			} else {
+				return err
+			}
+		}
 	}
 
 	return nil

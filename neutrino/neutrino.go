@@ -22,7 +22,6 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/connmgr"
-	"github.com/pkt-cash/pktd/neutrino/banman"
 	"github.com/pkt-cash/pktd/neutrino/blockntfns"
 	"github.com/pkt-cash/pktd/neutrino/cache/lru"
 	"github.com/pkt-cash/pktd/neutrino/filterdb"
@@ -242,13 +241,6 @@ func (sp *ServerPeer) OnVersion(_ *peer.Peer, msg *wire.MsgVersion) *wire.MsgRej
 	peerServices := sp.Services()
 	if peerServices&protocol.SFNodeWitness != protocol.SFNodeWitness ||
 		peerServices&protocol.SFNodeCF != protocol.SFNodeCF {
-
-		peerAddr := sp.Addr()
-		err := sp.server.BanPeer(peerAddr, banman.NoCompactFilters)
-		if err != nil {
-			log.Errorf("Unable to ban peer %v: %v", peerAddr, err)
-		}
-
 		sp.Disconnect()
 
 		return nil
@@ -596,7 +588,6 @@ type ChainService struct {
 	services             protocol.ServiceFlag
 	utxoScanner          *UtxoScanner
 	broadcaster          *pushtx.Broadcaster
-	banStore             banman.Store
 	banMgr               banmgr.BanMgr
 
 	mtxCFilter     sync.Mutex
@@ -855,7 +846,6 @@ func NewChainService(cfg Config) (*ChainService, er.R) {
 		RebroadcastInterval: pushtx.DefaultRebroadcastInterval,
 	})
 
-	s.banStore, err = banman.NewStore(cfg.Database)
 	if err != nil {
 		return nil, er.Errorf("unable to initialize ban store: %v", err)
 	}
@@ -986,26 +976,13 @@ func (sp *ServerPeer) addBanScore(persistent, transient uint32, reason string) {
 	}
 }
 
-// BanPeer bans a peer due to a specific reason for a duration of BanDuration.
-func (s *ChainService) BanPeer(addr string, reason banman.Reason) er.R {
-	log.Warnf("Banning peer %v: duration=%v, reason=%v", addr, BanDuration,
-		reason)
-
-	ipNet, err := banman.ParseIPNet(addr, nil)
-	if err != nil {
-		return er.Errorf("unable to parse IP network for peer %v: %v",
-			addr, err)
-	}
-	return s.banStore.BanIPNet(ipNet, reason, BanDuration)
-}
-
 // IsBanned returns true if the peer is banned, and false otherwise.
 func (s *ChainService) IsBanned(addr string) bool {
 	return s.banMgr.IsBanned(addr)
 }
 
-func (s *ChainService) BanStore() banman.Store {
-	return s.banStore
+func (s *ChainService) BanMgr() *banmgr.BanMgr {
+	return &s.banMgr
 }
 
 // AddPeer adds a new peer that has already been connected to the server.

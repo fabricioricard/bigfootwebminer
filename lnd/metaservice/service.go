@@ -2,15 +2,13 @@ package metaservice
 
 import (
 	"context"
-	"net"
 	"strconv"
-	"time"
 
 	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/pkt-cash/pktd/connmgr/banmgr"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/neutrino"
-	"github.com/pkt-cash/pktd/neutrino/banman"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
 )
@@ -82,12 +80,11 @@ func (m *MetaService) GetInfo20(ctx context.Context,
 
 		ni.Peers = append(ni.Peers, &peerDesc)
 	}
-
-	m.Neutrino.BanStore().ForEachBannedAddr(func(a *net.IPNet, r banman.Reason, t time.Time) er.R {
+	m.Neutrino.BanMgr().ForEachIp(func(bi banmgr.BanInfo) er.R {
 		ban := lnrpc.NeutrinoBan{}
-		ban.Addr = a.String()
-		ban.Reason = r.String()
-		ban.EndTime = t.String()
+		ban.Addr = bi.Addr
+		ban.Reason = bi.Reason
+		ban.EndTime = bi.BanExpiresTime.String()
 		ni.Bans = append(ni.Bans, &ban)
 		return nil
 	})

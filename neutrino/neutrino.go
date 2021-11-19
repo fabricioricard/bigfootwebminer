@@ -155,7 +155,7 @@ type ServerPeer struct {
 	server         *ChainService
 	persistent     bool
 	knownAddresses map[string]struct{}
-	banMgr         banmgr.BanMgr
+	banMgr         *banmgr.BanMgr
 	quit           chan struct{}
 
 	// The following map of subcribers is used to subscribe to messages
@@ -177,7 +177,7 @@ func newServerPeer(s *ChainService, isPersistent bool) *ServerPeer {
 		knownAddresses:  make(map[string]struct{}),
 		quit:            make(chan struct{}),
 		recvSubscribers: make(map[spMsgSubscription]struct{}),
-		banMgr:          s.banMgr,
+		banMgr:          &s.banMgr,
 	}
 }
 

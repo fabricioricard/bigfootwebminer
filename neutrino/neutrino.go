@@ -184,7 +184,7 @@ func newServerPeer(s *ChainService, isPersistent bool) *ServerPeer {
 // newestBlock returns the current best block hash and height using the format
 // required by the configuration for the peer package.
 func (sp *ServerPeer) newestBlock() (*chainhash.Hash, int32, er.R) {
-	bestHeader, bestHeight, err := sp.server.BlockHeaders.ChainTip()
+	bestHeader, bestHeight, err := sp.server.NeutrinoDB.BlockChainTip()
 	if err != nil {
 		return nil, 0, err
 	}
@@ -560,9 +560,8 @@ type ChainService struct {
 	started       int32
 	shutdown      int32
 
-	FilterDB         filterdb.FilterDatabase
-	BlockHeaders     headerfs.BlockHeaderStore
-	RegFilterHeaders *headerfs.FilterHeaderStore
+	FilterDB   filterdb.FilterDatabase
+	NeutrinoDB headerfs.NeutrinoDBStore
 
 	FilterCache *lru.Cache
 	BlockCache  *lru.Cache
@@ -704,14 +703,14 @@ func NewChainService(cfg Config) (*ChainService, er.R) {
 	}
 	s.BlockCache = lru.NewCache(blockCacheSize)
 
-	s.BlockHeaders, err = headerfs.NewBlockHeaderStore(
+	s.NeutrinoDB, err = headerfs.NewBlockHeaderStore(
 		cfg.Database, &cfg.ChainParams,
 	)
 	if err != nil {
 		return nil, err
 	}
-	s.RegFilterHeaders, err = headerfs.NewFilterHeaderStore(
-		cfg.Database, &cfg.ChainParams, cfg.AssertFilterHeader, s.BlockHeaders,
+	s.NeutrinoDB, err = headerfs.NewFilterHeaderStore(
+		cfg.Database, &cfg.ChainParams, cfg.AssertFilterHeader, s.NeutrinoDB,
 	)
 	if err != nil {
 		return nil, err
@@ -898,12 +897,12 @@ func NewChainService(cfg Config) (*ChainService, er.R) {
 // BestBlock retrieves the most recent block's height and hash where we
 // have both the header and filter header ready.
 func (s *ChainService) BestBlock() (*waddrmgr.BlockStamp, er.R) {
-	bestHeader, bestHeight, err := s.BlockHeaders.ChainTip()
+	bestHeader, bestHeight, err := s.NeutrinoDB.BlockChainTip()
 	if err != nil {
 		return nil, err
 	}
 
-	_, filterHeight, err := s.RegFilterHeaders.ChainTip()
+	_, filterHeight, err := s.NeutrinoDB.FilterChainTip()
 	if err != nil {
 		return nil, err
 	}
@@ -912,7 +911,7 @@ func (s *ChainService) BestBlock() (*waddrmgr.BlockStamp, er.R) {
 	// previous block header if the filter headers are not caught up.
 	if filterHeight < bestHeight {
 		bestHeight = filterHeight
-		bestHeader, err = s.BlockHeaders.FetchHeaderByHeight(
+		bestHeader, err = s.NeutrinoDB.FetchBlockHeaderByHeight(
 			bestHeight,
 		)
 		if err != nil {
@@ -939,7 +938,7 @@ func (s *ChainService) GetActiveQueries() []*Query {
 
 // GetBlockHash returns the block hash at the given height.
 func (s *ChainService) GetBlockHash(height int64) (*chainhash.Hash, er.R) {
-	header, err := s.BlockHeaders.FetchHeaderByHeight(uint32(height))
+	header, err := s.NeutrinoDB.FetchBlockHeaderByHeight(uint32(height))
 	if err != nil {
 		return nil, err
 	}
@@ -951,14 +950,14 @@ func (s *ChainService) GetBlockHash(height int64) (*chainhash.Hash, er.R) {
 // error if the hash doesn't exist or is unknown.
 func (s *ChainService) GetBlockHeader(
 	blockHash *chainhash.Hash) (*wire.BlockHeader, er.R) {
-	header, _, err := s.BlockHeaders.FetchHeader(blockHash)
+	header, _, err := s.NeutrinoDB.FetchBlockHeader(blockHash)
 	return header, err
 }
 
 // GetBlockHeight gets the height of a block by its hash. An error is returned
 // if the given block hash is unknown.
 func (s *ChainService) GetBlockHeight(hash *chainhash.Hash) (int32, er.R) {
-	_, height, err := s.BlockHeaders.FetchHeader(hash)
+	_, height, err := s.NeutrinoDB.FetchBlockHeader(hash)
 	if err != nil {
 		return 0, err
 	}
@@ -1019,7 +1018,7 @@ func (s *ChainService) rollBackToHeight(tx walletdb.ReadWriteTx, height uint32) 
 	*waddrmgr.BlockStamp,
 	er.R,
 ) {
-	header, headerHeight, err := s.BlockHeaders.ChainTip1(tx)
+	header, headerHeight, err := s.NeutrinoDB.BlockChainTip1(tx)
 	if err != nil {
 		return nil, err
 	}
@@ -1028,13 +1027,13 @@ func (s *ChainService) rollBackToHeight(tx walletdb.ReadWriteTx, height uint32) 
 		Hash:   header.BlockHash(),
 	}
 
-	_, regHeight, err := s.RegFilterHeaders.ChainTip1(tx)
+	_, regHeight, err := s.NeutrinoDB.FilterChainTip1(tx)
 	if err != nil {
 		return nil, err
 	}
 
 	for uint32(bs.Height) > height {
-		header, _, err := s.BlockHeaders.FetchHeader1(tx, &bs.Hash)
+		header, _, err := s.NeutrinoDB.FetchBlockHeader1(tx, &bs.Hash)
 		if err != nil {
 			return nil, err
 		}
@@ -1043,14 +1042,14 @@ func (s *ChainService) rollBackToHeight(tx walletdb.ReadWriteTx, height uint32) 
 
 		// Only roll back filter headers if they've caught up this far.
 		if uint32(bs.Height) <= regHeight {
-			newFilterTip, err := s.RegFilterHeaders.RollbackLastBlock(tx)
+			newFilterTip, err := s.NeutrinoDB.RollbackLastFilterBlock(tx)
 			if err != nil {
 				return nil, err
 			}
 			regHeight = uint32(newFilterTip.Height)
 		}
 
-		bs, err = s.BlockHeaders.RollbackLastBlock(tx)
+		bs, err = s.NeutrinoDB.RollbackLastHeaderBlock(tx)
 		if err != nil {
 			return nil, err
 		}
@@ -1059,7 +1058,7 @@ func (s *ChainService) rollBackToHeight(tx walletdb.ReadWriteTx, height uint32) 
 		// header in the disconnected notification in case we're rolling
 		// back farther and the notification subscriber needs it but
 		// can't read it before it's deleted from the store.
-		prevHeader, _, err := s.BlockHeaders.FetchHeader1(tx, newTip)
+		prevHeader, _, err := s.NeutrinoDB.FetchBlockHeader1(tx, newTip)
 		if err != nil {
 			return nil, err
 		}
@@ -1542,20 +1541,20 @@ var _ ChainSource = (*RescanChainSource)(nil)
 // GetBlockHeaderByHeight returns the header of the block with the given height.
 func (s *RescanChainSource) GetBlockHeaderByHeight(
 	height uint32) (*wire.BlockHeader, er.R) {
-	return s.BlockHeaders.FetchHeaderByHeight(height)
+	return s.NeutrinoDB.FetchBlockHeaderByHeight(height)
 }
 
 // GetBlockHeader returns the header of the block with the given hash.
 func (s *RescanChainSource) GetBlockHeader(
 	hash *chainhash.Hash) (*wire.BlockHeader, uint32, er.R) {
-	return s.BlockHeaders.FetchHeader(hash)
+	return s.NeutrinoDB.FetchBlockHeader(hash)
 }
 
 // GetFilterHeaderByHeight returns the filter header of the block with the given
 // height.
 func (s *RescanChainSource) GetFilterHeaderByHeight(
 	height uint32) (*chainhash.Hash, er.R) {
-	return s.RegFilterHeaders.FetchHeaderByHeight(height)
+	return s.NeutrinoDB.FetchFilterHeaderByHeight(height)
 }
 
 // Subscribe returns a block subscription that delivers block notifications in

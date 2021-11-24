@@ -22,7 +22,6 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/connmgr"
-	"github.com/pkt-cash/pktd/neutrino/banman"
 	"github.com/pkt-cash/pktd/neutrino/blockntfns"
 	"github.com/pkt-cash/pktd/neutrino/cache/lru"
 	"github.com/pkt-cash/pktd/neutrino/filterdb"
@@ -156,7 +155,7 @@ type ServerPeer struct {
 	server         *ChainService
 	persistent     bool
 	knownAddresses map[string]struct{}
-	banMgr         banmgr.BanMgr
+	banMgr         *banmgr.BanMgr
 	quit           chan struct{}
 
 	// The following map of subcribers is used to subscribe to messages
@@ -178,7 +177,7 @@ func newServerPeer(s *ChainService, isPersistent bool) *ServerPeer {
 		knownAddresses:  make(map[string]struct{}),
 		quit:            make(chan struct{}),
 		recvSubscribers: make(map[spMsgSubscription]struct{}),
-		banMgr:          s.banMgr,
+		banMgr:          &s.banMgr,
 	}
 }
 
@@ -242,13 +241,6 @@ func (sp *ServerPeer) OnVersion(_ *peer.Peer, msg *wire.MsgVersion) *wire.MsgRej
 	peerServices := sp.Services()
 	if peerServices&protocol.SFNodeWitness != protocol.SFNodeWitness ||
 		peerServices&protocol.SFNodeCF != protocol.SFNodeCF {
-
-		peerAddr := sp.Addr()
-		err := sp.server.BanPeer(peerAddr, banman.NoCompactFilters)
-		if err != nil {
-			log.Errorf("Unable to ban peer %v: %v", peerAddr, err)
-		}
-
 		sp.Disconnect()
 
 		return nil
@@ -596,7 +588,6 @@ type ChainService struct {
 	services             protocol.ServiceFlag
 	utxoScanner          *UtxoScanner
 	broadcaster          *pushtx.Broadcaster
-	banStore             banman.Store
 	banMgr               banmgr.BanMgr
 
 	mtxCFilter     sync.Mutex
@@ -855,7 +846,6 @@ func NewChainService(cfg Config) (*ChainService, er.R) {
 		RebroadcastInterval: pushtx.DefaultRebroadcastInterval,
 	})
 
-	s.banStore, err = banman.NewStore(cfg.Database)
 	if err != nil {
 		return nil, er.Errorf("unable to initialize ban store: %v", err)
 	}
@@ -981,78 +971,18 @@ func (s *ChainService) GetBlockHeight(hash *chainhash.Hash) (int32, er.R) {
 // the score is above the ban threshold, the peer will be banned and
 // disconnected.
 func (sp *ServerPeer) addBanScore(persistent, transient uint32, reason string) {
-	banScore := sp.banMgr.GetScore(sp.Addr())
-	if transient == 0 && persistent == 0 {
-		// The score is not being increased, but a warning message is
-		// still logged if the score is above the warn threshold.
-		score := banScore.Int()
-		if score > BanWarnThreshold {
-			log.Warnf("Misbehaving peer %s: %s -- ban score is "+
-				"%d, it was not increased this time", sp,
-				reason, score)
-		}
-		return
+	if sp.server.banMgr.AddBanScore(sp.Addr(), persistent, transient, reason) {
+		sp.Disconnect()
 	}
-
-	score := banScore.Increase(persistent, transient)
-	if score > BanWarnThreshold {
-		log.Warnf("Misbehaving peer %s: %s -- ban score increased to %d",
-			sp, reason, score)
-
-		if score > BanThreshold {
-			peerAddr := sp.Addr()
-			err := sp.server.BanPeer(
-				peerAddr, banman.ExceededBanThreshold,
-			)
-			if err != nil {
-				log.Errorf("Unable to ban peer %v: %v",
-					peerAddr, err)
-			}
-
-			sp.Disconnect()
-		}
-	}
-}
-
-// BanPeer bans a peer due to a specific reason for a duration of BanDuration.
-func (s *ChainService) BanPeer(addr string, reason banman.Reason) er.R {
-	log.Warnf("Banning peer %v: duration=%v, reason=%v", addr, BanDuration,
-		reason)
-
-	ipNet, err := banman.ParseIPNet(addr, nil)
-	if err != nil {
-		return er.Errorf("unable to parse IP network for peer %v: %v",
-			addr, err)
-	}
-	return s.banStore.BanIPNet(ipNet, reason, BanDuration)
 }
 
 // IsBanned returns true if the peer is banned, and false otherwise.
 func (s *ChainService) IsBanned(addr string) bool {
-	ipNet, err := banman.ParseIPNet(addr, nil)
-	if err != nil {
-		log.Errorf("Unable to parse IP network for peer %v: %v", addr,
-			err)
-		return false
-	}
-	banStatus, err := s.banStore.Status(ipNet)
-	if err != nil {
-		log.Errorf("Unable to determine ban status for peer %v: %v",
-			addr, err)
-		return false
-	}
-
-	// Log how much time left the peer will remain banned for, if any.
-	if time.Now().Before(banStatus.Expiration) {
-		log.Debugf("Peer %v is banned for another %v", addr,
-			time.Until(banStatus.Expiration))
-	}
-
-	return banStatus.Banned
+	return s.banMgr.IsBanned(addr)
 }
 
-func (s *ChainService) BanStore() banman.Store {
-	return s.banStore
+func (s *ChainService) BanMgr() *banmgr.BanMgr {
+	return &s.banMgr
 }
 
 // AddPeer adds a new peer that has already been connected to the server.

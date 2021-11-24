@@ -340,40 +340,9 @@ func (sp *serverPeer) pushAddrMsg(addresses []*wire.NetAddress) {
 // the score is above the ban threshold, the peer will be banned and
 // disconnected.
 func (sp *serverPeer) addBanScore(persistent, transient uint32, reason string) {
-	// No warning is logged and no score is calculated if banning is disabled.
-	if cfg.DisableBanning {
-		return
-	}
-	if sp.isWhitelisted {
-		log.Debugf("Misbehaving whitelisted peer %s: %s", sp, reason)
-		return
-	}
-	if sp.banScore == nil {
-		log.Debugf("Misbehaving peer %s: %s and no ban manager yet")
-		return
-	}
-
-	warnThreshold := cfg.BanThreshold >> 1
-	if transient == 0 && persistent == 0 {
-		// The score is not being increased, but a warning message is still
-		// logged if the score is above the warn threshold.
-		score := sp.banScore.Int()
-		if score > warnThreshold {
-			log.Warnf("Misbehaving peer %s: %s -- ban score is %d, "+
-				"it was not increased this time", sp, reason, score)
-		}
-		return
-	}
-	score := sp.banScore.Increase(persistent, transient)
-	if score > warnThreshold {
-		log.Warnf("Misbehaving peer %s: %s -- ban score increased to %d",
-			sp, reason, score)
-		if score > cfg.BanThreshold {
-			log.Warnf("Misbehaving peer %s -- banning and disconnecting",
-				sp)
-			sp.server.BanPeer(sp)
-			sp.Disconnect()
-		}
+	if sp.server.banMgr.AddBanScore(sp.Addr(), persistent, transient, reason) {
+		sp.server.BanPeer(sp)
+		sp.Disconnect()
 	}
 }
 
@@ -1594,8 +1563,6 @@ func (s *server) handleAddPeerMsg(state *peerState, sp *serverPeer) bool {
 		delete(state.banned, host)
 	}
 
-	sp.banScore = s.banMgr.GetScore(host)
-
 	// TODO: Check for max peers from a single IP.
 
 	// Rapid reconnect
@@ -2587,7 +2554,7 @@ func newServer(listenAddrs, agentBlacklist, agentWhitelist []string,
 	if len(agentWhitelist) > 0 {
 		log.Infof("User-agent whitelist %s", agentWhitelist)
 	}
-
+	bmConfig := banmgr.Config{}
 	s := server{
 		startupTime:          time.Now().Unix(),
 		chainParams:          chainParams,
@@ -2610,6 +2577,7 @@ func newServer(listenAddrs, agentBlacklist, agentWhitelist []string,
 		cfCheckptCaches:      make(map[wire.FilterType][]cfHeaderKV),
 		agentBlacklist:       agentBlacklist,
 		agentWhitelist:       agentWhitelist,
+		banMgr:               *banmgr.New(&bmConfig),
 	}
 
 	// Create the transaction and address indexes if needed.

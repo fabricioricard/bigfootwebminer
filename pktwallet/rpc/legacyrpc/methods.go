@@ -10,7 +10,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"net"
 	"strconv"
 	"sync"
 	"time"
@@ -19,7 +18,7 @@ import (
 
 	"github.com/pkt-cash/pktd/blockchain"
 	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/neutrino/banman"
+	"github.com/pkt-cash/pktd/connmgr/banmgr"
 	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/txscript/params"
 	"github.com/pkt-cash/pktd/wire/ruleerror"
@@ -483,15 +482,13 @@ func getInfo(icmd interface{}, w *wallet.Wallet, chainClient chain.Interface) (i
 		for _, p := range neut.CS.Peers() {
 			ni.Peers = append(ni.Peers, p.Describe())
 		}
-		if err := neut.CS.BanStore().ForEachBannedAddr(func(
-			a *net.IPNet,
-			r banman.Reason,
-			t time.Time,
+		if err := neut.CS.BanMgr().ForEachIp(func(
+			bi banmgr.BanInfo,
 		) er.R {
 			ni.Bans = append(ni.Bans, btcjson.NeutrinoBan{
-				Addr:    a.String(),
-				Reason:  r.String(),
-				EndTime: t.String(),
+				Addr:    bi.Addr,
+				Reason:  bi.Reason,
+				EndTime: bi.BanExpiresTime.String(),
 			})
 			return nil
 		}); err != nil {

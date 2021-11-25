@@ -276,7 +276,7 @@ func newBlockManager(s *ChainService,
 
 	// Verification of PacketCrypt or AuxPoW proofs
 	bm.likelyChainTip = int32(time.Since(time.Unix(1566252000, 0)).Minutes())
-	walletdb.View(*s.NeutrinoDB.GetWalletDB(), func(tx walletdb.ReadTx) er.R {
+	walletdb.View(s.NeutrinoDB.Db, func(tx walletdb.ReadTx) er.R {
 		return bm.updateLikelyChainTip(tx, int32(height))
 	})
 
@@ -625,7 +625,7 @@ waitForHeaders:
 		// See if we can detect which checkpoint list is correct. If
 		// not, we will cycle again.
 		goodCheckpoints, err = b.resolveConflict(
-			checkpoints, store, fType,
+			checkpoints, *store, fType,
 		)
 		if err != nil {
 			log.Warnf("got error attempting to determine correct "+
@@ -642,7 +642,7 @@ waitForHeaders:
 
 	// Get all the headers up to the last known good checkpoint.
 	b.getCheckpointedCFHeaders(
-		goodCheckpoints, store, fType,
+		goodCheckpoints, *store, fType,
 	)
 
 	// Now we check the headers again. If the block headers are not yet
@@ -702,7 +702,7 @@ waitForHeaders:
 		// At this point, we know that there're a set of new filter
 		// headers to fetch, so we'll grab them now.
 		if err = b.getUncheckpointedCFHeaders(
-			store, fType,
+			*store, fType,
 		); err != nil {
 			log.Debugf("couldn't get uncheckpointed headers for "+
 				"%v: %v", fType, err)
@@ -820,7 +820,7 @@ func (b *blockManager) getUncheckpointedCFHeaders(
 			"with new set")
 	}
 
-	return walletdb.Update(*store.GetWalletDB(), func(tx walletdb.ReadWriteTx) er.R {
+	return walletdb.Update(store.Db, func(tx walletdb.ReadWriteTx) er.R {
 		_, _, err := b.writeCFHeadersMsg1(pristineHeaders, store, tx)
 		return err
 	})
@@ -1095,7 +1095,7 @@ func (b *blockManager) writeCFHeadersMsg(
 ) (*chainhash.Hash, uint32, er.R) {
 	var hash *chainhash.Hash
 	var height uint32
-	return hash, height, walletdb.Update(*store.GetWalletDB(), func(tx walletdb.ReadWriteTx) er.R {
+	return hash, height, walletdb.Update(store.Db, func(tx walletdb.ReadWriteTx) er.R {
 		var err er.R
 		hash, height, err = b.writeCFHeadersMsg1(msg, store, tx)
 		return err
@@ -2456,7 +2456,7 @@ func checkPacketCryptProof(
 }
 
 func (b *blockManager) handleProvenHeadersMsg(phmsg *provenHeadersMsg) {
-	if err := walletdb.Update(*b.server.NeutrinoDB.GetWalletDB(), func(tx walletdb.ReadWriteTx) er.R {
+	if err := walletdb.Update(b.server.NeutrinoDB.Db, func(tx walletdb.ReadWriteTx) er.R {
 		return b.handleProvenHeadersMsg1(tx, phmsg)
 	}); err != nil {
 		log.Warnf("Error processing headers msg: %v", err)

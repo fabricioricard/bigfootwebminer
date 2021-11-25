@@ -17,7 +17,7 @@ var ErrHeaderNotFound = er.GenericErrorType.Code("headerfs.ErrHeaderNotFound")
 //
 // NOTE: The end height is _inclusive_ so we'll fetch all headers from the
 // startHeight up to the end height, including the final header.
-func (h *neutrinoDBStore) readBlockHeaderRange(
+func (h *NeutrinoDBStore) readBlockHeaderRange(
 	tx walletdb.ReadTx,
 	startHeight uint32,
 	endHeight uint32,
@@ -41,7 +41,7 @@ func (h *neutrinoDBStore) readBlockHeaderRange(
 //
 // NOTE: The end height is _inclusive_ so we'll fetch all headers from the
 // startHeight up to the end height, including the final header.
-func (f *neutrinoDBStore) readFilterHeaderRange(
+func (f *NeutrinoDBStore) readFilterHeaderRange(
 	tx walletdb.ReadTx,
 	startHeight uint32,
 	endHeight uint32,

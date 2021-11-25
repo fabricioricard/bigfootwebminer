@@ -561,7 +561,7 @@ type ChainService struct {
 	shutdown      int32
 
 	FilterDB   filterdb.FilterDatabase
-	NeutrinoDB headerfs.NeutrinoDBStore
+	NeutrinoDB *headerfs.NeutrinoDBStore
 
 	FilterCache *lru.Cache
 	BlockCache  *lru.Cache
@@ -703,14 +703,8 @@ func NewChainService(cfg Config) (*ChainService, er.R) {
 	}
 	s.BlockCache = lru.NewCache(blockCacheSize)
 
-	s.NeutrinoDB, err = headerfs.NewBlockHeaderStore(
+	s.NeutrinoDB, err = headerfs.NewNeutrinoDBStore(
 		cfg.Database, &cfg.ChainParams,
-	)
-	if err != nil {
-		return nil, err
-	}
-	s.NeutrinoDB, err = headerfs.NewFilterHeaderStore(
-		cfg.Database, &cfg.ChainParams, cfg.AssertFilterHeader, s.NeutrinoDB,
 	)
 	if err != nil {
 		return nil, err
@@ -1027,11 +1021,6 @@ func (s *ChainService) rollBackToHeight(tx walletdb.ReadWriteTx, height uint32) 
 		Hash:   header.BlockHash(),
 	}
 
-	_, regHeight, err := s.NeutrinoDB.FilterChainTip1(tx)
-	if err != nil {
-		return nil, err
-	}
-
 	for uint32(bs.Height) > height {
 		header, _, err := s.NeutrinoDB.FetchBlockHeader1(tx, &bs.Hash)
 		if err != nil {
@@ -1040,19 +1029,11 @@ func (s *ChainService) rollBackToHeight(tx walletdb.ReadWriteTx, height uint32) 
 
 		newTip := &header.PrevBlock
 
-		// Only roll back filter headers if they've caught up this far.
-		if uint32(bs.Height) <= regHeight {
-			newFilterTip, err := s.NeutrinoDB.RollbackLastFilterBlock(tx)
-			if err != nil {
-				return nil, err
-			}
-			regHeight = uint32(newFilterTip.Height)
-		}
-
-		bs, err = s.NeutrinoDB.RollbackLastHeaderBlock(tx)
+		rb, err := s.NeutrinoDB.RollbackLastBlock(tx, uint32(bs.Height))
 		if err != nil {
 			return nil, err
 		}
+		bs = rb.BlockHeader
 
 		// Notifications are asynchronous, so we include the previous
 		// header in the disconnected notification in case we're rolling

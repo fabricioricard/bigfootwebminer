@@ -23,19 +23,16 @@ type FilterHeader struct {
 }
 
 type mockneutrinoDBStore struct {
+	Db				  walletdb.DB
 	blockHeaderIndex  *BlockHeader
 	filterHeaderIndex *FilterHeader
 }
-
-// A compile-time check to ensure the mockBlockHeaderStore adheres to the
-// BlockHeaderStore interface.
-var _ headerfs.NeutrinoDBStore = (*mockneutrinoDBStore)(nil)
 
 // NewMockBlockHeaderStore returns a version of the BlockHeaderStore that's
 // backed by an in-memory map. This instance is meant to be used by callers
 // outside the package to unit test components that require a BlockHeaderStore
 // interface.
-func newMockBlockHeaderStore() *mockneutrinoDBStore {
+func newMockNeutrinoDBStore() *mockneutrinoDBStore {
 	return &mockneutrinoDBStore{
 		blockHeaderIndex: &BlockHeader{
 			headers: make(map[chainhash.Hash]wire.BlockHeader),

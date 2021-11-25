@@ -1029,7 +1029,7 @@ func (s *ChainService) rollBackToHeight(tx walletdb.ReadWriteTx, height uint32) 
 
 		newTip := &header.PrevBlock
 
-		rb, err := s.NeutrinoDB.RollbackLastBlock(tx, uint32(bs.Height))
+		rb, err := s.NeutrinoDB.RollbackLastBlock(tx)
 		if err != nil {
 			return nil, err
 		}

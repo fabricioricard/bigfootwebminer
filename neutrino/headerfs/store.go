@@ -34,7 +34,7 @@ type NeutrinoDBStore struct {
 
 type RollbackHeader struct {
 	BlockHeader  *waddrmgr.BlockStamp
-	FilterHeader *waddrmgr.BlockStamp
+	FilterHeader *chainhash.Hash
 }
 
 // NewNeutrinoDBStore creates a new instance of the NeutrinoDBStore based on
@@ -214,7 +214,7 @@ func (h *NeutrinoDBStore) HeightFromHash(hash *chainhash.Hash) (uint32, er.R) {
 // information about the new header tip after truncation is returned.
 //
 // NOTE: Part of the BlockHeaderStore interface.
-func (h *NeutrinoDBStore) RollbackLastBlock(tx walletdb.ReadWriteTx, height uint32) (*RollbackHeader, er.R) {
+func (h *NeutrinoDBStore) RollbackLastBlock(tx walletdb.ReadWriteTx) (*RollbackHeader, er.R) {
 	result := RollbackHeader{}
 	hprev, herr := h.blockHeaderIndex.truncateIndex(tx, true)
 	if herr != nil {
@@ -228,15 +228,18 @@ func (h *NeutrinoDBStore) RollbackLastBlock(tx walletdb.ReadWriteTx, height uint
 		return &RollbackHeader{nil, nil}, err
 	}
 
-	if height <= regHeight {
+	ct, _ := h.blockHeaderIndex.chainTip(tx)
+	if err != nil {
+		return &RollbackHeader{nil, nil}, err
+	}
+
+	if ct.height <= regHeight {
 		fprev, ferr := h.filterHeaderIndex.truncateIndex(tx, false)
 		if ferr != nil {
 			result.FilterHeader = nil
 		} else {
-			result.FilterHeader.Hash = fprev.hash
-			result.FilterHeader.Height = int32(fprev.height)
+			result.FilterHeader = &fprev.hash
 		}
-		//regHeight = uint32(newFilterTip.Height)
 	}
 
 	return &result, nil

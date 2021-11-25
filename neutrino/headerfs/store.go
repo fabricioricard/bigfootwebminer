@@ -216,19 +216,13 @@ func (h *NeutrinoDBStore) HeightFromHash(hash *chainhash.Hash) (uint32, er.R) {
 // NOTE: Part of the BlockHeaderStore interface.
 func (h *NeutrinoDBStore) RollbackLastBlock(tx walletdb.ReadWriteTx) (*RollbackHeader, er.R) {
 	result := RollbackHeader{}
-	hprev, herr := h.blockHeaderIndex.truncateIndex(tx, true)
-	if herr != nil {
-		return &RollbackHeader{nil, nil}, herr
-	}
-	result.BlockHeader.Hash = hprev.hash
-	result.BlockHeader.Height = int32(hprev.height)
-
-	_, regHeight, err := h.FilterChainTip1(tx)
+	//Get the height before we truncate to check against the FilterChainTip
+	ct, err := h.blockHeaderIndex.chainTip(tx)
 	if err != nil {
 		return &RollbackHeader{nil, nil}, err
 	}
 
-	ct, _ := h.blockHeaderIndex.chainTip(tx)
+	_, regHeight, err := h.FilterChainTip1(tx)
 	if err != nil {
 		return &RollbackHeader{nil, nil}, err
 	}
@@ -241,6 +235,14 @@ func (h *NeutrinoDBStore) RollbackLastBlock(tx walletdb.ReadWriteTx) (*RollbackH
 			result.FilterHeader = &fprev.hash
 		}
 	}
+
+	hprev, herr := h.blockHeaderIndex.truncateIndex(tx, true)
+	if herr != nil {
+		result.BlockHeader = nil
+		return &result, herr
+	}
+	result.BlockHeader.Hash = hprev.hash
+	result.BlockHeader.Height = int32(hprev.height)
 
 	return &result, nil
 }

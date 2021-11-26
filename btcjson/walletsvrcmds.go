@@ -281,6 +281,7 @@ type CreateTransactionCmd struct {
 	Vote           *bool
 	MaxInputs      *int
 	AutoLock       *string
+	NoSign         *bool
 }
 
 // SendManyCmd defines the sendmany JSON-RPC command.

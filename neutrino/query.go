@@ -1054,7 +1054,7 @@ func (s *ChainService) prepareCFiltersQuery(
 	// [startHeight-1, stopHeight]. We go one below our startHeight since
 	// the hash of the previous block is needed for validation.
 	numFilters := uint32(stopHeight - startHeight + 1)
-	blockHeaders, _, err := s.BlockHeaders.FetchHeaderAncestors(
+	blockHeaders, _, err := s.NeutrinoDB.FetchBlockHeaderAncestors(
 		numFilters, stopHash,
 	)
 	if err != nil {
@@ -1068,7 +1068,7 @@ func (s *ChainService) prepareCFiltersQuery(
 			numFilters+1, len(blockHeaders))
 	}
 
-	filterHeaders, _, err := s.RegFilterHeaders.FetchHeaderAncestors(
+	filterHeaders, _, err := s.NeutrinoDB.FetchFilterHeaderAncestors(
 		numFilters, stopHash,
 	)
 	if err != nil {
@@ -1316,7 +1316,7 @@ func (s *ChainService) getMoreFiltersIfNeeded(
 		return
 	}
 	go func() {
-		_, height, err := s.BlockHeaders.FetchHeader(&blockHash)
+		_, height, err := s.NeutrinoDB.FetchBlockHeader(&blockHash)
 		if err != nil {
 			// Error so we'll just do nothing
 			return
@@ -1374,9 +1374,9 @@ func (s *ChainService) GetCFilter(blockHash chainhash.Hash,
 
 	doHash := &blockHash
 	var doHeight int64
-	if _, height, err := s.BlockHeaders.FetchHeader(&blockHash); err != nil {
+	if _, height, err := s.NeutrinoDB.FetchBlockHeader(&blockHash); err != nil {
 		return nil, err
-	} else if _, tipHeight, err := s.BlockHeaders.ChainTip(); err != nil {
+	} else if _, tipHeight, err := s.NeutrinoDB.BlockChainTip(); err != nil {
 		return nil, err
 	} else if tipHeight-height < wire.MaxGetCFiltersReqRange {
 		// We're at or near the tip, don't load a batch
@@ -1416,7 +1416,7 @@ func (s *ChainService) GetCFilter(blockHash chainhash.Hash,
 			return nil, err
 		}
 		// Maybe the block was rolled back while we were fetching ?
-		if _, _, err := s.BlockHeaders.FetchHeader(&blockHash); err != nil {
+		if _, _, err := s.NeutrinoDB.FetchBlockHeader(&blockHash); err != nil {
 			return nil, err
 		}
 		log.Warnf("Made request for filter [%s] but still not in cache, retry",
@@ -1433,7 +1433,7 @@ func (s *ChainService) GetBlock(blockHash chainhash.Hash,
 	// Fetch the corresponding block header from the database. If this
 	// isn't found, then we don't have the header for this block so we
 	// can't request it.
-	blockHeader, height, err := s.BlockHeaders.FetchHeader(&blockHash)
+	blockHeader, height, err := s.NeutrinoDB.FetchBlockHeader(&blockHash)
 	if err != nil || blockHeader.BlockHash() != blockHash {
 		return nil, er.Errorf("Couldn't get header for block %s "+
 			"from database", blockHash)

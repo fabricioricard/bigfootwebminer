@@ -85,6 +85,8 @@ func (m *MetaService) GetInfo20(ctx context.Context,
 		ban.Addr = bi.Addr
 		ban.Reason = bi.Reason
 		ban.EndTime = bi.BanExpiresTime.String()
+		ban.BanScore = bi.BanScore
+
 		ni.Bans = append(ni.Bans, &ban)
 		return nil
 	})

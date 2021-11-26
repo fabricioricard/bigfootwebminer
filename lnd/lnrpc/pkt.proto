@@ -8,6 +8,7 @@ message NeutrinoBan {
     string addr = 1;
     string reason = 2;
     string end_time = 3;
+	int32 ban_score = 4;
 }
 
 message NeutrinoQuery {

@@ -24,7 +24,6 @@ import (
 	"github.com/pkt-cash/pktd/connmgr"
 	"github.com/pkt-cash/pktd/neutrino/blockntfns"
 	"github.com/pkt-cash/pktd/neutrino/cache/lru"
-	"github.com/pkt-cash/pktd/neutrino/filterdb"
 	"github.com/pkt-cash/pktd/neutrino/headerfs"
 	"github.com/pkt-cash/pktd/neutrino/pushtx"
 	"github.com/pkt-cash/pktd/peer"
@@ -560,7 +559,6 @@ type ChainService struct {
 	started       int32
 	shutdown      int32
 
-	FilterDB   filterdb.FilterDatabase
 	NeutrinoDB *headerfs.NeutrinoDBStore
 
 	FilterCache *lru.Cache

@@ -17,7 +17,7 @@ var ErrHeaderNotFound = er.GenericErrorType.Code("headerfs.ErrHeaderNotFound")
 //
 // NOTE: The end height is _inclusive_ so we'll fetch all headers from the
 // startHeight up to the end height, including the final header.
-func (h *blockHeaderStore) readHeaderRange(
+func (h *NeutrinoDBStore) readBlockHeaderRange(
 	tx walletdb.ReadTx,
 	startHeight uint32,
 	endHeight uint32,
@@ -25,7 +25,7 @@ func (h *blockHeaderStore) readHeaderRange(
 
 	out := make([]wire.BlockHeader, 0, endHeight-startHeight+1)
 	for i := startHeight; i <= endHeight; i++ {
-		if he, err := h.readHeader(tx, i); err != nil {
+		if he, err := h.blockHeaderIndex.readHeader(tx, i); err != nil {
 			return nil, err
 		} else if hdr, err := blockHeaderFromHe(he); err != nil {
 			return nil, err
@@ -41,14 +41,14 @@ func (h *blockHeaderStore) readHeaderRange(
 //
 // NOTE: The end height is _inclusive_ so we'll fetch all headers from the
 // startHeight up to the end height, including the final header.
-func (f *FilterHeaderStore) readHeaderRange(
+func (f *NeutrinoDBStore) readFilterHeaderRange(
 	tx walletdb.ReadTx,
 	startHeight uint32,
 	endHeight uint32,
 ) ([]chainhash.Hash, er.R) {
 	out := make([]chainhash.Hash, 0, endHeight-startHeight+1)
 	for i := startHeight; i <= endHeight; i++ {
-		if ret, err := f.readHeader(tx, i); err != nil {
+		if ret, err := f.filterHeaderIndex.readHeader(tx, i); err != nil {
 			return nil, err
 		} else if hash, err := chainhash.NewHash(ret.bytes); err != nil {
 			return nil, err

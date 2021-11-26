@@ -33,6 +33,7 @@ var helpDescsEnUS = map[string]string{
 	"createtransaction-inputminheight": "The minimum block height to take inputs from (default: 0)",
 	"createtransaction-maxinputs":      "Maximum number of transaction inputs that are allowed",
 	"createtransaction-autolock":       "If specified, all txouts spent for this transaction will be locked under this name",
+	"createtransaction-nosign":         "If specified, create an *unsigned* transaction",
 	"createtransaction--result0":       "The hex encoded transaction result",
 
 	// GetAddressBalancesCmd help.

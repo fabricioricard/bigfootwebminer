@@ -1360,8 +1360,13 @@ func createTransaction(icmd interface{}, w *wallet.Wallet) (interface{}, er.R) {
 		maxInputs = *cmd.MaxInputs
 	}
 
+	sendMode := wallet.SendModeSigned
+	if cmd.NoSign != nil && *cmd.NoSign {
+		sendMode = wallet.SendModeUnsigned
+	}
+
 	tx, err := sendOutputs(w, amounts, vote, cmd.FromAddresses, minconf,
-		feeSatPerKb, wallet.SendModeSigned, cmd.ChangeAddress, inputMinHeight, maxInputs)
+		feeSatPerKb, sendMode, cmd.ChangeAddress, inputMinHeight, maxInputs)
 	if err != nil {
 		return "", err
 	}

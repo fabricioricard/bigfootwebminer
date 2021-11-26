@@ -232,6 +232,9 @@ func (w *Wallet) txToOutputs(txr CreateTxReq) (tx *txauthor.AuthoredTx, err er.R
 	// rolled back when this method returns to ensure the dry run didn't
 	// alter the DB in any way.
 	if txr.SendMode == SendModeUnsigned {
+		if err := dbtx.Commit(); err != nil {
+			return nil, err
+		}
 		return tx, nil
 	}
 
@@ -397,7 +400,7 @@ type eligibleOutputs struct {
 }
 
 func (w *Wallet) findEligibleOutputs(
-	dbtx walletdb.ReadTx,
+	dbtx walletdb.ReadWriteTx,
 	needAmount btcutil.Amount,
 	fromAddresses *[]btcutil.Address,
 	minconf int32,
@@ -416,7 +419,11 @@ func (w *Wallet) findEligibleOutputs(
 	haveAmounts := make(map[string]*amountCount)
 	var winner *amountCount
 
-	if err := w.TxStore.ForEachUnspentOutput(txmgrNs, nil, func(_ []byte, output *wtxmgr.Credit) er.R {
+	var burnedOutputs [][]byte
+
+	log.Debugf("Looking for unspents to build transaction")
+
+	if err := w.TxStore.ForEachUnspentOutput(txmgrNs, nil, func(key []byte, output *wtxmgr.Credit) er.R {
 
 		// Verify that the output is coming from one of the addresses which we accept to spend from
 		// This is inherently expensive to filter at this level and ideally it would be moved into
@@ -439,7 +446,10 @@ func (w *Wallet) findEligibleOutputs(
 					output.OutPoint.String(), output.Height)
 				return nil
 			} else if txrules.IsBurned(output, w.chainParams, bs.Height+1440) {
-				log.Debugf("Skipping burned output at height %d", output.Height)
+				log.Tracef("Skipping burned output at height %d", output.Height)
+				if len(burnedOutputs) < 1_000_000 {
+					burnedOutputs = append(burnedOutputs, key)
+				}
 				return nil
 			}
 		}
@@ -545,6 +555,19 @@ func (w *Wallet) findEligibleOutputs(
 		return nil
 	}); err != nil && !er.IsLoopBreak(err) {
 		return out, err
+	}
+
+	log.Debugf("Got unspents")
+
+	if len(burnedOutputs) > 0 {
+		wtxmgrBucket := dbtx.ReadWriteBucket(wtxmgrNamespaceKey)
+		log.Infof("Deleting [%d] burned coins", len(burnedOutputs))
+		for _, op := range burnedOutputs {
+			if err := wtxmgr.DeleteRawUnspent(wtxmgrBucket, op); err != nil {
+				return out, err
+			}
+		}
+		log.Infof("Deleting [%d] burned coins, complete", len(burnedOutputs))
 	}
 
 	if inputComparator != nil {

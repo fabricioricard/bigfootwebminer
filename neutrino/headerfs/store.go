@@ -215,7 +215,9 @@ func (h *NeutrinoDBStore) HeightFromHash(hash *chainhash.Hash) (uint32, er.R) {
 //
 // NOTE: Part of the BlockHeaderStore interface.
 func (h *NeutrinoDBStore) RollbackLastBlock(tx walletdb.ReadWriteTx) (*RollbackHeader, er.R) {
-	result := RollbackHeader{}
+	result := RollbackHeader{
+		BlockHeader: &waddrmgr.BlockStamp{},
+	}
 	//Get the height before we truncate to check against the FilterChainTip
 	ct, err := h.blockHeaderIndex.chainTip(tx)
 	if err != nil {

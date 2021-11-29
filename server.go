@@ -2556,8 +2556,8 @@ func newServer(listenAddrs, agentBlacklist, agentWhitelist []string,
 	}
 	bmConfig := banmgr.Config{
 		DisableBanning: cfg.DisableBanning,
-		IpWhiteList: agentWhitelist,
-		BanThreashold: cfg.BanThreshold,
+		IpWhiteList:    []string{},
+		BanThreashold:  cfg.BanThreshold,
 	}
 	s := server{
 		startupTime:          time.Now().Unix(),

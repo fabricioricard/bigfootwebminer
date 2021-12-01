@@ -655,7 +655,11 @@ func NewChainService(cfg Config) (*ChainService, er.R) {
 	// provided their own resolution function. If so, then we'll use that
 	// instead as this may be routing requests over an anonymizing network.
 	amgr := addrmgr.New(cfg.DataDir, nameResolver)
-
+	bmConfig := banmgr.Config{
+		DisableBanning: false,
+		IpWhiteList:    []string{},
+		BanThreashold:  BanThreshold,
+	}
 	s := ChainService{
 		chainParams:       cfg.ChainParams,
 		addrManager:       amgr,
@@ -674,6 +678,7 @@ func NewChainService(cfg Config) (*ChainService, er.R) {
 		pendingFilters:    make(map[*pendingFiltersReq]struct{}),
 		queries:           make(map[uint32]*Query),
 		invListeners:      make(map[chainhash.Hash][]chan *ServerPeer),
+		banMgr:            *banmgr.New(&bmConfig),
 	}
 
 	// We do the same for queryBatch.
@@ -962,7 +967,7 @@ func (s *ChainService) GetBlockHeight(hash *chainhash.Hash) (int32, er.R) {
 // the score is above the ban threshold, the peer will be banned and
 // disconnected.
 func (sp *ServerPeer) addBanScore(persistent, transient uint32, reason string) {
-	if sp.server.banMgr.AddBanScore(sp.Addr(), persistent, transient, reason) {
+	if sp.banMgr.AddBanScore(sp.Addr(), persistent, transient, reason) {
 		sp.Disconnect()
 	}
 }

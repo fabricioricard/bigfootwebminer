@@ -29,12 +29,7 @@ type BannedPeers struct {
 
 type SuspiciousPeers struct {
 	banReason       *string
-	dynamicBanScore dbs
-}
-
-type dbs struct {
-	bs          *DynamicBanScore
-	lastUsedSec int64
+	dynamicBanScore *DynamicBanScore
 }
 
 type BanMgr struct {
@@ -94,7 +89,7 @@ func (b *BanMgr) ForEachIp(f func(bi BanInfo) er.R) er.R {
 	}
 	//Go through suspicious peers
 	for ip, peer := range b.suspicious {
-		score := peer.dynamicBanScore.bs.Int()
+		score := peer.dynamicBanScore.Int()
 
 		if score == 0 {
 			delete(b.suspicious, ip)
@@ -141,7 +136,7 @@ func (b *BanMgr) AddBanScore(host string, persistent, transient uint32, reason s
 		// The score is not being increased, but a warning message is still
 		// logged if the score is above the warn threshold.
 		b.m.Lock()
-		score := b.suspicious[ip].dynamicBanScore.bs.Int()
+		score := b.suspicious[ip].dynamicBanScore.Int()
 		b.m.Unlock()
 		if score > warnThreshold {
 			log.Warnf("Misbehaving peer %s: %s -- ban score is %d, it was not increased this time", ip, reason, score)
@@ -149,7 +144,7 @@ func (b *BanMgr) AddBanScore(host string, persistent, transient uint32, reason s
 		return false
 	}
 	b.m.Lock()
-	score := b.suspicious[ip].dynamicBanScore.bs.Increase(persistent, transient)
+	score := b.suspicious[ip].dynamicBanScore.increase(persistent, transient, time.Now())
 	b.m.Unlock()
 	if score > warnThreshold {
 		log.Warnf("Misbehaving peer %s: %s -- ban score increased to %d", ip, reason, score)

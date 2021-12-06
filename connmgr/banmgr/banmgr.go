@@ -126,7 +126,7 @@ func (b *BanMgr) AddBanScore(host string, persistent, transient uint32, reason s
 		return false
 	}
 	b.suspicious[ip] = SuspiciousPeers{
-		banReason: &reason,
+		banReason:       &reason,
 		dynamicBanScore: &DynamicBanScore{},
 	}
 	warnThreshold := b.config.BanThreashold >> 1
@@ -142,7 +142,9 @@ func (b *BanMgr) AddBanScore(host string, persistent, transient uint32, reason s
 		return false
 	}
 	//Increase is safe for concurrent access
+	b.m.Lock()
 	score := b.suspicious[ip].dynamicBanScore.Increase(persistent, transient)
+	b.m.Unlock()
 	log.Debugf("Suspicious peer ban score increased!")
 	if score > warnThreshold {
 		log.Warnf("Misbehaving peer %s: %s -- ban score increased to %d", ip, reason, score)

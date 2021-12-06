@@ -7,28 +7,26 @@ import (
 
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/pkt-cash/pktd/wire"
 
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 )
 
 var (
-	// indexBucket is the main top-level bucket for the header index.
-	// Nothing is stored in this bucket other than the sub-buckets which
-	// contains the indexes for the various header types.
-	oldIndexBucket = []byte("header-index")
+	//header_by_height contains both the header and filter
+	//heights_by_hash_pfx contains the start of the hash and a list of heights
+	oldIndexBucket    = []byte("header-index")
+	oldHeadersBucket  = []byte("headers")
+	oldTipKey         = []byte("tip")
+	oldHdrBucket      = []byte("hdr")
+	oldByheightBucket = []byte("byheight")
 
-	// headersBucket is the top level, under this is each header type
-	// e.g. "block", "filter", etc
-	// under those are the following
-	// * "tip" -> tip hash
-	// * "hdr" -> headers by hash
-	// * "byheight" -> header hash by height (main chain)
-	headersBucket = []byte("headers")
+	header_by_height    = []byte("header_by_height")
+	heights_by_hash_pfx = []byte("heights_by_hash_pfx")
 
-	tipKey         = []byte("tip")
-	hdrBucket      = []byte("hdr")
-	byheightBucket = []byte("byheight")
+	block_tip  = []byte("block_tip")
+	filter_tip = []byte("filter_tip")
 )
 
 var Err er.ErrorType = er.NewErrorType("headerfs.Err")
@@ -63,29 +61,68 @@ const (
 	// BlockHeaderSize is the size in bytes of the Block header type.
 	BlockHeaderSize = 80
 
-	// RegularFilterHeaderSize is the size in bytes of the RegularFilter
+	// FilterHeaderSize is the size in bytes of the RegularFilter
 	// header type.
-	RegularFilterHeaderSize = 32
+	FilterHeaderSize = 32
+
+	TotalSize = BlockHeaderSize + FilterHeaderSize
 )
 
-// headerIndex is an index stored within the database that allows for random
-// access into the on-disk header file. This, in conjunction with a flat file
-// of headers consists of header database. The keys have been specifically
-// crafted in order to ensure maximum write performance during IBD, and also to
-// provide the necessary indexing properties required.
-type headerIndex struct {
+// headerStore ...
+type headerStore struct {
+	//TODO what will this be?
 	indexType []byte
 }
 
-// newHeaderIndex creates a new headerIndex given an already open database, and
-// a particular header type.
-func newHeaderIndex(tx walletdb.ReadWriteTx, indexType string) (*headerIndex, er.R) {
-	// Drop the old bucket if it happens to exist
+type headerEntry struct {
+	blockHeader  *wire.BlockHeader
+	filterHeader chainhash.Hash
+}
+
+type headerEntryWithHeight struct {
+	Header *headerEntry
+	Height uint32
+}
+
+type headerWithHeightBatch []headerEntryWithHeight
+
+func (h headerWithHeightBatch) Len() int {
+	return len(h)
+}
+
+func (h headerWithHeightBatch) Less(i, j int) bool {
+	return h[i].Height-h[j].Height < 0
+}
+
+func (h headerWithHeightBatch) Swap(i, j int) {
+	h[i], h[j] = h[j], h[i]
+}
+
+type heightByHashPfx struct {
+	hashPrefix uint32
+	heights    []uint32
+}
+
+func newHeaderIndex(tx walletdb.ReadWriteTx, indexType string) (*headerStore, er.R) {
+
+	// Drop the old buckets if it happens to exist
 	if err := tx.DeleteTopLevelBucket(oldIndexBucket); err != nil && !walletdb.ErrBucketNotFound.Is(err) {
 		return nil, err
 	}
+	if err := tx.DeleteTopLevelBucket(oldHdrBucket); err != nil && !walletdb.ErrBucketNotFound.Is(err) {
+		return nil, err
+	}
+	if err := tx.DeleteTopLevelBucket(oldByheightBucket); err != nil && !walletdb.ErrBucketNotFound.Is(err) {
+		return nil, err
+	}
+	if err := tx.DeleteTopLevelBucket(oldTipKey); err != nil && !walletdb.ErrBucketNotFound.Is(err) {
+		return nil, err
+	}
+	if err := tx.DeleteTopLevelBucket(oldHeadersBucket); err != nil && !walletdb.ErrBucketNotFound.Is(err) {
+		return nil, err
+	}
 
-	hi := &headerIndex{
+	hi := &headerStore{
 		indexType: []byte(indexType),
 	}
 
@@ -96,12 +133,12 @@ func newHeaderIndex(tx walletdb.ReadWriteTx, indexType string) (*headerIndex, er
 	return hi, nil
 }
 
-func (h *headerIndex) createBuckets(tx walletdb.ReadWriteTx) er.R {
+func (h *headerStore) createBuckets(tx walletdb.ReadWriteTx) er.R {
 	if bkt, err := h.rwBucket(tx); err != nil {
 		return err
-	} else if _, err := bkt.CreateBucketIfNotExists(hdrBucket); err != nil {
+	} else if _, err := bkt.CreateBucketIfNotExists(header_by_height); err != nil {
 		return err
-	} else if _, err := bkt.CreateBucketIfNotExists(byheightBucket); err != nil {
+	} else if _, err := bkt.CreateBucketIfNotExists(heights_by_hash_pfx); err != nil {
 		return err
 	} else {
 		return nil
@@ -109,9 +146,9 @@ func (h *headerIndex) createBuckets(tx walletdb.ReadWriteTx) er.R {
 }
 
 func rootRwBucket(tx walletdb.ReadWriteTx) (walletdb.ReadWriteBucket, er.R) {
-	root := tx.ReadWriteBucket(headersBucket)
+	root := tx.ReadWriteBucket(header_by_height)
 	if root == nil {
-		if r, err := tx.CreateTopLevelBucket(headersBucket); err != nil {
+		if r, err := tx.CreateTopLevelBucket(header_by_height); err != nil {
 			return nil, err
 		} else {
 			root = r
@@ -120,7 +157,7 @@ func rootRwBucket(tx walletdb.ReadWriteTx) (walletdb.ReadWriteBucket, er.R) {
 	return root, nil
 }
 
-func (h *headerIndex) deleteBuckets(tx walletdb.ReadWriteTx) er.R {
+func (h *headerStore) deleteBuckets(tx walletdb.ReadWriteTx) er.R {
 	root, err := rootRwBucket(tx)
 	if err != nil {
 		return err
@@ -131,7 +168,7 @@ func (h *headerIndex) deleteBuckets(tx walletdb.ReadWriteTx) er.R {
 	return nil
 }
 
-func (h *headerIndex) rwBucket(tx walletdb.ReadWriteTx) (walletdb.ReadWriteBucket, er.R) {
+func (h *headerStore) rwBucket(tx walletdb.ReadWriteTx) (walletdb.ReadWriteBucket, er.R) {
 	root, err := rootRwBucket(tx)
 	if err != nil {
 		return nil, err
@@ -147,8 +184,8 @@ func (h *headerIndex) rwBucket(tx walletdb.ReadWriteTx) (walletdb.ReadWriteBucke
 	return sub, nil
 }
 
-func (h *headerIndex) roBucket(tx walletdb.ReadTx) (walletdb.ReadBucket, er.R) {
-	root := tx.ReadBucket(headersBucket)
+func (h *headerStore) roBucket(tx walletdb.ReadTx) (walletdb.ReadBucket, er.R) {
+	root := tx.ReadBucket(header_by_height)
 	if root == nil {
 		return nil, walletdb.ErrBucketNotFound.Default()
 	}
@@ -159,12 +196,30 @@ func (h *headerIndex) roBucket(tx walletdb.ReadTx) (walletdb.ReadBucket, er.R) {
 	return sub, nil
 }
 
-// headerEntry is an internal type that's used to quickly map a (height, hash)
-// pair into the proper key that'll be stored within the database.
-type headerEntry struct {
-	hash   chainhash.Hash
-	height uint32
-	bytes  []byte
+func (he *headerEntry) Bytes() []byte {
+	buf := bytes.NewBuffer(make([]byte, 0, TotalSize))
+	he.blockHeader.BtcEncode(buf, 0, wire.BaseEncoding)
+	buf.Write(he.filterHeader[:])
+	return buf.Bytes()
+}
+
+func DecodeHeaderEntry(b []byte) (*headerEntry, er.R) {
+	if len(b) != TotalSize {
+		return nil, er.New("Wrong size. Can not decode header.")
+	}
+	var bh wire.BlockHeader
+	err := bh.Deserialize(bytes.NewReader(b[0:BlockHeaderSize]))
+	if err != nil {
+		return nil, err
+	}
+	hash, err := chainhash.NewHash(b[BlockHeaderSize:TotalSize])
+	if err != nil {
+		return nil, err
+	}
+	return &headerEntry{
+		blockHeader:  &bh,
+		filterHeader: *hash,
+	}, nil
 }
 
 func heightBin(height uint32) []byte {
@@ -173,30 +228,8 @@ func heightBin(height uint32) []byte {
 	return heightBytes
 }
 
-// headerBatch is a batch of header entries to be written to disk.
-type headerBatch []headerEntry
-
-// Len returns the number of routes in the collection.
-//
-// NOTE: This is part of the sort.Interface implementation.
-func (h headerBatch) Len() int {
-	return len(h)
-}
-
-// Sort by height
-func (h headerBatch) Less(i, j int) bool {
-	return h[i].height-h[j].height < 0
-}
-
-// Swap swaps the elements with indexes i and j.
-//
-// NOTE: This is part of the sort.Interface implementation.
-func (h headerBatch) Swap(i, j int) {
-	h[i], h[j] = h[j], h[i]
-}
-
 // addHeaders writes a batch of header entries in a single atomic batch
-func (h *headerIndex) addHeaders(tx walletdb.ReadWriteTx, batch headerBatch, isGenesis bool) er.R {
+func (h *headerStore) addBlockHeaders(tx walletdb.ReadWriteTx, batch headerWithHeightBatch, isGenesis bool) er.R {
 	// If we're writing a 0-length batch, make no changes and return.
 	if len(batch) == 0 {
 		return nil
@@ -206,72 +239,139 @@ func (h *headerIndex) addHeaders(tx walletdb.ReadWriteTx, batch headerBatch, isG
 	if err != nil {
 		return err
 	}
-	headerBucket := rootBucket.NestedReadWriteBucket(hdrBucket)
-	byheight := rootBucket.NestedReadWriteBucket(byheightBucket)
+	headerBucket := rootBucket.NestedReadWriteBucket(header_by_height)
+	heightByHashBucket := rootBucket.NestedReadWriteBucket(heights_by_hash_pfx)
 
 	sort.Sort(batch)
-	var tip *headerEntry
+	var tip *BlockHeader
 	if !isGenesis {
-		tip, err = h.chainTip(tx)
+		he, err := h.chainTip(tx)
 		if err != nil {
 			return err
 		}
+		tip.BlockHeader = he.Header.blockHeader
+		tip.Height = he.Height
 	} else {
-		tip = &headerEntry{}
+		tip = &BlockHeader{}
 	}
-
+	var heightBytes []byte
 	for _, header := range batch {
-		if !isGenesis && header.height > tip.height+1 {
-			log.Warnf("Unable to add header at height %v because tip is %v", header.height, tip.height)
+		if !isGenesis && header.Height > tip.Height+1 {
+			log.Warnf("Unable to add header at height %v because tip is %v", header.Height, tip.Height)
 			break
 		}
-		heightBytes := heightBin(header.height)
-		headerBuf := bytes.NewBuffer(make([]byte, 0, len(heightBytes)+len(header.bytes)))
-		headerBuf.Write(heightBytes[:])
-		headerBuf.Write(header.bytes)
-		content := headerBuf.Bytes()
-		if err := headerBucket.Put(header.hash[:], content); err != nil {
-			return err
-		}
-		if err := byheight.Put(heightBytes[:], header.hash[:]); err != nil {
+		he := headerEntry{blockHeader: header.Header.blockHeader, filterHeader: chainhash.Hash{}}
+		value := he.Bytes()
+		heightBytes := heightBin(header.Height)
+		if err := headerBucket.Put(heightBytes, value); err != nil {
 			return err
 		}
 
-		tip.height = header.height
-		tip.hash = header.hash
+		hash := header.Header.blockHeader.BlockHash()
+		if v := heightByHashBucket.Get(hash[0:4]); v == nil {
+			return err
+		} else {
+			//Find heightBytes in heights and append hash index to it
+			if !bytes.Contains(v, heightBytes) {
+				v = append(v, heightBytes...)
+				if err := heightByHashBucket.Put(hash[0:4], v); err != nil {
+					return err
+				}
+			}
+		}
+		headerBuf := bytes.NewBuffer(make([]byte, 0, len(heightBytes)+len(header.Header.Bytes())))
+		headerBuf.Write(header.Header.Bytes())
+		headerBytes := headerBuf.Bytes()
+		if err := headerBucket.Put(heightBytes, headerBytes); err != nil {
+			return err
+		}
 	}
+	return rootBucket.Put(block_tip, heightBytes)
+	// Here we would want to write to rootBucket.Put(block_tip, bytesForInt(height))
+}
 
-	if tip == nil {
+/*
+// FilterHeader represents a filter header (basic or extended). The filter
+// header itself is coupled with the block height and hash of the filter's
+// block.
+type FilterHeader struct {
+	// HeaderHash is the hash of the block header that this filter header
+	// corresponds to.
+	HeaderHash chainhash.Hash
+
+	// FilterHash is the filter header itself.
+	FilterHash chainhash.Hash
+
+	// Height is the block height of the filter header in the main chain.
+	Height uint32
+}
+*/
+
+// Take as input, array of FilterHeader
+// If there is a FilterHeader in the array which is larger than the chainTip of block headers -> error
+// sort by height
+// take first entry, if first entry is greater than current filter_chain_tip -> error
+// Read the block headers at the given heights -> []headerEntry
+// For each headerEntry
+//   headerEntry.blockHeader.BlockHash() and compare to the HeaderHash -> mismatch = error
+//   entry.FilterHeader = filterHeader
+// for each headerEntry -> write back to db
+// update filter_chain_tip to new tip height
+func (h *headerStore) addFilterHeaders(tx walletdb.ReadWriteTx, batch headerWithHeightBatch) er.R {
+	// If we're writing a 0-length batch, make no changes and return.
+	if len(batch) == 0 {
 		return nil
 	}
-	return rootBucket.Put(tipKey, tip.hash[:])
+	sort.Sort(batch)
+
+	h.chainTip(tx)
+	return nil
 }
 
-func (h *headerIndex) headerByHash(tx walletdb.ReadTx, hash *chainhash.Hash) (*headerEntry, er.R) {
+// Return headerEntry
+// NOTE: process is take the first 4 bytes of the hash, lookup in heightByHashPrefix
+// Take each match, load the header, take the BlockHeader and do BlockHash(), compare hash, match => return
+func (h *headerStore) headerByHash(tx walletdb.ReadTx, hash *chainhash.Hash) (*headerEntry, er.R) {
 	rootBucket, err := h.roBucket(tx)
 	if err != nil {
 		return nil, err
 	}
-	headersBucket := rootBucket.NestedReadBucket(hdrBucket)
-	if hdrBytes := headersBucket.Get(hash[:]); hdrBytes == nil {
-		// If the hash wasn't found, then we don't know of this
-		// hash within the index.
+	heightsByHashBucket := rootBucket.NestedReadBucket(heights_by_hash_pfx)
+	heights := heightsByHashBucket.Get(hash[0:4])
+	if heights == nil {
 		return nil, ErrHashNotFound.New("", er.Errorf("With hash %v", hash))
-	} else {
-		return &headerEntry{
-			hash:   *hash,
-			height: binary.BigEndian.Uint32(hdrBytes[:4]),
-			bytes:  hdrBytes[4:],
-		}, nil
 	}
+	headersBucket := rootBucket.NestedReadBucket(header_by_height)
+	n := 0
+	// if bh is nil, you don't have this height -> error, should not happen
+	// decodeHeaderEntry -> note when you implement this function, it should error if the length is wrong
+	// headerEntry.blockHeader.BlockHash() -> compare this to the requested hash
+	// match -> break with result,  no match -> continue
+	for n < len(heights) {
+		height := heights[n : n+4]
+		n += 4
+		hb := headersBucket.Get(height)
+		if hb == nil {
+			//return error
+		}
+		he, err := DecodeHeaderEntry(hb)
+		if err != nil {
+			//return error
+		}
+		bHash := he.blockHeader.BlockHash()
+		if hash.IsEqual(&bHash) {
+			return he, nil
+		}
+	}
+	return nil, er.New("No match found")
 }
 
-func (h *headerIndex) readHeader(tx walletdb.ReadTx, height uint32) (*headerEntry, er.R) {
+func (h *headerStore) readHeader(tx walletdb.ReadTx, height uint32) (*headerEntryWithHeight, er.R) {
 	rootBucket, err := h.roBucket(tx)
 	if err != nil {
 		return nil, err
 	}
-	byheight := rootBucket.NestedReadBucket(byheightBucket)
+	byheight := rootBucket.NestedReadBucket(header_by_height)
 	hb := heightBin(height)
 	if hash := byheight.Get(hb[:]); hash == nil {
 		// If the hash wasn't found, then we don't know of this
@@ -281,65 +381,68 @@ func (h *headerIndex) readHeader(tx walletdb.ReadTx, height uint32) (*headerEntr
 		return nil, err
 	} else if hbh, err := h.headerByHash(tx, ch); err != nil {
 		return nil, err
-	} else if hbh.height != height {
-		return nil, er.Errorf("Db corruption, header %v at height %d is actually height %d",
-			ch, height, hbh.height)
 	} else {
-		return hbh, nil
+		return &headerEntryWithHeight{
+			Header: hbh,
+			Height: height,
+		}, nil
 	}
 }
 
 // chainTip returns the best hash and height that the index knows of.
-func (h *headerIndex) chainTip(tx walletdb.ReadTx) (*headerEntry, er.R) {
+//func (h *headerStore) chainTip(tx walletdb.ReadTx) (*headerEntry, er.R) {
+func (h *headerStore) chainTip(tx walletdb.ReadTx) (*headerEntryWithHeight, er.R) {
 	rootBucket, err := h.roBucket(tx)
 	if err != nil {
 		return nil, err
 	}
-	if th, err := chainhash.NewHash(rootBucket.Get(tipKey)); err != nil {
+	if th, err := chainhash.NewHash(rootBucket.Get(header_by_height)); err != nil {
 		return nil, err
 	} else {
-		return h.headerByHash(tx, th)
+		he, err := h.headerByHash(tx, th)
+		return &headerEntryWithHeight{
+			Header: he,
+			Height: 0,
+		}, err
 	}
+}
+
+func IntToBytes(i uint32) (arr []byte) {
+	binary.BigEndian.PutUint32(arr[0:4], i)
+	return
 }
 
 // truncateIndex truncates the index for a particluar header type by a single
 // header entry. The passed newTip pointer should point to the hash of the new
 // chain tip. Optionally, if the entry is to be deleted as well, deleteFlag
 // should be set to true.
-func (h *headerIndex) truncateIndex(
-	tx walletdb.ReadWriteTx,
-	deleteFlag bool,
-) (*headerEntry, er.R) {
+func (h *headerStore) truncateIndex(tx walletdb.ReadWriteTx) (*headerEntry, er.R) {
 	rootBucket, err := h.rwBucket(tx)
 	if err != nil {
 		return nil, err
 	}
 
-	// If deleteFlag is set, then we'll also delete this entry
-	// from the database as the primary index (block headers)
-	// is being rolled back.
+	//rolls back both block and filter
 	if ct, err := h.chainTip(tx); err != nil {
 		return nil, err
-	} else if prev, err := h.readHeader(tx, ct.height-1); err != nil {
-		return nil, err
-	} else if err := rootBucket.Put(tipKey, prev.hash[:]); err != nil {
+	} else if err := rootBucket.Put(block_tip, IntToBytes(ct.Height-1)); err != nil {
 		return nil, err
 	} else {
-		if deleteFlag {
-			hdrGroup := rootBucket.NestedReadWriteBucket(hdrBucket)
-			byheight := rootBucket.NestedReadWriteBucket(byheightBucket)
+		hdrGroup := rootBucket.NestedReadWriteBucket(header_by_height)
+		heightsbyhash := rootBucket.NestedReadWriteBucket(heights_by_hash_pfx)
 
-			// Delete byheight but only if it's still the same
-			hb := heightBin(ct.height)
-			if !bytes.Equal(byheight.Get(hb[:]), ct.hash[:]) {
-			} else if err := byheight.Delete(hb[:]); err != nil {
-				return nil, err
-			}
-
-			if err := hdrGroup.Delete(ct.hash[:]); err != nil {
-				return nil, err
-			}
+		hb := heightBin(ct.Height)
+		if !bytes.Equal(hdrGroup.Get(hb[:]), ct.Header.Bytes()) {
+			return nil, er.New("Can not find entry.")
+		} else if err := hdrGroup.Delete(hb[:]); err != nil {
+			return nil, err
 		}
+
+		if err := heightsbyhash.Delete(ct.Header.filterHeader.CloneBytes()); err != nil {
+			return nil, err
+		}
+		//Get prev entry
+		
 		return prev, nil
 	}
 }

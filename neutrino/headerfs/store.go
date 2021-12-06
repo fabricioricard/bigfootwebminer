@@ -27,9 +27,10 @@ var headerBufPool = sync.Pool{
 }
 
 type NeutrinoDBStore struct {
-	Db                walletdb.DB
-	blockHeaderIndex  *headerIndex
-	filterHeaderIndex *headerIndex
+	Db          walletdb.DB
+	headerStore *headerStore
+	//blockHeaderIndex  *headerIndex
+	//filterHeaderIndex *headerIndex
 }
 
 type RollbackHeader struct {
@@ -42,38 +43,31 @@ type RollbackHeader struct {
 // parameters for the target chain. These parameters are required as if this is
 // the initial start up of the NeutrinoDBStore, then the initial genesis
 // header will need to be inserted.
-func NewNeutrinoDBStore(
-	db walletdb.DB,
-	netParams *chaincfg.Params,
-) (*NeutrinoDBStore, er.R) {
-
+func NewNeutrinoDBStore(db walletdb.DB, netParams *chaincfg.Params) (*NeutrinoDBStore, er.R) {
 	var nns *NeutrinoDBStore
 	retry := false
 	err := walletdb.Update(db, func(tx walletdb.ReadWriteTx) er.R {
-		hStore, err := newHeaderIndex(tx, "blocks")
-		if err != nil {
-			return err
-		}
-		fStore, err := newHeaderIndex(tx, "filters")
+		hStore, err := newHeaderIndex(tx, "store")
 		if err != nil {
 			return err
 		}
 		nns0 := &NeutrinoDBStore{
-			blockHeaderIndex:  hStore,
-			filterHeaderIndex: fStore,
-			Db:                db}
+			headerStore: hStore,
+			Db:          db}
 		nns = nns0
-		if _, err := nns0.blockHeaderIndex.headerByHash(tx, netParams.GenesisHash); err != nil {
-			genesisHeader := BlockHeader{
-				BlockHeader: &genesis.Block(netParams.GenesisHash).Header,
-				Height:      0,
+		if _, err := nns0.headerStore.headerByHash(tx, netParams.GenesisHash); err != nil {
+			genHeader := genesis.Block(netParams.GenesisHash).Header
+			gh := []headerEntryWithHeight{}
+			he := headerEntry{
+				&genHeader,
+				chainhash.Hash{},
 			}
-			gh := []headerEntry{genesisHeader.toIndexEntry()}
-			if err := nns0.blockHeaderIndex.addHeaders(tx, gh, true); err != nil {
+			gh = append(gh, headerEntryWithHeight{&he, 0})
+			if err := nns0.headerStore.addBlockHeaders(tx, gh, true); err != nil {
 				return err
 			}
 		}
-		if _, err := nns.filterHeaderIndex.headerByHash(tx, netParams.GenesisHash); err != nil {
+		if _, err := nns.headerStore.headerByHash(tx, netParams.GenesisHash); err != nil {
 			if basicFilter, err := builder.BuildBasicFilter(
 				genesis.Block(netParams.GenesisHash), nil,
 			); err != nil {
@@ -84,13 +78,14 @@ func NewNeutrinoDBStore(
 			); err != nil {
 				return err
 			} else {
-				fh := FilterHeader{
-					HeaderHash: *netParams.GenesisHash,
-					FilterHash: genesisFilterHash,
-					Height:     0,
+				fh := []headerEntryWithHeight{}
+				he := headerEntry{
+					&wire.BlockHeader{},
+					genesisFilterHash,
 				}
+				fh = append(fh, headerEntryWithHeight{&he, 0})
 				log.Debug("Inserting genesis block filter")
-				return nns.filterHeaderIndex.addHeaders(tx, []headerEntry{fh.toIndexEntry()}, true)
+				return nns.headerStore.addFilterHeaders(tx, fh)
 			}
 		}
 		if err := nns0.CheckConnectivity(tx); err != nil {
@@ -125,12 +120,15 @@ func (h *NeutrinoDBStore) FetchBlockHeader(hash *chainhash.Hash) (*wire.BlockHea
 func (h *NeutrinoDBStore) FetchBlockHeader1(tx walletdb.ReadTx, hash *chainhash.Hash) (
 	*wire.BlockHeader, uint32, er.R,
 ) {
-	if he, err := h.blockHeaderIndex.headerByHash(tx, hash); err != nil {
+	he := headerEntryWithHeight{Header: &headerEntry{}, Height: 0}
+	var err er.R
+	he.Header, err = h.headerStore.headerByHash(tx, hash)
+	if err != nil {
 		return nil, 0, err
-	} else if hdr, err := blockHeaderFromHe(he); err != nil {
+	} else if hdr, err := blockHeaderFromHe(&he); err != nil {
 		return nil, 0, err
 	} else {
-		return hdr.BlockHeader, he.height, nil
+		return hdr.BlockHeader, he.Height, nil
 	}
 }
 
@@ -151,9 +149,12 @@ func (h *NeutrinoDBStore) FetchBlockHeaderByHeight1(
 	tx walletdb.ReadTx,
 	height uint32,
 ) (*wire.BlockHeader, er.R) {
-	if he, err := h.blockHeaderIndex.readHeader(tx, height); err != nil {
+	if he, err := h.headerStore.readHeader(tx, height); err != nil {
 		return nil, err
-	} else if hdr, err := blockHeaderFromHe(he); err != nil {
+	} else if hdr, err := blockHeaderFromHe(&headerEntryWithHeight{
+		Header: he,
+		Height: height,
+	}); err != nil {
 		return nil, err
 	} else {
 		return hdr.BlockHeader, nil
@@ -252,7 +253,6 @@ func (h *NeutrinoDBStore) RollbackLastBlock(tx walletdb.ReadWriteTx) (*RollbackH
 // BlockHeader is a Bitcoin block header that also has its height included.
 type BlockHeader struct {
 	*wire.BlockHeader
-
 	// Height is the height of this block header within the current main
 	// chain.
 	Height uint32
@@ -270,29 +270,27 @@ func (b *BlockHeader) toIndexEntry() headerEntry {
 		panic(er.Errorf("Failed to serialize header %v", err))
 	}
 	return headerEntry{
-		hash:   b.BlockHash(),
-		height: b.Height,
-		bytes:  hb.Bytes(),
+		blockHeader: b.BlockHeader,
 	}
 }
 
-func blockHeaderFromHe(he *headerEntry) (*BlockHeader, er.R) {
+func blockHeaderFromHe(he *headerEntryWithHeight) (*BlockHeader, er.R) {
 	var ret wire.BlockHeader
-	if err := ret.Deserialize(bytes.NewReader(he.bytes)); err != nil {
+	if err := ret.Deserialize(bytes.NewReader(he.Header.Bytes())); err != nil {
 		return nil, err
 	}
-	return &BlockHeader{&ret, he.height}, nil
+	return &BlockHeader{&ret, he.Height}, nil
 }
 
 // WriteHeaders writes a set of headers to disk.
 //
 // NOTE: Part of the BlockHeaderStore interface.
 func (h *NeutrinoDBStore) WriteBlockHeaders(tx walletdb.ReadWriteTx, hdrs ...BlockHeader) er.R {
-	headerLocs := make([]headerEntry, len(hdrs))
+	headerLocs := make([]headerEntryWithHeight, len(hdrs))
 	for i, header := range hdrs {
-		headerLocs[i] = header.toIndexEntry()
+		headerLocs[i].Header = header.toIndexEntry()
 	}
-	return h.blockHeaderIndex.addHeaders(tx, headerLocs, false)
+	return h.headerStore.addBlockHeaders(tx, headerLocs, false)
 }
 
 // blockLocatorFromHash takes a given block hash and then creates a block

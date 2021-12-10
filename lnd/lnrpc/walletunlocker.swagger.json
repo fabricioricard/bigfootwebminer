@@ -4,6 +4,10 @@
     "title": "walletunlocker.proto",
     "version": "version not set"
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -20,12 +24,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcChangePasswordResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -54,12 +52,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcGenSeedResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -97,12 +89,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcInitWalletResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -129,12 +115,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcUnlockWalletResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -354,39 +334,6 @@
     },
     "lnrpcUnlockWalletResponse": {
       "type": "object"
-    },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "type_url": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "runtimeError": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
     }
   }
 }

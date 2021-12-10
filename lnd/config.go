@@ -119,6 +119,9 @@ const (
 	// commitment output.
 	// TODO(halseth): find a more scientific choice of value.
 	defaultMaxLocalCSVDelay = 10000
+
+	//default wallet filename
+	defaultWalletFile = "wallet.db"
 )
 
 var (
@@ -174,6 +177,7 @@ type Config struct {
 	LndDir       string `long:"lnddir" description:"The base directory that contains lnd's data, logs, configuration file, etc."`
 	ConfigFile   string `short:"C" long:"configfile" description:"Path to configuration file"`
 	DataDir      string `short:"b" long:"datadir" description:"The directory to store lnd's data within"`
+	WalletFile   string `long:"wallet" description:"Wallet file name or path, if a simple word such as 'personal' then pktwallet will look for wallet_personal.db, if prefixed with a / then pktwallet will consider it an absolute path. (default: wallet.db)"`
 	SyncFreelist bool   `long:"sync-freelist" description:"Whether the databases used within lnd should sync their freelist to disk. This is disabled by default resulting in improved memory performance during operation, but with an increase in startup time."`
 
 	NoTLS              bool     `long:"notls" description:"Disable TLS on RPC and REST"`
@@ -338,6 +342,7 @@ func DefaultConfig() Config {
 		LndDir:            DefaultLndDir,
 		ConfigFile:        DefaultConfigFile,
 		DataDir:           defaultDataDir,
+		WalletFile:        defaultWalletFile,
 		DebugLevel:        defaultLogLevel,
 		NoTLS:             false,
 		TLSCertPath:       defaultTLSCertPath,

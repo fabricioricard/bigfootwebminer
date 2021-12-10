@@ -1202,7 +1202,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 
 	pwService := walletunlocker.New(
 		chainConfig.ChainDir, cfg.ActiveNetParams.Params,
-		!cfg.SyncFreelist, macaroonFiles,
+		!cfg.SyncFreelist, macaroonFiles, WalletFilename(cfg.WalletFile),
 	)
 
 	// Set up a new PasswordService, which will listen for passwords
@@ -1294,7 +1294,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	wg.Wait()
 
 	// Wait for user to provide the password.
-	log.Infof("Waiting for wallet encryption password. Use `lncli " +
+	log.Infof("Waiting for wallet (" + WalletFilename(cfg.WalletFile) + ") encryption password. Use `lncli " +
 		"create` to create a wallet, `lncli unlock` to unlock an " +
 		"existing wallet, or `lncli changepassword` to change the " +
 		"password of an existing wallet and unlock it.")
@@ -1315,8 +1315,9 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		netDir := btcwallet.NetworkDir(
 			chainConfig.ChainDir, cfg.ActiveNetParams.Params,
 		)
+		log.Infof("Wallet " + WalletFilename(cfg.WalletFile))
 		loader := wallet.NewLoader(
-			cfg.ActiveNetParams.Params, netDir, "wallet.db", !cfg.SyncFreelist,
+			cfg.ActiveNetParams.Params, netDir, WalletFilename(cfg.WalletFile), !cfg.SyncFreelist,
 			recoveryWindow,
 		)
 
@@ -1635,4 +1636,12 @@ func parseHeaderStateAssertion(state string) (*headerfs.FilterHeader, er.R) {
 		Height:     uint32(height),
 		FilterHash: *hash,
 	}, nil
+}
+
+func WalletFilename(walletName string) string {
+	if strings.HasSuffix(walletName, ".db") {
+		return walletName
+	} else {
+		return fmt.Sprintf("wallet_%s.db", walletName)
+	}
 }

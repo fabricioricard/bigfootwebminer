@@ -4,6 +4,10 @@
     "title": "invoicesrpc/invoices.proto",
     "version": "version not set"
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -14,18 +18,12 @@
     "/v2/invoices/cancel": {
       "post": {
         "summary": "CancelInvoice cancels a currently open invoice. If the invoice is already\ncanceled, this call will succeed. If the invoice is already settled, it will\nfail.",
-        "operationId": "Invoices_CancelInvoice",
+        "operationId": "CancelInvoice",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/invoicesrpcCancelInvoiceResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -47,18 +45,12 @@
     "/v2/invoices/hodl": {
       "post": {
         "summary": "AddHoldInvoice creates a hold invoice. It ties the invoice to the hash\nsupplied in the request.",
-        "operationId": "Invoices_AddHoldInvoice",
+        "operationId": "AddHoldInvoice",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/invoicesrpcAddHoldInvoiceResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -80,18 +72,12 @@
     "/v2/invoices/settle": {
       "post": {
         "summary": "SettleInvoice settles an accepted invoice. If the invoice is already\nsettled, this call will succeed.",
-        "operationId": "Invoices_SettleInvoice",
+        "operationId": "SettleInvoice",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/invoicesrpcSettleInvoiceResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -113,27 +99,12 @@
     "/v2/invoices/subscribe/{r_hash}": {
       "get": {
         "summary": "SubscribeSingleInvoice returns a uni-directional stream (server -\u003e client)\nto notify the client of state transitions of the specified invoice.\nInitially the current invoice state is always sent out.",
-        "operationId": "Invoices_SubscribeSingleInvoice",
+        "operationId": "SubscribeSingleInvoice",
         "responses": {
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcInvoice"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcInvoice"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/lnrpcInvoice"
             }
           }
         },
@@ -216,6 +187,7 @@
         },
         "private": {
           "type": "boolean",
+          "format": "boolean",
           "description": "Whether this invoice should include routing hints for private channels."
         }
       }
@@ -262,10 +234,12 @@
           "type": "string"
         },
         "is_required": {
-          "type": "boolean"
+          "type": "boolean",
+          "format": "boolean"
         },
         "is_known": {
-          "type": "boolean"
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
@@ -329,6 +303,7 @@
         },
         "settled": {
           "type": "boolean",
+          "format": "boolean",
           "title": "Whether this invoice has been fulfilled"
         },
         "creation_date": {
@@ -373,6 +348,7 @@
         },
         "private": {
           "type": "boolean",
+          "format": "boolean",
           "description": "Whether this invoice should include routing hints for private channels."
         },
         "add_index": {
@@ -420,6 +396,7 @@
         },
         "is_keysend": {
           "type": "boolean",
+          "format": "boolean",
           "description": "Indicates if this invoice was a spontaneous payment that arrived via keysend\n[EXPERIMENTAL]."
         }
       }
@@ -500,64 +477,6 @@
             "$ref": "#/definitions/lnrpcHopHint"
           },
           "description": "A list of hop hints that when chained together can assist in reaching a\nspecific destination."
-        }
-      }
-    },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "type_url": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "runtimeError": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    },
-    "runtimeStreamError": {
-      "type": "object",
-      "properties": {
-        "grpc_code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "http_code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "http_status": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
         }
       }
     }

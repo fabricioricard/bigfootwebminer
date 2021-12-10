@@ -4,6 +4,10 @@
     "title": "metaservice.proto",
     "version": "version not set"
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -68,6 +72,7 @@
         },
         "identity_pubkey": {
           "type": "string",
+          "format": "byte",
           "description": "The identity pubkey of the current node."
         },
         "alias": {
@@ -161,6 +166,10 @@
         },
         "end_time": {
           "type": "string"
+        },
+        "ban_score": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -397,39 +406,6 @@
         "birthday_block": {
           "type": "integer",
           "format": "int32"
-        }
-      }
-    },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "type_url": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "runtimeError": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
         }
       }
     }

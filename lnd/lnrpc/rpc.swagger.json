@@ -4,6 +4,10 @@
     "title": "rpc.proto",
     "version": "version not set"
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -20,12 +24,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcWalletBalanceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -44,12 +42,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcChannelBalanceResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -66,12 +58,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcListChannelsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -126,12 +112,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcChannelPoint"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -158,12 +138,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcAbandonChannelResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -214,12 +188,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcChanBackupSnapshot"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -236,12 +204,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcRestoreBackupResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -268,22 +230,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcChanBackupSnapshot"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcChanBackupSnapshot"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/lnrpcChanBackupSnapshot"
             }
           }
         },
@@ -301,12 +248,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcVerifyChanBackupResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -334,12 +275,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcChannelBackup"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -382,12 +317,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcClosedChannelsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -450,12 +379,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcPendingChannelsResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -471,22 +394,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcOpenStatusUpdate"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcOpenStatusUpdate"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/lnrpcOpenStatusUpdate"
             }
           }
         },
@@ -513,22 +421,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcChannelEventUpdate"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcChannelEventUpdate"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/lnrpcChannelEventUpdate"
             }
           }
         },
@@ -546,12 +439,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcSendResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -580,12 +467,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcSendResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -611,22 +492,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcCloseStatusUpdate"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcCloseStatusUpdate"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/lnrpcCloseStatusUpdate"
             }
           }
         },
@@ -701,12 +567,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcPolicyUpdateResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -733,12 +593,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcDebugLevelResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -767,12 +621,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcFeeReportResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -789,12 +637,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcFundingStateStepResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -823,12 +665,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcGetInfoResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -846,12 +682,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcGetRecoveryInfoResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -868,12 +698,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcChannelGraph"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -902,12 +726,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcChannelEdge"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -935,12 +753,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcNetworkInfo"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -957,12 +769,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcNodeInfo"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -998,12 +804,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcNodeMetricsResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -1019,8 +819,7 @@
                 "UNKNOWN",
                 "BETWEENNESS_CENTRALITY"
               ]
-            },
-            "collectionFormat": "multi"
+            }
           }
         ],
         "tags": [
@@ -1038,12 +837,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcQueryRoutesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1112,8 +905,7 @@
             "items": {
               "type": "string",
               "format": "byte"
-            },
-            "collectionFormat": "multi"
+            }
           },
           {
             "name": "source_pub_key",
@@ -1181,8 +973,7 @@
                 "MPP_REQ",
                 "MPP_OPT"
               ]
-            },
-            "collectionFormat": "multi"
+            }
           }
         ],
         "tags": [
@@ -1198,22 +989,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcGraphTopologyUpdate"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcGraphTopologyUpdate"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/lnrpcGraphTopologyUpdate"
             }
           }
         },
@@ -1231,12 +1007,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcInvoice"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1271,12 +1041,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcListInvoiceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1327,12 +1091,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcAddInvoiceResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -1358,22 +1116,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcInvoice"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcInvoice"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/lnrpcInvoice"
             }
           }
         },
@@ -1410,12 +1153,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcBakeMacaroonResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -1443,12 +1180,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcListMacaroonIDsResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -1466,12 +1197,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcListPermissionsResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -1488,12 +1213,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcDeleteMacaroonIDResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1521,12 +1240,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcNewAddressResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1560,12 +1273,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcListPaymentsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1616,12 +1323,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcDeleteAllPaymentsResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "tags": [
@@ -1638,12 +1339,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcPayReq"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1671,12 +1366,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcListPeersResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -1701,12 +1390,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcConnectPeerResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1733,22 +1416,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcPeerEvent"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcPeerEvent"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/lnrpcPeerEvent"
             }
           }
         },
@@ -1766,12 +1434,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcDisconnectPeerResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1799,12 +1461,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcSignMessageResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -1831,12 +1487,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcStopResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1866,12 +1516,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcForwardingHistoryResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -1898,12 +1542,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcTransactionDetails"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -1959,12 +1597,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcSendCoinsResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -1993,12 +1625,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcEstimateFeeResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -2026,12 +1652,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcSendManyResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -2057,22 +1677,7 @@
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "type": "object",
-              "properties": {
-                "result": {
-                  "$ref": "#/definitions/lnrpcTransaction"
-                },
-                "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
-                }
-              },
-              "title": "Stream result of lnrpcTransaction"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/lnrpcTransaction"
             }
           }
         },
@@ -2131,12 +1736,6 @@
             "schema": {
               "$ref": "#/definitions/lnrpcListUnspentResponse"
             }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
           }
         },
         "parameters": [
@@ -2155,39 +1754,6 @@
             "required": false,
             "type": "integer",
             "format": "int32"
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
-    "/v1/verifymessage": {
-      "post": {
-        "summary": "lncli: `verifymessage`\nVerifyMessage verifies a signature over a msg. The signature must be\nzbase32 encoded and signed by an active node in the resident node's\nchannel database. In addition to returning the validity of the signature,\nVerifyMessage also returns the recovered pubkey from the signature.",
-        "operationId": "VerifyMessage",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcVerifyMessageResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/lnrpcVerifyMessageRequest"
-            }
           }
         ],
         "tags": [
@@ -2401,7 +1967,8 @@
       "type": "object",
       "properties": {
         "remote_node_pub": {
-          "type": "string"
+          "type": "string",
+          "format": "byte"
         },
         "channel_point": {
           "type": "string"
@@ -2555,7 +2122,16 @@
       "properties": {
         "macaroon": {
           "type": "string",
+          "format": "byte",
           "description": "The hex encoded macaroon, serialized in binary format."
+        }
+      }
+    },
+    "lnrpcBcastTransactionResponse": {
+      "type": "object",
+      "properties": {
+        "txn_hash": {
+          "type": "string"
         }
       }
     },
@@ -2628,6 +2204,7 @@
         },
         "remote_pubkey": {
           "type": "string",
+          "format": "byte",
           "title": "The identity pubkey of the remote node"
         },
         "channel_point": {
@@ -2925,6 +2502,7 @@
         },
         "remote_pubkey": {
           "type": "string",
+          "format": "byte",
           "description": "Public key of the remote peer that we formerly had a channel with."
         },
         "capacity": {
@@ -3031,10 +2609,12 @@
           "format": "int64"
         },
         "node1_pub": {
-          "type": "string"
+          "type": "string",
+          "format": "byte"
         },
         "node2_pub": {
-          "type": "string"
+          "type": "string",
+          "format": "byte"
         },
         "capacity": {
           "type": "string",
@@ -3315,6 +2895,15 @@
     "lnrpcConnectPeerResponse": {
       "type": "object"
     },
+    "lnrpcCreateTransactionResponse": {
+      "type": "object",
+      "properties": {
+        "transaction": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
     "lnrpcDebugLevelRequest": {
       "type": "object",
       "properties": {
@@ -3350,6 +2939,14 @@
     },
     "lnrpcDisconnectPeerResponse": {
       "type": "object"
+    },
+    "lnrpcDumpPrivKeyResponse": {
+      "type": "object",
+      "properties": {
+        "private_key": {
+          "type": "string"
+        }
+      }
     },
     "lnrpcEdgeLocator": {
       "type": "object",
@@ -3777,6 +3374,7 @@
         },
         "identity_pubkey": {
           "type": "string",
+          "format": "byte",
           "description": "The identity pubkey of the current node."
         },
         "alias": {
@@ -3859,6 +3457,25 @@
         }
       }
     },
+    "lnrpcGetNetworkStewardVoteResponse": {
+      "type": "object",
+      "properties": {
+        "vote_against": {
+          "type": "string"
+        },
+        "vote_for": {
+          "type": "string"
+        }
+      }
+    },
+    "lnrpcGetNewAddressResponse": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        }
+      }
+    },
     "lnrpcGetRecoveryInfoResponse": {
       "type": "object",
       "properties": {
@@ -3876,6 +3493,53 @@
           "type": "number",
           "format": "double",
           "description": "The recovery progress, ranging from 0 to 1."
+        }
+      }
+    },
+    "lnrpcGetSecretResponse": {
+      "type": "object",
+      "properties": {
+        "secret": {
+          "type": "string"
+        }
+      }
+    },
+    "lnrpcGetTransactionDetailsResult": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "category": {
+          "type": "string"
+        },
+        "vout": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "amount_units": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "lnrpcGetTransactionResponse": {
+      "type": "object",
+      "properties": {
+        "transaction": {
+          "$ref": "#/definitions/lnrpcTransactionResult"
+        }
+      }
+    },
+    "lnrpcGetWalletSeedResponse": {
+      "type": "object",
+      "properties": {
+        "seed": {
+          "type": "string"
         }
       }
     },
@@ -4051,6 +3715,14 @@
           "type": "integer",
           "format": "int64",
           "description": "The time-lock delta of the channel."
+        }
+      }
+    },
+    "lnrpcImportPrivKeyResponse": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
         }
       }
     },
@@ -4367,6 +4039,17 @@
         }
       }
     },
+    "lnrpcListLockUnspentResponse": {
+      "type": "object",
+      "properties": {
+        "locked_unspent": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "lnrpcListMacaroonIDsResponse": {
       "type": "object",
       "properties": {
@@ -4435,6 +4118,27 @@
             "$ref": "#/definitions/lnrpcUtxo"
           },
           "title": "A list of utxos"
+        }
+      }
+    },
+    "lnrpcLockUnspentResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
+    "lnrpcLockUnspentTransaction": {
+      "type": "object",
+      "properties": {
+        "txid": {
+          "type": "string"
+        },
+        "vout": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -4777,10 +4481,12 @@
       "type": "object",
       "properties": {
         "destination": {
-          "type": "string"
+          "type": "string",
+          "format": "byte"
         },
         "payment_hash": {
-          "type": "string"
+          "type": "string",
+          "format": "byte"
         },
         "num_satoshis": {
           "type": "string",
@@ -4798,7 +4504,8 @@
           "type": "string"
         },
         "description_hash": {
-          "type": "string"
+          "type": "string",
+          "format": "byte"
         },
         "fallback_addr": {
           "type": "string"
@@ -4923,6 +4630,7 @@
       "properties": {
         "pub_key": {
           "type": "string",
+          "format": "byte",
           "title": "The identity pubkey of the peer"
         },
         "address": {
@@ -4994,6 +4702,7 @@
       "properties": {
         "pub_key": {
           "type": "string",
+          "format": "byte",
           "description": "The identity pubkey of the peer."
         },
         "type": {
@@ -5169,6 +4878,9 @@
           "title": "The success probability of the returned route based on the current mission\ncontrol state. [EXPERIMENTAL]"
         }
       }
+    },
+    "lnrpcReSyncChainResponse": {
+      "type": "object"
     },
     "lnrpcReadyForPsbtFunding": {
       "type": "object",
@@ -5556,6 +5268,9 @@
         }
       }
     },
+    "lnrpcSetNetworkStewardVoteResponse": {
+      "type": "object"
+    },
     "lnrpcSignMessageRequest": {
       "type": "object",
       "properties": {
@@ -5563,6 +5278,9 @@
           "type": "string",
           "format": "byte",
           "description": "The message to be signed. When using REST, this field must be encoded as\nbase64."
+        },
+        "address": {
+          "type": "string"
         }
       }
     },
@@ -5572,6 +5290,14 @@
         "signature": {
           "type": "string",
           "title": "The signature for the given message"
+        }
+      }
+    },
+    "lnrpcStopReSyncResponse": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
         }
       }
     },
@@ -5640,6 +5366,7 @@
         },
         "raw_tx_hex": {
           "type": "string",
+          "format": "byte",
           "description": "The raw transaction hex."
         },
         "label": {
@@ -5657,6 +5384,69 @@
             "$ref": "#/definitions/lnrpcTransaction"
           },
           "description": "The list of transactions relevant to the wallet."
+        }
+      }
+    },
+    "lnrpcTransactionResult": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "amount_units": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "fee": {
+          "type": "number",
+          "format": "double"
+        },
+        "fee_units": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "confirmations": {
+          "type": "string",
+          "format": "int64"
+        },
+        "block_hash": {
+          "type": "string"
+        },
+        "block_index": {
+          "type": "string",
+          "format": "int64"
+        },
+        "block_time": {
+          "type": "string",
+          "format": "int64"
+        },
+        "txid": {
+          "type": "string"
+        },
+        "wallet_conflicts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "time": {
+          "type": "string",
+          "format": "int64"
+        },
+        "time_received": {
+          "type": "string",
+          "format": "int64"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/lnrpcGetTransactionDetailsResult"
+          }
+        },
+        "raw": {
+          "type": "string",
+          "format": "byte"
         }
       }
     },
@@ -5694,34 +5484,6 @@
     "lnrpcVerifyChanBackupResponse": {
       "type": "object"
     },
-    "lnrpcVerifyMessageRequest": {
-      "type": "object",
-      "properties": {
-        "msg": {
-          "type": "string",
-          "format": "byte",
-          "description": "The message over which the signature is to be verified. When using REST,\nthis field must be encoded as base64."
-        },
-        "signature": {
-          "type": "string",
-          "title": "The signature to be verified over the given message"
-        }
-      }
-    },
-    "lnrpcVerifyMessageResponse": {
-      "type": "object",
-      "properties": {
-        "valid": {
-          "type": "boolean",
-          "format": "boolean",
-          "title": "Whether the signature was valid over the given message"
-        },
-        "pubkey": {
-          "type": "string",
-          "title": "The pubkey recovered from the signature"
-        }
-      }
-    },
     "lnrpcWalletBalanceResponse": {
       "type": "object",
       "properties": {
@@ -5739,64 +5501,6 @@
           "type": "string",
           "format": "int64",
           "title": "The unconfirmed balance of a wallet(with 0 confirmations)"
-        }
-      }
-    },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "type_url": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "runtimeError": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    },
-    "runtimeStreamError": {
-      "type": "object",
-      "properties": {
-        "grpc_code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "http_code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "http_status": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
         }
       }
     }

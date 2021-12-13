@@ -129,13 +129,14 @@ type UnlockerService struct {
 	macaroonFiles []string
 
 	walletFile string
+	walletPath string
 }
 
 var _ lnrpc.WalletUnlockerServer = (*UnlockerService)(nil)
 
 // New creates and returns a new UnlockerService.
 func New(chainDir string, params *chaincfg.Params, noFreelistSync bool,
-	macaroonFiles []string, wallet string) *UnlockerService {
+	macaroonFiles []string, walletPath string, walletFilename string) *UnlockerService {
 
 	return &UnlockerService{
 		InitMsgs:   make(chan *WalletInitMsg, 1),
@@ -147,7 +148,8 @@ func New(chainDir string, params *chaincfg.Params, noFreelistSync bool,
 		chainDir:        chainDir,
 		netParams:       params,
 		macaroonFiles:   macaroonFiles,
-		walletFile:      wallet,
+		walletFile:      walletFilename,
+		walletPath:      walletPath,
 	}
 }
 
@@ -171,6 +173,9 @@ func (u *UnlockerService) GenSeed0(_ context.Context,
 	// Before we start, we'll ensure that the wallet hasn't already created
 	// so we don't show a *new* seed to the user if one already exists.
 	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
+	if u.walletPath != "" {
+		netDir = u.walletPath
+	}
 	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, 0)
 	walletExists, err := loader.WalletExists()
 	if err != nil {
@@ -281,6 +286,9 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 	// We'll then open up the directory that will be used to store the
 	// wallet's files so we can check if the wallet already exists.
 	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
+	if u.walletPath != "" {
+		netDir = u.walletPath
+	}
 	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, uint32(recoveryWindow))
 
 	walletExists, err := loader.WalletExists()
@@ -359,6 +367,9 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	recoveryWindow := uint32(in.RecoveryWindow)
 
 	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
+	if u.walletPath != "" {
+		netDir = u.walletPath
+	}
 	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, recoveryWindow)
 
 	// Check if wallet already exists.
@@ -431,6 +442,9 @@ func (u *UnlockerService) ChangePassword0(ctx context.Context,
 	in *lnrpc.ChangePasswordRequest) (*lnrpc.ChangePasswordResponse, er.R) {
 
 	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
+	if u.walletPath != "" {
+		netDir = u.walletPath
+	}
 	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, 0)
 
 	// First, we'll make sure the wallet exists for the specific chain and

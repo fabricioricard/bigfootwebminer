@@ -1199,10 +1199,10 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	macaroonFiles := []string{
 		cfg.AdminMacPath, cfg.ReadMacPath, cfg.InvoiceMacPath,
 	}
-
+	walletPath, walletFilename := WalletFilename(cfg.WalletFile)
 	pwService := walletunlocker.New(
 		chainConfig.ChainDir, cfg.ActiveNetParams.Params,
-		!cfg.SyncFreelist, macaroonFiles, WalletFilename(cfg.WalletFile),
+		!cfg.SyncFreelist, macaroonFiles, walletPath, walletFilename,
 	)
 
 	// Set up a new PasswordService, which will listen for passwords
@@ -1294,7 +1294,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	wg.Wait()
 
 	// Wait for user to provide the password.
-	log.Infof("Waiting for wallet (" + WalletFilename(cfg.WalletFile) + ") encryption password. Use `lncli " +
+	log.Infof("Waiting for wallet (" + walletFilename + ") encryption password. Use `lncli " +
 		"create` to create a wallet, `lncli unlock` to unlock an " +
 		"existing wallet, or `lncli changepassword` to change the " +
 		"password of an existing wallet and unlock it.")
@@ -1315,9 +1315,11 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		netDir := btcwallet.NetworkDir(
 			chainConfig.ChainDir, cfg.ActiveNetParams.Params,
 		)
-		log.Infof("Wallet " + WalletFilename(cfg.WalletFile))
+		if walletPath != "" {
+			netDir = walletPath
+		}
 		loader := wallet.NewLoader(
-			cfg.ActiveNetParams.Params, netDir, WalletFilename(cfg.WalletFile), !cfg.SyncFreelist,
+			cfg.ActiveNetParams.Params, netDir, walletFilename, !cfg.SyncFreelist,
 			recoveryWindow,
 		)
 
@@ -1638,10 +1640,16 @@ func parseHeaderStateAssertion(state string) (*headerfs.FilterHeader, er.R) {
 	}, nil
 }
 
-func WalletFilename(walletName string) string {
+// Parse wallet filename,
+// return path and filename when it starts with /
+func WalletFilename(walletName string) (string, string) {
 	if strings.HasSuffix(walletName, ".db") {
-		return walletName
+		if strings.HasPrefix(walletName, "/") {
+			dir, filename := filepath.Split(walletName)
+			return dir, filename
+		}
+		return "", walletName
 	} else {
-		return fmt.Sprintf("wallet_%s.db", walletName)
+		return "", fmt.Sprintf("wallet_%s.db", walletName)
 	}
 }

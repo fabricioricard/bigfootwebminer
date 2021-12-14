@@ -9,10 +9,7 @@ import (
 	"github.com/pkt-cash/pktd/pktlog/log"
 
 	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/btcutil/gcs/builder"
-	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/genesis"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	"github.com/pkt-cash/pktd/wire"
@@ -26,82 +23,16 @@ var headerBufPool = sync.Pool{
 	New: func() interface{} { return new(bytes.Buffer) },
 }
 
-type NeutrinoDBStore struct {
-	Db          walletdb.DB
-	headerStore *headerStore
-	//blockHeaderIndex  *headerIndex
-	//filterHeaderIndex *headerIndex
-}
+// type NeutrinoDBStore_ struct {
+// 	Db          walletdb.DB
+// 	headerStore *NeutrinoDBStore
+// 	//blockHeaderIndex  *headerIndex
+// 	//filterHeaderIndex *headerIndex
+// }
 
 type RollbackHeader struct {
 	BlockHeader  *waddrmgr.BlockStamp
 	FilterHeader *chainhash.Hash
-}
-
-// NewNeutrinoDBStore creates a new instance of the NeutrinoDBStore based on
-// a target file path, an open database instance, and finally a set of
-// parameters for the target chain. These parameters are required as if this is
-// the initial start up of the NeutrinoDBStore, then the initial genesis
-// header will need to be inserted.
-func NewNeutrinoDBStore(db walletdb.DB, netParams *chaincfg.Params) (*NeutrinoDBStore, er.R) {
-	var nns *NeutrinoDBStore
-	retry := false
-	err := walletdb.Update(db, func(tx walletdb.ReadWriteTx) er.R {
-		hStore, err := newHeaderIndex(tx, "store")
-		if err != nil {
-			return err
-		}
-		nns0 := &NeutrinoDBStore{
-			headerStore: hStore,
-			Db:          db}
-		nns = nns0
-		if _, err := nns0.headerStore.headerByHash(tx, netParams.GenesisHash); err != nil {
-			genHeader := genesis.Block(netParams.GenesisHash).Header
-			gh := []headerEntryWithHeight{}
-			he := headerEntry{
-				&genHeader,
-				chainhash.Hash{},
-			}
-			gh = append(gh, headerEntryWithHeight{&he, 0})
-			if err := nns0.headerStore.addBlockHeaders(tx, gh, true); err != nil {
-				return err
-			}
-		}
-		if _, err := nns.headerStore.headerByHash(tx, netParams.GenesisHash); err != nil {
-			if basicFilter, err := builder.BuildBasicFilter(
-				genesis.Block(netParams.GenesisHash), nil,
-			); err != nil {
-				return err
-			} else if genesisFilterHash, err := builder.MakeHeaderForFilter(
-				basicFilter,
-				genesis.Block(netParams.GenesisHash).Header.PrevBlock,
-			); err != nil {
-				return err
-			} else {
-				fh := []headerEntryWithHeight{}
-				he := headerEntry{
-					&wire.BlockHeader{},
-					genesisFilterHash,
-				}
-				fh = append(fh, headerEntryWithHeight{&he, 0})
-				log.Debug("Inserting genesis block filter")
-				return nns.headerStore.addFilterHeaders(tx, fh)
-			}
-		}
-		if err := nns0.CheckConnectivity(tx); err != nil {
-			log.Warnf("CheckConnectivity failed [%v] resyncing header chain", err)
-			hStore.deleteBuckets(tx)
-			retry = true
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	if retry {
-		return NewNeutrinoDBStore(db, netParams)
-	}
-	return nns, nil
 }
 
 // FetchHeader attempts to retrieve a block header determined by the passed
@@ -117,20 +48,6 @@ func (h *NeutrinoDBStore) FetchBlockHeader(hash *chainhash.Hash) (*wire.BlockHea
 		return err
 	})
 }
-func (h *NeutrinoDBStore) FetchBlockHeader1(tx walletdb.ReadTx, hash *chainhash.Hash) (
-	*wire.BlockHeader, uint32, er.R,
-) {
-	he := headerEntryWithHeight{Header: &headerEntry{}, Height: 0}
-	var err er.R
-	he.Header, err = h.headerStore.headerByHash(tx, hash)
-	if err != nil {
-		return nil, 0, err
-	} else if hdr, err := blockHeaderFromHe(&he); err != nil {
-		return nil, 0, err
-	} else {
-		return hdr.BlockHeader, he.Height, nil
-	}
-}
 
 // FetchHeaderByHeight attempts to retrieve a target block header based on a
 // block height.
@@ -143,22 +60,6 @@ func (h *NeutrinoDBStore) FetchBlockHeaderByHeight(height uint32) (*wire.BlockHe
 		header, err = h.FetchBlockHeaderByHeight1(tx, height)
 		return err
 	})
-}
-
-func (h *NeutrinoDBStore) FetchBlockHeaderByHeight1(
-	tx walletdb.ReadTx,
-	height uint32,
-) (*wire.BlockHeader, er.R) {
-	if he, err := h.headerStore.readHeader(tx, height); err != nil {
-		return nil, err
-	} else if hdr, err := blockHeaderFromHe(&headerEntryWithHeight{
-		Header: he,
-		Height: height,
-	}); err != nil {
-		return nil, err
-	} else {
-		return hdr.BlockHeader, nil
-	}
 }
 
 // FetchHeaderAncestors fetches the numHeaders block headers that are the
@@ -356,63 +257,6 @@ func (h *NeutrinoDBStore) LatestBlockLocator() (blockchain.BlockLocator, er.R) {
 	})
 }
 
-// CheckConnectivity cycles through all of the block headers on disk, from last
-// to first, and makes sure they all connect to each other. Additionally, at
-// each block header, we also ensure that the index entry for that height and
-// hash also match up properly.
-func (h *NeutrinoDBStore) CheckConnectivity(tx walletdb.ReadTx) er.R {
-	if he, err := h.blockHeaderIndex.chainTip(tx); err != nil {
-		return err
-	} else {
-		for {
-			if hdr, err := blockHeaderFromHe(he); err != nil {
-				return err
-			} else if bh := hdr.BlockHeader.BlockHash(); !he.hash.IsEqual(&bh) {
-				return er.Errorf("hash mismatch at height %v, %v != %v",
-					he.height, he.hash, bh)
-			} else if he2, err := h.blockHeaderIndex.readHeader(tx, he.height); err != nil {
-				return err
-			} else if !he2.hash.IsEqual(&he.hash) {
-				return er.Errorf("header with hash not equal to header at height "+
-					" %v", he.height)
-			} else if !bytes.Equal(he2.bytes, he.bytes) {
-				return er.Errorf("header with bytes not equal to header at height "+
-					" %v", he.height)
-			} else if he.height > 0 {
-				if he, err = h.blockHeaderIndex.headerByHash(tx, &hdr.BlockHeader.PrevBlock); err != nil {
-					return err
-				}
-			} else {
-				return nil
-			}
-		}
-	}
-}
-
-// ChainTip returns the best known block header and height for the
-// blockHeaderStore.
-//
-// NOTE: Part of the BlockHeaderStore interface.
-func (h *NeutrinoDBStore) BlockChainTip() (*wire.BlockHeader, uint32, er.R) {
-	var bh *wire.BlockHeader
-	var height uint32
-	return bh, height, walletdb.View(h.Db, func(tx walletdb.ReadTx) er.R {
-		var err er.R
-		bh, height, err = h.BlockChainTip1(tx)
-		return err
-	})
-}
-
-func (h *NeutrinoDBStore) BlockChainTip1(tx walletdb.ReadTx) (*wire.BlockHeader, uint32, er.R) {
-	if ct, err := h.blockHeaderIndex.chainTip(tx); err != nil {
-		return nil, 0, err
-	} else if ch, err := blockHeaderFromHe(ct); err != nil {
-		return nil, 0, err
-	} else {
-		return ch.BlockHeader, ct.height, nil
-	}
-}
-
 // maybeResetHeaderState will reset the header state if the header assertion
 // fails, but only if the target height is found. The boolean returned indicates
 // that header state was reset.
@@ -576,25 +420,28 @@ type FilterHeader struct {
 	Height uint32
 }
 
-// toIndexEntry converts the filter header into a index entry to be stored
-// within the database.
-func (f *FilterHeader) toIndexEntry() headerEntry {
-	return headerEntry{
-		hash:   f.HeaderHash,
-		height: f.Height,
-		bytes:  f.FilterHash[:],
-	}
-}
-
 // WriteHeaders writes a batch of filter headers to persistent storage. The
 // headers themselves are appended to the flat file, and then the index updated
 // to reflect the new entires.
 func (f *NeutrinoDBStore) WriteFilterHeaders(tx walletdb.ReadWriteTx, hdrs ...FilterHeader) er.R {
-	headerLocs := make([]headerEntry, len(hdrs))
-	for i := range hdrs {
-		headerLocs[i] = hdrs[i].toIndexEntry()
-	}
-	return f.filterHeaderIndex.addHeaders(tx, headerLocs, false)
+	return f.addFilterHeaders(tx, hdrs, false)
+}
+
+/////
+/////
+
+// ChainTip returns the best known block header and height for the
+// blockHeaderStore.
+//
+// NOTE: Part of the BlockHeaderStore interface.
+func (h *NeutrinoDBStore) BlockChainTip() (*wire.BlockHeader, uint32, er.R) {
+	var bh *wire.BlockHeader
+	var height uint32
+	return bh, height, walletdb.View(h.Db, func(tx walletdb.ReadTx) er.R {
+		var err er.R
+		bh, height, err = h.BlockChainTip1(tx)
+		return err
+	})
 }
 
 // ChainTip returns the latest filter header and height known to the
@@ -607,14 +454,4 @@ func (f *NeutrinoDBStore) FilterChainTip() (*chainhash.Hash, uint32, er.R) {
 		hash, height, err = f.FilterChainTip1(tx)
 		return err
 	})
-}
-
-func (f *NeutrinoDBStore) FilterChainTip1(tx walletdb.ReadTx) (*chainhash.Hash, uint32, er.R) {
-	if ct, err := f.filterHeaderIndex.chainTip(tx); err != nil {
-		return nil, 0, err
-	} else if ch, err := chainhash.NewHash(ct.bytes); err != nil {
-		return nil, 0, err
-	} else {
-		return ch, ct.height, nil
-	}
 }

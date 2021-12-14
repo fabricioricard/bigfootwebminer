@@ -473,6 +473,10 @@ func MainRPCServerPermissions() map[string][]bakery.Op {
 			Entity: "offchain",
 			Action: "write",
 		}},
+		"/lnrpc.Lightning/GetAddressBalances": {{
+			Entity: "wallet",
+			Action: "read",
+		}},
 		"/lnrpc.Lightning/ReSync": {{
 			Entity: "onchain",
 			Action: "write",
@@ -514,7 +518,7 @@ func MainRPCServerPermissions() map[string][]bakery.Op {
 		}},
 		"/lnrpc.Lightning/GetNewAddress": {{
 			Entity: "wallet",
-			Action: "read",
+			Action: "write",
 		}},
 		"/lnrpc.Lightning/GetTransaction": {{
 			Entity: "wallet",
@@ -525,6 +529,10 @@ func MainRPCServerPermissions() map[string][]bakery.Op {
 			Action: "read",
 		}},
 		"/lnrpc.Lightning/SetNetworkStewardVote": {{
+			Entity: "onchain", //onchain
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/BcastTransaction": {{
 			Entity: "onchain", //onchain
 			Action: "write",
 		}},

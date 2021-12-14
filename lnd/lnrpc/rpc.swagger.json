@@ -15,6 +15,360 @@
     "application/json"
   ],
   "paths": {
+    "/pkt/v1/BcastTransaction": {
+      "post": {
+        "summary": "Broadcast a transaction",
+        "operationId": "BcastTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcBcastTransactionResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcBcastTransactionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/createtransaction": {
+      "post": {
+        "summary": "Create a transaction but do not send it to the chain",
+        "operationId": "CreateTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcCreateTransactionResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcCreateTransactionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/dumpprivkey/{address}": {
+      "get": {
+        "summary": "Returns the private key in WIF encoding that controls some wallet address.",
+        "operationId": "DumpPrivKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcDumpPrivKeyResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/getaddressbalances": {
+      "get": {
+        "summary": "lncli: `getaddressbalances`\nGetAddressBalances returns the balance for each of the addresses in the wallet.",
+        "operationId": "GetAddressBalances",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcGetAddressBalancesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "minconf",
+            "description": "Minimum number of confirmations for coins to be considered received.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "showzerobalance",
+            "description": "If true then addresses which have been created but carry zero balance will be included.",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/getnetworkstewardvote": {
+      "get": {
+        "summary": "Find out how the wallet is currently configured to vote in a network steward election",
+        "operationId": "GetNetworkStewardVote",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcGetNetworkStewardVoteResponse"
+            }
+          }
+        },
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/getnewaddress/{legacy}": {
+      "post": {
+        "summary": "Generates and returns a new payment address",
+        "operationId": "GetNewAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcGetNewAddressResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "legacy",
+            "in": "path",
+            "required": true,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcGetNewAddressRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/getsecret/{name}": {
+      "get": {
+        "summary": "Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application",
+        "operationId": "GetSecret",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcGetSecretResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/gettransaction/{txid}": {
+      "get": {
+        "summary": "Returns a JSON object with details regarding a transaction relevant to this wallet.",
+        "operationId": "GetTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcGetTransactionResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "txid",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "includewatchonly",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/getwalletseed": {
+      "get": {
+        "summary": "Get the wallet seed words for this wallet",
+        "operationId": "GetWalletSeed",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcGetWalletSeedResponse"
+            }
+          }
+        },
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/importprivkey": {
+      "post": {
+        "summary": "Imports a WIF-encoded private key to the 'imported' account.",
+        "operationId": "ImportPrivKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcImportPrivKeyResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcImportPrivKeyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/listlockunspent": {
+      "get": {
+        "summary": "Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.",
+        "operationId": "ListLockUnspent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcListLockUnspentResponse"
+            }
+          }
+        },
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/resync": {
+      "post": {
+        "summary": "Scan over the chain to find any transactions which may not have been recorded in the wallet's database",
+        "operationId": "ReSync",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcReSyncChainResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcReSyncChainRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/setnetworkstewardvote": {
+      "post": {
+        "summary": "Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)",
+        "operationId": "SetNetworkStewardVote",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcSetNetworkStewardVoteResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcSetNetworkStewardVoteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/stopresync": {
+      "get": {
+        "summary": "Stop a re-synchronization job before it's completion",
+        "operationId": "StopReSync",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcStopReSyncResponse"
+            }
+          }
+        },
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
     "/v1/balance/blockchain": {
       "get": {
         "summary": "lncli: `walletbalance`\nWalletBalance returns total unspent outputs(confirmed and unconfirmed), all\nconfirmed unspent outputs and all unconfirmed unspent outputs under control\nof the wallet.",
@@ -2127,6 +2481,15 @@
         }
       }
     },
+    "lnrpcBcastTransactionRequest": {
+      "type": "object",
+      "properties": {
+        "tx": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
     "lnrpcBcastTransactionResponse": {
       "type": "object",
       "properties": {
@@ -2895,6 +3258,54 @@
     "lnrpcConnectPeerResponse": {
       "type": "object"
     },
+    "lnrpcCreateTransactionRequest": {
+      "type": "object",
+      "properties": {
+        "to_address": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "from_address": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "electrum_format": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "change_address": {
+          "type": "string"
+        },
+        "input_min_height": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "min_conf": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "vote": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "max_inputs": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "autolock": {
+          "type": "string"
+        },
+        "sign": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
     "lnrpcCreateTransactionResponse": {
       "type": "object",
       "properties": {
@@ -3468,6 +3879,15 @@
         }
       }
     },
+    "lnrpcGetNewAddressRequest": {
+      "type": "object",
+      "properties": {
+        "legacy": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
     "lnrpcGetNewAddressResponse": {
       "type": "object",
       "properties": {
@@ -3715,6 +4135,22 @@
           "type": "integer",
           "format": "int64",
           "description": "The time-lock delta of the channel."
+        }
+      }
+    },
+    "lnrpcImportPrivKeyRequest": {
+      "type": "object",
+      "properties": {
+        "private_key": {
+          "type": "string"
+        },
+        "rescan": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "legacy": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
@@ -4879,6 +5315,29 @@
         }
       }
     },
+    "lnrpcReSyncChainRequest": {
+      "type": "object",
+      "properties": {
+        "from_height": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "to_height": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "addresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "drop_db": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
     "lnrpcReSyncChainResponse": {
       "type": "object"
     },
@@ -5265,6 +5724,17 @@
         "route": {
           "$ref": "#/definitions/lnrpcRoute",
           "description": "Route that should be used to attempt to complete the payment."
+        }
+      }
+    },
+    "lnrpcSetNetworkStewardVoteRequest": {
+      "type": "object",
+      "properties": {
+        "vote_against": {
+          "type": "string"
+        },
+        "vote_for": {
+          "type": "string"
         }
       }
     },

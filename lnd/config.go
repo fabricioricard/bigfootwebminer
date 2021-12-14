@@ -125,13 +125,19 @@ const (
 )
 
 var (
-	// DefaultLndDir is the default directory where lnd tries to find its
+	// DefaultPktDir is the default directory where pkt tries to find its
 	// configuration file and store its data. This is a directory in the
 	// user's application data, for example:
-	//   C:\Users\<username>\AppData\Local\Lnd on Windows
-	//   ~/.lnd on Linux
-	//   ~/Library/Application Support/Lnd on MacOS
-	DefaultLndDir = btcutil.AppDataDir("lnd", false)
+	//   C:\Users\<username>\AppData\Local\pktwallet on Windows
+	//   ~/.pktwallet on Linux
+	//   ~/Library/Application Support/pktwallet on MacOS
+	defaultPktDir = btcutil.AppDataDir("pktwallet", false)
+	// subdirectory where the wallet.db should be
+	defaultPktWalletDir = filepath.Join(defaultPktDir, "pkt")
+
+	// lnd folder should be under the main defaultPktDir
+	// e.g. ~/.pktwallet/lnd
+	DefaultLndDir = filepath.Join(defaultPktDir, "lnd")
 
 	// DefaultConfigFile is the default full path of lnd's configuration
 	// file.
@@ -180,14 +186,6 @@ type Config struct {
 	WalletFile   string `long:"wallet" description:"Wallet file name or path, if a simple word such as 'personal' then pktwallet will look for wallet_personal.db, if prefixed with a / then pktwallet will consider it an absolute path. (default: wallet.db)"`
 	SyncFreelist bool   `long:"sync-freelist" description:"Whether the databases used within lnd should sync their freelist to disk. This is disabled by default resulting in improved memory performance during operation, but with an increase in startup time."`
 
-	NoTLS              bool     `long:"notls" description:"Disable TLS on RPC and REST"`
-	TLSCertPath        string   `long:"tlscertpath" description:"Path to write the TLS certificate for lnd's RPC and REST services"`
-	TLSKeyPath         string   `long:"tlskeypath" description:"Path to write the TLS private key for lnd's RPC and REST services"`
-	TLSExtraIPs        []string `long:"tlsextraip" description:"Adds an extra ip to the generated certificate"`
-	TLSExtraDomains    []string `long:"tlsextradomain" description:"Adds an extra domain to the generated certificate"`
-	TLSAutoRefresh     bool     `long:"tlsautorefresh" description:"Re-generate TLS certificate and key if the IPs or domains are changed"`
-	TLSDisableAutofill bool     `long:"tlsdisableautofill" description:"Do not include the interface IPs or the system hostname in TLS certificate, use first --tlsextradomain as Common Name instead, if set"`
-
 	NoMacaroons     bool          `long:"no-macaroons" description:"Disable macaroon authentication, can only be used if server is not listening on a public interface."`
 	AdminMacPath    string        `long:"adminmacaroonpath" description:"Path to write the admin macaroon for lnd's RPC and REST services if it doesn't exist"`
 	ReadMacPath     string        `long:"readonlymacaroonpath" description:"Path to write the read-only macaroon for lnd's RPC and REST services if it doesn't exist"`
@@ -217,7 +215,6 @@ type Config struct {
 	ExternalIPs       []net.Addr
 	DisableListen     bool          `long:"nolisten" description:"Disable listening for incoming peer connections"`
 	DisableRest       bool          `long:"norest" description:"Disable REST API"`
-	DisableRestTLS    bool          `long:"no-rest-tls" description:"Disable TLS for REST connections"`
 	NAT               bool          `long:"nat" description:"Toggle NAT traversal support (using either UPnP or NAT-PMP) to automatically advertise your external IP address to the network -- NOTE this does not support devices behind multiple NATs"`
 	MinBackoff        time.Duration `long:"minbackoff" description:"Shortest backoff when reconnecting to persistent peers. Valid time units are {s, m, h}."`
 	MaxBackoff        time.Duration `long:"maxbackoff" description:"Longest backoff when reconnecting to persistent peers. Valid time units are {s, m, h}."`
@@ -244,8 +241,8 @@ type Config struct {
 	Litecoin      *lncfg.Chain    `group:"Litecoin" namespace:"litecoin"`
 	LtcdMode      *lncfg.Btcd     `group:"ltcd" namespace:"ltcd"`
 	LitecoindMode *lncfg.Bitcoind `group:"litecoind" namespace:"litecoind"`
-
-	Pkt *lncfg.Chain `group:"PKT" namespace:"pkt"`
+	Pktmode       *lncfg.Pkt
+	Pkt           *lncfg.Chain `group:"PKT" namespace:"pkt"`
 
 	Autopilot *lncfg.AutoPilot `group:"Autopilot" namespace:"autopilot"`
 
@@ -344,9 +341,6 @@ func DefaultConfig() Config {
 		DataDir:           defaultDataDir,
 		WalletFile:        defaultWalletFile,
 		DebugLevel:        defaultLogLevel,
-		NoTLS:             false,
-		TLSCertPath:       defaultTLSCertPath,
-		TLSKeyPath:        defaultTLSKeyPath,
 		LetsEncryptDir:    defaultLetsEncryptDir,
 		LetsEncryptListen: defaultLetsEncryptListen,
 		LogDir:            defaultLogDir,
@@ -390,6 +384,11 @@ func DefaultConfig() Config {
 			Dir:          defaultLitecoindDir,
 			RPCHost:      defaultRPCHost,
 			EstimateMode: defaultBitcoindEstimateMode,
+		},
+		Pktmode: &lncfg.Pkt{
+			Dir:       defaultPktDir,
+			WalletDir: defaultPktWalletDir,
+			RPCHost:   defaultRPCHost,
 		},
 		Pkt: &lncfg.Chain{
 			MinHTLCIn:     chainreg.DefaultPktMinHTLCInMSat,
@@ -569,8 +568,6 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, er.R) {
 		cfg.LetsEncryptDir = filepath.Join(
 			lndDir, defaultLetsEncryptDirname,
 		)
-		cfg.TLSCertPath = filepath.Join(lndDir, defaultTLSCertFilename)
-		cfg.TLSKeyPath = filepath.Join(lndDir, defaultTLSKeyFilename)
 		cfg.LogDir = filepath.Join(lndDir, defaultLogDirname)
 
 		// If the watchtower's directory is set to the default, i.e. the
@@ -613,8 +610,6 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, er.R) {
 	// to directories and files are cleaned and expanded before attempting
 	// to use them later on.
 	cfg.DataDir = CleanAndExpandPath(cfg.DataDir)
-	cfg.TLSCertPath = CleanAndExpandPath(cfg.TLSCertPath)
-	cfg.TLSKeyPath = CleanAndExpandPath(cfg.TLSKeyPath)
 	cfg.LetsEncryptDir = CleanAndExpandPath(cfg.LetsEncryptDir)
 	cfg.AdminMacPath = CleanAndExpandPath(cfg.AdminMacPath)
 	cfg.ReadMacPath = CleanAndExpandPath(cfg.ReadMacPath)
@@ -634,7 +629,6 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, er.R) {
 	dirs := []string{
 		lndDir, cfg.DataDir,
 		cfg.LetsEncryptDir, cfg.Watchtower.TowerDir,
-		filepath.Dir(cfg.TLSCertPath), filepath.Dir(cfg.TLSKeyPath),
 		filepath.Dir(cfg.AdminMacPath), filepath.Dir(cfg.ReadMacPath),
 		filepath.Dir(cfg.InvoiceMacPath),
 		filepath.Dir(cfg.Tor.PrivateKeyPath),
@@ -1190,8 +1184,9 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, er.R) {
 	// have specified a safe combo for authentication. If not, we'll bail
 	// out with an error. Since we don't allow disabling TLS for gRPC
 	// connections we pass in tlsActive=true.
+	// pktwallet: we disable tls so tlsActive=false
 	err = lncfg.EnforceSafeAuthentication(
-		cfg.RPCListeners, !cfg.NoMacaroons, true,
+		cfg.RPCListeners, !cfg.NoMacaroons, false,
 	)
 	if err != nil {
 		return nil, err
@@ -1202,7 +1197,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, er.R) {
 		cfg.RESTListeners = nil
 	} else {
 		err = lncfg.EnforceSafeAuthentication(
-			cfg.RESTListeners, !cfg.NoMacaroons, !cfg.DisableRestTLS,
+			cfg.RESTListeners, !cfg.NoMacaroons, false,
 		)
 		if err != nil {
 			return nil, err

@@ -314,7 +314,12 @@
         "wallet_password": {
           "type": "string",
           "format": "byte",
-          "description": "wallet_password should be the current valid passphrase for the daemon. This\nwill be required to decrypt on-disk material that the daemon requires to\nfunction properly. When using REST, this field must be encoded as base64."
+          "description": "wallet_password should be the current valid private passphrase for the daemon. This\nwill be required to decrypt on-disk material that the daemon requires to\nfunction properly. When using REST, this field must be encoded as base64."
+        },
+        "wallet_pub_password": {
+          "type": "string",
+          "format": "byte",
+          "title": "wallet_pub_password is the pubic passphrase by default is nil for pkt"
         },
         "recovery_window": {
           "type": "integer",

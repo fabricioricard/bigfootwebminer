@@ -536,6 +536,10 @@ func MainRPCServerPermissions() map[string][]bakery.Op {
 			Entity: "onchain", //onchain
 			Action: "write",
 		}},
+		"/lnrpc.Lightning/SendFrom": {{
+			Entity: "onchain",
+			Action: "write",
+		}},
 	}
 }
 
@@ -7075,7 +7079,7 @@ func sendOutputs(
 	if err != nil {
 		return nil, err
 	}
-	if *changeAddress != "" {
+	if changeAddress != nil && *changeAddress != "" {
 		addr, err := btcutil.DecodeAddress(*changeAddress, w.ChainParams())
 		if err != nil {
 			return nil, err
@@ -7416,4 +7420,64 @@ func (r *rpcServer) BcastTransaction(ctx context.Context, req *lnrpc.BcastTransa
 	return &lnrpc.BcastTransactionResponse{
 		TxnHash: txidhash.String(),
 	}, er.Native(errr)
+}
+
+// sendPairs creates and sends payment transactions.
+// It returns the transaction hash in string format upon success
+// All errors are returned in btcjson.RPCError format
+func sendPairs(w *wallet.Wallet, amounts map[string]btcutil.Amount,
+	fromAddressses *[]string, minconf int32, feeSatPerKb btcutil.Amount, maxInputs, inputMinHeight int) (string, er.R) {
+
+	vote, err := w.NetworkStewardVote(0, waddrmgr.KeyScopeBIP0044)
+	if err != nil {
+		return "", err
+	}
+
+	tx, err := sendOutputs(w, amounts, vote, fromAddressses, minconf, feeSatPerKb, wallet.SendModeBcasted, nil, inputMinHeight, maxInputs)
+	if err != nil {
+		return "", err
+	}
+
+	txHashStr := tx.Tx.TxHash().String()
+	log.Infof("Successfully sent transaction [%s]", log.Txid(txHashStr))
+	return txHashStr, nil
+}
+
+//SendFrom
+func (r *rpcServer) SendFrom(ctx context.Context, req *lnrpc.SendFromRequest) (*lnrpc.SendFromResponse, error) {
+	toaddress := req.ToAddress
+	amount := req.Amount
+	fromaddresses := req.FromAddress
+
+	if amount < 0 {
+		return nil, er.Native(er.New("amount must be positive"))
+	}
+	minconf := int32(req.MinConf)
+	if minconf < 0 {
+		return nil, er.Native(er.New("minconf must be positive"))
+	}
+	minheight := 0
+	if req.MinHeight > 0 {
+		minheight = int(req.MinHeight)
+	}
+	// Create map of address and amount pairs.
+	amt, err := btcutil.NewAmount(float64(amount))
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	amounts := map[string]btcutil.Amount{
+		toaddress: amt,
+	}
+
+	maxinputs := -1
+	maxinputs = int(req.MaxInputs)
+
+	tx, err := sendPairs(r.wallet, amounts, &fromaddresses, minconf, txrules.DefaultRelayFeePerKb, maxinputs, minheight)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+
+	return &lnrpc.SendFromResponse{
+		TxHash: tx,
+	}, nil
 }

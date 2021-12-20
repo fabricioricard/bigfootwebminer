@@ -553,6 +553,9 @@ service Lightning {
 
     /*Broadcast a transaction*/
     rpc BcastTransaction (BcastTransactionRequest) returns (BcastTransactionResponse);
+
+    /*SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.*/
+    rpc SendFrom (SendFromRequest) returns (SendFromResponse);
 }
 
 message Utxo {
@@ -3928,4 +3931,17 @@ message BcastTransactionRequest{
 
 message BcastTransactionResponse{
     string txn_hash = 1;
+}
+
+message SendFromRequest{
+    string to_address = 1;
+    int32 amount = 2;
+    repeated string from_address = 3;
+    int32 min_conf = 4;
+    int32 max_inputs = 5;
+    int32 min_height = 6;
+}
+
+message SendFromResponse{
+    string tx_hash = 1;
 }

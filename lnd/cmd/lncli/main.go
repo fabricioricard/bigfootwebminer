@@ -5,7 +5,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,7 +21,6 @@ import (
 
 	"golang.org/x/crypto/ssh/terminal"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 const (
@@ -86,32 +84,8 @@ func getClientConn(ctx *cli.Context, skipMacaroons bool) *grpc.ClientConn {
 		fatal(er.Errorf("could not load global options: %v", err))
 	}
 
-	// Load the specified TLS certificate.
-	certPool, err := profile.cert()
-	if err != nil {
-		fatal(er.Errorf("could not create cert pool: %v", err))
-	}
-
 	var opts []grpc.DialOption
-	if ctx.GlobalBool("notls") {
-		opts = append(opts, grpc.WithInsecure())
-	} else {
-		// Build transport credentials from the certificate pool. If there is no
-		// certificate pool, we expect the server to use a non-self-signed
-		// certificate such as a certificate obtained from Let's Encrypt.
-		var creds credentials.TransportCredentials
-		if certPool != nil {
-			creds = credentials.NewClientTLSFromCert(certPool, "")
-		} else {
-			// Fallback to the system pool. Using an empty tls config is an
-			// alternative to x509.SystemCertPool(). That call is not
-			// supported on Windows.
-			creds = credentials.NewTLS(&tls.Config{})
-		}
-
-		// Create a dial options array.
-		opts = append(opts, grpc.WithTransportCredentials(creds))
-	}
+	opts = append(opts, grpc.WithInsecure())
 
 	// Only process macaroon credentials if --no-macaroons isn't set and
 	// if we're not skipping macaroon processing.

@@ -480,6 +480,7 @@ func unlock(ctx *cli.Context) er.R {
 
 	var (
 		pw   []byte
+		ppw  []byte
 		errr error
 		err  er.R
 	)
@@ -499,7 +500,8 @@ func unlock(ctx *cli.Context) er.R {
 	// terminal to be a real tty and will fail if a string is piped into
 	// lncli.
 	default:
-		pw, err = readPassword("Input wallet password: ")
+		pw, err = readPassword("Input wallet private password: ")
+		ppw, _ = readPassword("Input wallet public password: ")
 	}
 	if err != nil {
 		return err
@@ -527,6 +529,7 @@ func unlock(ctx *cli.Context) er.R {
 
 	req := &lnrpc.UnlockWalletRequest{
 		WalletPassword: pw,
+		WalletPubPassword: ppw,
 		RecoveryWindow: recoveryWindow,
 		StatelessInit:  ctx.Bool(statelessInitFlag.Name),
 	}

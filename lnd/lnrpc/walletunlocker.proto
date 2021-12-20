@@ -163,11 +163,14 @@ message InitWalletResponse {
 
 message UnlockWalletRequest {
     /*
-    wallet_password should be the current valid passphrase for the daemon. This
+    wallet_password should be the current valid private passphrase for the daemon. This
     will be required to decrypt on-disk material that the daemon requires to
     function properly. When using REST, this field must be encoded as base64.
     */
     bytes wallet_password = 1;
+
+    /* wallet_pub_password is the pubic passphrase by default is nil for pkt*/
+    bytes wallet_pub_password = 2;
 
     /*
     recovery_window is an optional argument specifying the address lookahead
@@ -176,7 +179,7 @@ message UnlockWalletRequest {
     window of zero indicates that no addresses should be recovered, such after
     the first initialization of the wallet.
     */
-    int32 recovery_window = 2;
+    int32 recovery_window = 3;
 
     /*
     channel_backups is an optional argument that allows clients to recover the
@@ -186,13 +189,13 @@ message UnlockWalletRequest {
     funds, lnd begin to carry out the data loss recovery protocol in order to
     recover the funds in each channel from a remote force closed transaction.
     */
-    ChanBackupSnapshot channel_backups = 3;
+    ChanBackupSnapshot channel_backups = 4;
 
     /*
     stateless_init is an optional argument instructing the daemon NOT to create
     any *.macaroon files in its file system.
     */
-    bool stateless_init = 4;
+    bool stateless_init = 5;
 }
 message UnlockWalletResponse {
 }

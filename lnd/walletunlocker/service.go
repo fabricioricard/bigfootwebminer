@@ -363,7 +363,12 @@ func (u *UnlockerService) UnlockWallet(ctx context.Context,
 func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	in *lnrpc.UnlockWalletRequest) (*lnrpc.UnlockWalletResponse, er.R) {
 
-	password := in.WalletPassword
+	privpassword := in.WalletPassword
+	pubpassword := []byte(wallet.InsecurePubPassphrase)
+	if in.WalletPubPassword != nil {
+		pubpassword = in.WalletPubPassword
+	}
+
 	recoveryWindow := uint32(in.RecoveryWindow)
 
 	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
@@ -384,7 +389,7 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	}
 
 	// Try opening the existing wallet with the provided password.
-	unlockedWallet, err := loader.OpenExistingWallet(password, false)
+	unlockedWallet, err := loader.OpenExistingWallet(pubpassword, false)
 	if err != nil {
 		// Could not open wallet, most likely this means that provided
 		// password was incorrect.
@@ -394,7 +399,7 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	// We successfully opened the wallet and pass the instance back to
 	// avoid it needing to be unlocked again.
 	walletUnlockMsg := &WalletUnlockMsg{
-		Passphrase:     password,
+		Passphrase:     privpassword,
 		RecoveryWindow: recoveryWindow,
 		Wallet:         unlockedWallet,
 		UnloadWallet:   loader.UnloadWallet,

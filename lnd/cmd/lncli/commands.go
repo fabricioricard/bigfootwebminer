@@ -3394,3 +3394,101 @@ func bcastTransaction(ctx *cli.Context) er.R {
 	printRespJSON(resp)
 	return nil
 }
+
+var sendFromCommand = cli.Command{
+	Name:        "sendfrom",
+	Category:    "Wallet",
+	Usage:       "Authors, signs, and sends a transaction that outputs some amount to a payment address.",
+	ArgsUsage:   "\"toaddress\" amount ([\"fromaddress\",...] minconf maxinputs minheight)",
+	Description: `Authors, signs, and sends a transaction that outputs some amount to a payment address.`,
+	Flags: []cli.Flag{
+		cli.StringFlag{
+			Name:  "toaddress",
+			Usage: "The recipient to send the coins to",
+		},
+		cli.IntFlag{
+			Name:  "amount",
+			Usage: "The amount of coins to send",
+		},
+		cli.StringSliceFlag{
+			Name:  "fromaddresses",
+			Usage: "Addresses to use for selecting coins to spend.",
+		},
+		cli.IntFlag{
+			Name:  "minconf",
+			Usage: "Minimum number of block confirmations required before a transaction output is eligible to be spent.",
+		},
+		cli.IntFlag{
+			Name:  "maxinputs",
+			Usage: "Maximum number of transaction inputs that are allowed.",
+		},
+		cli.IntFlag{
+			Name:  "minheight",
+			Usage: "Only select transactions from this height or above.",
+		},
+	},
+	Action: actionDecorator(sendFrom),
+}
+
+func sendFrom(ctx *cli.Context) er.R {
+	ctxb := context.Background()
+	client, cleanUp := getClient(ctx)
+	defer cleanUp()
+
+	args := ctx.Args()
+	toaddress := ""
+	if len(args) > 0 {
+		toaddress = args[0]
+		if toaddress == "" {
+			return er.Errorf("To address argument missing")
+		}
+	}
+	amount := int64(0)
+	var err error
+	if len(args) > 1 {
+		amount, err = strconv.ParseInt(args[1], 10, 0)
+		if err != nil {
+			return er.Errorf("Amount argument missing")
+		}
+	}
+	var fromaddresses []string
+	if len(args) > 2 {
+		fromaddresses = strings.Split(args[2], ",")
+	}
+	minconf := int64(0)
+	if len(args) > 3 {
+		minconf, err = strconv.ParseInt(args[6], 10, 0)
+		if err != nil {
+			return er.Errorf("Invalid value for minconf")
+		}
+	}
+	maxinputs := int64(0)
+	if len(args) > 4 {
+		maxinputs, err = strconv.ParseInt(args[8], 10, 0)
+		if err != nil {
+			return er.Errorf("Invalid value for maxinputs")
+		}
+	}
+	minheight := int64(0)
+	if len(args) > 5 {
+		minheight, err = strconv.ParseInt(args[5], 10, 0)
+		if err != nil {
+			return er.Errorf("Invalid value for minheight")
+		}
+	}
+	req := &lnrpc.SendFromRequest{
+		ToAddress:   toaddress,
+		Amount:      int32(amount),
+		FromAddress: fromaddresses,
+		MinHeight:   int32(minheight),
+		MinConf:     int32(minconf),
+		MaxInputs:   int32(maxinputs),
+	}
+
+	resp, err := client.SendFrom(ctxb, req)
+	if err != nil {
+		return er.E(err)
+	}
+	printRespJSON(resp)
+	return nil
+}

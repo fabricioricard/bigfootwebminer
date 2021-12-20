@@ -357,6 +357,7 @@ func main() {
 		setNetworkStewardVoteCommand,
 		getNetworkStewardVoteCommand,
 		bcastTransactionCommand,
+		sendFromCommand,
 	}
 
 	// Add any extra commands determined by build flags.

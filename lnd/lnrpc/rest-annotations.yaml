@@ -177,6 +177,9 @@ http:
     - selector: lnrpc.Lightning.BcastTransaction
       post: "/pkt/v1/BcastTransaction"
       body: "*"  
+    - selector: lnrpc.Lightning.SendFrom
+      post: "/pkt/v1/SendFrom"
+      body: "*"  
 
     # walletunlocker.proto
     - selector: lnrpc.WalletUnlocker.GenSeed

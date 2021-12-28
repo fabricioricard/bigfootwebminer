@@ -15,6 +15,33 @@
     "application/json"
   ],
   "paths": {
+    "/pkt/v1/createwallet": {
+      "post": {
+        "summary": "The create command is used to initialize an lnd wallet from scratch for\nthe very first time.",
+        "operationId": "CreateWallet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcCreateWalletResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcCreateWalletRequest"
+            }
+          }
+        ],
+        "tags": [
+          "WalletUnlocker"
+        ]
+      }
+    },
     "/v1/changepassword": {
       "post": {
         "summary": "lncli: `changepassword`\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
@@ -225,6 +252,43 @@
           "type": "integer",
           "format": "int64",
           "title": "The index of the output of the funding transaction"
+        }
+      }
+    },
+    "lnrpcCreateWalletRequest": {
+      "type": "object",
+      "properties": {
+        "wallet_password": {
+          "type": "string",
+          "format": "byte"
+        },
+        "cipher_seed_mnemonic": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "aezeed_pass": {
+          "type": "string",
+          "format": "byte"
+        },
+        "stateless_init_flag": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "save_to": {
+          "type": "string"
+        }
+      }
+    },
+    "lnrpcCreateWalletResponse": {
+      "type": "object",
+      "properties": {
+        "seed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

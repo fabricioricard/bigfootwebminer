@@ -2,16 +2,19 @@ package walletunlocker
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/lnd/chanbackup"
+	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/lnwallet"
 	"github.com/pkt-cash/pktd/lnd/lnwallet/btcwallet"
 	"github.com/pkt-cash/pktd/lnd/macaroons"
+	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
 )
@@ -613,4 +616,76 @@ func ValidatePassword(password []byte) er.R {
 	}
 
 	return nil
+}
+
+func (u *UnlockerService) CreateWallet(ctx context.Context, req *lnrpc.CreateWalletRequest) (*lnrpc.CreateWalletResponse, error) {
+	response := &lnrpc.CreateWalletResponse{}
+	var cipherSeed []string
+	var aezeedPass []byte
+	//Validate password
+	err := ValidatePassword(req.WalletPassword)
+	if err != nil {
+		log.Infof("Password could not be validated.")
+		return response, er.Native(err)
+	}
+	if req.CipherSeedMnemonic != nil {
+		cipherSeed = req.CipherSeedMnemonic
+		log.Infof("Using provided cipher seed mnemonic.")
+		//Check Seed Mnemonic
+		if len(req.CipherSeedMnemonic) != 15 {
+			return response, er.Native(er.New("wrong cipher seed mnemonic length: got " + string(len(req.CipherSeedMnemonic)) + " words, expecting 15 words"))
+		}
+		cipherSeedString := strings.Join(cipherSeed, " ")
+		seedEnc, err := seedwords.SeedFromWords(cipherSeedString)
+		if err != nil {
+			return response, er.Native(err)
+		}
+		if seedEnc.NeedsPassphrase() && req.AezeedPass == nil {
+			return response, er.Native(er.New("This seed is encrypted aezeedPassphrase provided is empty"))
+		}
+	} else {
+		log.Infof("Generating seed.")
+		if req.AezeedPass != nil {
+			aezeedPass = req.AezeedPass
+		}
+		//passphrase for encrypting seed
+		genSeedReq := &lnrpc.GenSeedRequest{
+			AezeedPassphrase: aezeedPass,
+		}
+		seedResp, err := u.GenSeed(ctx, genSeedReq)
+		if err != nil {
+			return response, er.Native(er.New("unable to generate seed: " + err.Error()))
+		}
+		cipherSeed = seedResp.CipherSeedMnemonic
+	}
+
+	statelessInit := req.StatelessInitFlag
+	var chanBackups *lnrpc.ChanBackupSnapshot
+	initWalletRequest := &lnrpc.InitWalletRequest{
+		WalletPassword:     req.WalletPassword,
+		CipherSeedMnemonic: cipherSeed,
+		AezeedPassphrase:   aezeedPass,
+		RecoveryWindow:     0,
+		ChannelBackups:     chanBackups,
+		StatelessInit:      statelessInit,
+	}
+	initWalletResponce, errr := u.InitWallet(ctx, initWalletRequest)
+	if errr != nil {
+		log.Errorf("Failed to initialize wallet.")
+		return response, errr
+	}
+	if req.StatelessInitFlag {
+		if req.SaveTo != "" {
+			macSavePath := lncfg.CleanAndExpandPath(req.SaveTo)
+			errr := ioutil.WriteFile(macSavePath, initWalletResponce.AdminMacaroon, 0644)
+			if errr != nil {
+				_ = os.Remove(macSavePath)
+				return response, errr
+			}
+		}
+	}
+	response = &lnrpc.CreateWalletResponse{
+		Seed: cipherSeed,
+	}
+	return response, nil
 }

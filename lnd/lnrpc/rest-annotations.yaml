@@ -179,7 +179,7 @@ http:
       body: "*"  
     - selector: lnrpc.Lightning.SendFrom
       post: "/pkt/v1/SendFrom"
-      body: "*"  
+      body: "*"   
 
     # walletunlocker.proto
     - selector: lnrpc.WalletUnlocker.GenSeed
@@ -193,6 +193,9 @@ http:
     - selector: lnrpc.WalletUnlocker.ChangePassword
       post: "/v1/changepassword"
       body: "*"
+    - selector: lnrpc.WalletUnlocker.CreateWallet
+      post: "/pkt/v1/createwallet"
+      body: "*"     
 
     # autopilotrpc/autopilot.proto
     - selector: autopilotrpc.Autopilot.Status

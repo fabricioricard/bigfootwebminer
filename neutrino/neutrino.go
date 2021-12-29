@@ -707,7 +707,7 @@ func NewChainService(cfg Config) (*ChainService, er.R) {
 	s.BlockCache = lru.NewCache(blockCacheSize)
 
 	s.NeutrinoDB, err = headerfs.NewNeutrinoDBStore(
-		cfg.Database, &cfg.ChainParams,
+		cfg.Database, &cfg.ChainParams, false,
 	)
 	if err != nil {
 		return nil, err

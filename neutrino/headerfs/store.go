@@ -187,6 +187,7 @@ func (h *NeutrinoDBStore) WriteBlockHeaders(tx walletdb.ReadWriteTx, hdrs ...Blo
 	headerLocs := make([]headerEntryWithHeight, len(hdrs))
 	for i, header := range hdrs {
 		headerLocs[i].Header = header.toIndexEntry()
+		headerLocs[i].Height = header.Height
 	}
 	return h.addBlockHeaders(tx, headerLocs, false)
 }
@@ -355,7 +356,7 @@ func (f *NeutrinoDBStore) FetchFilterHeader(hash *chainhash.Hash) (*chainhash.Ha
 func (f *NeutrinoDBStore) FetchFilterHeader1(tx walletdb.ReadTx, hash *chainhash.Hash) (*chainhash.Hash, er.R) {
 	if hdr, err := f.headerEntryByHash(tx, hash); err != nil {
 		return nil, err
-	} else if h, err := chainhash.NewHash(hdr.Header.Bytes()); err != nil {
+	} else if h, err := chainhash.NewHash(hdr.Header.filterHeader[:]); err != nil {
 		return nil, err
 	} else {
 		return h, nil
@@ -368,7 +369,7 @@ func (f *NeutrinoDBStore) FetchFilterHeaderByHeight(height uint32) (*chainhash.H
 	return hash, walletdb.View(f.Db, func(tx walletdb.ReadTx) er.R {
 		if hdr, err := f.readHeader(tx, height); err != nil {
 			return err
-		} else if h, err := chainhash.NewHash(hdr.Header.Bytes()); err != nil {
+		} else if h, err := chainhash.NewHash(hdr.Header.filterHeader[:]); err != nil {
 			return err
 		} else {
 			hash = h

@@ -156,8 +156,8 @@ func NewNeutrinoDBStore(db walletdb.DB, netParams *chaincfg.Params, verify bool)
 		if err := hi.createBuckets(tx); err != nil {
 			return err
 		}
-
-		if _, err := hi.readHeader(tx, 0); err != nil {
+		he,err := hi.readHeader(tx, 0)
+		if err != nil || he.Height == 0 {
 			gen := genesis.Block(netParams.GenesisHash)
 			gh := []headerEntryWithHeight{}
 			he := headerEntry{
@@ -515,6 +515,9 @@ func (h *NeutrinoDBStore) chainTip(tx walletdb.ReadTx, chainTipType []byte) (*he
 	if tipHeightBytes == nil {
 		return nil, er.Errorf("no chain tip found in %s", chainTipType)
 	}
+	if len(tipHeightBytes) < 4 {
+		tipHeightBytes = []byte{0x00,0x00,0x00,0x00}
+	} 
 	tipHeight := binHeight(tipHeightBytes)
 	he, err := h.readHeader(tx, tipHeight)
 	if err != nil {
@@ -596,6 +599,8 @@ func (h *NeutrinoDBStore) addBlockHeaders(tx walletdb.ReadWriteTx, batch headerW
 			return err
 		}
 		tip = he
+	} else {
+		tip = &headerEntryWithHeight{}
 	}
 	var heightBytes []byte
 	for _, header := range batch {
@@ -606,13 +611,15 @@ func (h *NeutrinoDBStore) addBlockHeaders(tx walletdb.ReadWriteTx, batch headerW
 		he := headerEntry{blockHeader: header.Header.blockHeader, filterHeader: nil}
 		value := he.Bytes()
 		heightBytes = heightBin(header.Height)
-		if err := headerBucket.Put(heightBin(header.Height), value); err != nil {
+		if err := headerBucket.Put(heightBytes, value); err != nil {
 			return err
 		}
 		blockHash := header.Header.blockHeader.BlockHash()
 		if err := h.modifyHeightsByHashPfx(tx, &blockHash, header.Height, false); err != nil {
 			return err
 		}
+		tip.Height = header.Height
+		tip.Header = header.Header
 	}
 	return rootBucket.Put(bucketNameBlockTip, heightBytes)
 }
@@ -637,6 +644,8 @@ func (h *NeutrinoDBStore) addFilterHeaders(tx walletdb.ReadWriteTx, batch filter
 			return err
 		}
 		tip = he
+	} else {
+		tip = &headerEntryWithHeight{}
 	}
 	var heightBytes []byte
 	for _, header := range batch {
@@ -658,6 +667,8 @@ func (h *NeutrinoDBStore) addFilterHeaders(tx walletdb.ReadWriteTx, batch filter
 			if err := headerBucket.Put(heightBytes, value); err != nil {
 				return err
 			}
+			tip.Header = he.Header
+			tip.Height = he.Height
 		}
 	}
 	return rootBucket.Put(bucketNameFilterTip, heightBytes)

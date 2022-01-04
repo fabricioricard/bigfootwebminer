@@ -66,6 +66,10 @@ service WalletUnlocker {
     automatically unlock the wallet database if successful.
     */
     rpc ChangePassword (ChangePasswordRequest) returns (ChangePasswordResponse);
+
+    /* The create command is used to initialize an lnd wallet from scratch for
+	the very first time. */
+    rpc CreateWallet (CreateWalletRequest) returns (CreateWalletResponse);
 }
 
 message GenSeedRequest {
@@ -238,4 +242,15 @@ message ChangePasswordResponse {
     disk by the daemon, together with other macaroon files.
     */
     bytes admin_macaroon = 1;
+}
+
+message CreateWalletRequest {
+    bytes wallet_password = 1;
+    repeated string cipher_seed_mnemonic = 2;
+    bytes aezeed_pass = 3;
+    bool stateless_init_flag = 4;
+    string save_to = 5;
+}
+message CreateWalletResponse{
+    repeated string seed = 1;
 }

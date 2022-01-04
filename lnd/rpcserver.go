@@ -540,6 +540,10 @@ func MainRPCServerPermissions() map[string][]bakery.Op {
 			Entity: "onchain",
 			Action: "write",
 		}},
+		"/lnrpc.Lightning/CreateWallet": {{
+			Entity: "wallet",
+			Action: "write",
+		}},
 	}
 }
 

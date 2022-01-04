@@ -25,7 +25,7 @@ func (h *NeutrinoDBStore) readBlockHeaderRange(
 
 	out := make([]wire.BlockHeader, 0, endHeight-startHeight+1)
 	for i := startHeight; i <= endHeight; i++ {
-		if he, err := h.blockHeaderIndex.readHeader(tx, i); err != nil {
+		if he, err := h.readHeader(tx, i); err != nil {
 			return nil, err
 		} else if hdr, err := blockHeaderFromHe(he); err != nil {
 			return nil, err
@@ -48,9 +48,9 @@ func (f *NeutrinoDBStore) readFilterHeaderRange(
 ) ([]chainhash.Hash, er.R) {
 	out := make([]chainhash.Hash, 0, endHeight-startHeight+1)
 	for i := startHeight; i <= endHeight; i++ {
-		if ret, err := f.filterHeaderIndex.readHeader(tx, i); err != nil {
+		if ret, err := f.readHeader(tx, i); err != nil {
 			return nil, err
-		} else if hash, err := chainhash.NewHash(ret.bytes); err != nil {
+		} else if hash, err := chainhash.NewHash(ret.Header.Bytes()); err != nil {
 			return nil, err
 		} else {
 			out = append(out, *hash)

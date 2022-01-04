@@ -598,6 +598,7 @@ var PktMainNetParams = Params{
 		{"seed.cjd.li", false},
 		{"seed.anode.co", false},
 		{"pktdseed.pkt.world", false},
+		{"seed.srizbi.com", false},
 	},
 
 	// Chain parameters

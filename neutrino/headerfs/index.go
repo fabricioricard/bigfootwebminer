@@ -156,8 +156,7 @@ func NewNeutrinoDBStore(db walletdb.DB, netParams *chaincfg.Params, verify bool)
 		if err := hi.createBuckets(tx); err != nil {
 			return err
 		}
-		he,err := hi.readHeader(tx, 0)
-		if err != nil || he.Height == 0 {
+		if he, err := hi.headerHeightsByHash(tx, netParams.GenesisHash); err != nil || he == nil {
 			gen := genesis.Block(netParams.GenesisHash)
 			gh := []headerEntryWithHeight{}
 			he := headerEntry{
@@ -517,7 +516,7 @@ func (h *NeutrinoDBStore) chainTip(tx walletdb.ReadTx, chainTipType []byte) (*he
 	}
 	if len(tipHeightBytes) < 4 {
 		tipHeightBytes = []byte{0x00,0x00,0x00,0x00}
-	} 
+	}
 	tipHeight := binHeight(tipHeightBytes)
 	he, err := h.readHeader(tx, tipHeight)
 	if err != nil {

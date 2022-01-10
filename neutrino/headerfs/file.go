@@ -50,7 +50,7 @@ func (f *NeutrinoDBStore) readFilterHeaderRange(
 	for i := startHeight; i <= endHeight; i++ {
 		if ret, err := f.readHeader(tx, i); err != nil {
 			return nil, err
-		} else if hash, err := chainhash.NewHash(ret.Header.Bytes()); err != nil {
+		} else if hash, err := chainhash.NewHash(ret.Header.filterHeader[:]); err != nil {
 			return nil, err
 		} else {
 			out = append(out, *hash)

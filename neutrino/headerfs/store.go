@@ -405,7 +405,7 @@ func (f *NeutrinoDBStore) FetchFilterHeaderAncestors(
 		// for i, h := range hashes {
 		// 	log.Debugf("Load filter header %d => [%s]", startHeight+uint32(i), h)
 		// }
-		if !bytes.Equal(hashes[len(hashes)-1][:], endEntry.Header.Bytes()) {
+		if !bytes.Equal(hashes[len(hashes)-1][:], endEntry.Header.filterHeader[:]) {
 			return er.Errorf("Hash mismatch on %v: %v %v", endEntry.Height,
 				hashes[len(hashes)-1], endEntry.Header.Bytes())
 		}

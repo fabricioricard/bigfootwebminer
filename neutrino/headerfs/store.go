@@ -367,14 +367,17 @@ func (f *NeutrinoDBStore) FetchFilterHeader1(tx walletdb.ReadTx, hash *chainhash
 func (f *NeutrinoDBStore) FetchFilterHeaderByHeight(height uint32) (*chainhash.Hash, er.R) {
 	var hash *chainhash.Hash
 	return hash, walletdb.View(f.Db, func(tx walletdb.ReadTx) er.R {
+		var h *chainhash.Hash
 		if hdr, err := f.readHeader(tx, height); err != nil {
 			return err
-		} else if h, err := chainhash.NewHash(hdr.Header.filterHeader[:]); err != nil {
-			return err
-		} else {
-			hash = h
-			return nil
+		} else if hdr.Header.filterHeader != nil {
+			h, err = chainhash.NewHash(hdr.Header.filterHeader[:])
+			if err != nil {
+				return err
+			}
 		}
+		hash = h
+		return nil
 	})
 }
 

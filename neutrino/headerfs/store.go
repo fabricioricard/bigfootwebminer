@@ -367,14 +367,17 @@ func (f *NeutrinoDBStore) FetchFilterHeader1(tx walletdb.ReadTx, hash *chainhash
 func (f *NeutrinoDBStore) FetchFilterHeaderByHeight(height uint32) (*chainhash.Hash, er.R) {
 	var hash *chainhash.Hash
 	return hash, walletdb.View(f.Db, func(tx walletdb.ReadTx) er.R {
+		var h *chainhash.Hash
 		if hdr, err := f.readHeader(tx, height); err != nil {
 			return err
-		} else if h, err := chainhash.NewHash(hdr.Header.filterHeader[:]); err != nil {
-			return err
-		} else {
-			hash = h
-			return nil
+		} else if hdr.Header.filterHeader != nil {
+			h, err = chainhash.NewHash(hdr.Header.filterHeader[:])
+			if err != nil {
+				return err
+			}
 		}
+		hash = h
+		return nil
 	})
 }
 
@@ -405,7 +408,7 @@ func (f *NeutrinoDBStore) FetchFilterHeaderAncestors(
 		// for i, h := range hashes {
 		// 	log.Debugf("Load filter header %d => [%s]", startHeight+uint32(i), h)
 		// }
-		if !bytes.Equal(hashes[len(hashes)-1][:], endEntry.Header.Bytes()) {
+		if !bytes.Equal(hashes[len(hashes)-1][:], endEntry.Header.filterHeader[:]) {
 			return er.Errorf("Hash mismatch on %v: %v %v", endEntry.Height,
 				hashes[len(hashes)-1], endEntry.Header.Bytes())
 		}

@@ -1096,9 +1096,9 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 			cfg.ActiveNetParams.Params, walletPath, walletFilename, !cfg.SyncFreelist,
 			recoveryWindow,
 		)
-
+		
 		newWallet, err := loader.CreateNewWallet(
-			nil, password, nil, time.Time{}, cipherSeed,
+			[]byte(wallet.InsecurePubPassphrase), password, nil, time.Time{}, cipherSeed,
 		)
 		if err != nil {
 			// Don't leave the file open in case the new wallet

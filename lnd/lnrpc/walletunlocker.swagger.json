@@ -4,6 +4,10 @@
     "title": "walletunlocker.proto",
     "version": "version not set"
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -11,21 +15,42 @@
     "application/json"
   ],
   "paths": {
+    "/pkt/v1/createwallet": {
+      "post": {
+        "summary": "The create command is used to initialize an lnd wallet from scratch for\nthe very first time.",
+        "operationId": "CreateWallet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcCreateWalletResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcCreateWalletRequest"
+            }
+          }
+        ],
+        "tags": [
+          "WalletUnlocker"
+        ]
+      }
+    },
     "/v1/changepassword": {
       "post": {
         "summary": "lncli: `changepassword`\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
-        "operationId": "WalletUnlocker_ChangePassword",
+        "operationId": "ChangePassword",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcChangePasswordResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -48,18 +73,12 @@
       "get": {
         "summary": "GenSeed is the first method that should be used to instantiate a new lnd\ninstance. This method allows a caller to generate a new aezeed cipher seed\ngiven an optional passphrase. If provided, the passphrase will be necessary\nto decrypt the cipherseed to expose the internal wallet seed.",
         "description": "Once the cipherseed is obtained and verified by the user, the InitWallet\nmethod should be used to commit the newly generated seed, and create the\nwallet.",
-        "operationId": "WalletUnlocker_GenSeed",
+        "operationId": "GenSeed",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcGenSeedResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -90,18 +109,12 @@
       "post": {
         "summary": "InitWallet is used when lnd is starting up for the first time to fully\ninitialize the daemon and its internal wallet. At the very least a wallet\npassword must be provided. This will be used to encrypt sensitive material\non disk.",
         "description": "In the case of a recovery scenario, the user can also specify their aezeed\nmnemonic and passphrase. If set, then the daemon will use this prior state\nto initialize its internal wallet.\n\nAlternatively, this can be used along with the GenSeed RPC to obtain a\nseed, then present it to the user. Once it has been verified by the user,\nthe seed can be fed into this RPC in order to commit the new wallet.",
-        "operationId": "WalletUnlocker_InitWallet",
+        "operationId": "InitWallet",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcInitWalletResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -123,18 +136,12 @@
     "/v1/unlockwallet": {
       "post": {
         "summary": "lncli: `unlock`\nUnlockWallet is used at startup of lnd to provide a password to unlock\nthe wallet database.",
-        "operationId": "WalletUnlocker_UnlockWallet",
+        "operationId": "UnlockWallet",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcUnlockWalletResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -183,10 +190,12 @@
         },
         "stateless_init": {
           "type": "boolean",
+          "format": "boolean",
           "title": "stateless_init is an optional argument instructing the daemon NOT to create\nany *.macaroon files in its filesystem. If this parameter is set, then the\nadmin macaroon returned in the response MUST be stored by the caller of the\nRPC as otherwise all access to the daemon will be lost!"
         },
         "new_macaroon_root_key": {
           "type": "boolean",
+          "format": "boolean",
           "description": "new_macaroon_root_key is an optional argument instructing the daemon to\nrotate the macaroon root key when set to true. This will invalidate all\npreviously generated macaroons."
         }
       }
@@ -246,6 +255,43 @@
         }
       }
     },
+    "lnrpcCreateWalletRequest": {
+      "type": "object",
+      "properties": {
+        "wallet_password": {
+          "type": "string",
+          "format": "byte"
+        },
+        "cipher_seed_mnemonic": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "aezeed_pass": {
+          "type": "string",
+          "format": "byte"
+        },
+        "stateless_init_flag": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "save_to": {
+          "type": "string"
+        }
+      }
+    },
+    "lnrpcCreateWalletResponse": {
+      "type": "object",
+      "properties": {
+        "seed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "lnrpcGenSeedResponse": {
       "type": "object",
       "properties": {
@@ -294,6 +340,7 @@
         },
         "stateless_init": {
           "type": "boolean",
+          "format": "boolean",
           "title": "stateless_init is an optional argument instructing the daemon NOT to create\nany *.macaroon files in its filesystem. If this parameter is set, then the\nadmin macaroon returned in the response MUST be stored by the caller of the\nRPC as otherwise all access to the daemon will be lost!"
         }
       }
@@ -331,7 +378,12 @@
         "wallet_password": {
           "type": "string",
           "format": "byte",
-          "description": "wallet_password should be the current valid passphrase for the daemon. This\nwill be required to decrypt on-disk material that the daemon requires to\nfunction properly. When using REST, this field must be encoded as base64."
+          "description": "wallet_password should be the current valid private passphrase for the daemon. This\nwill be required to decrypt on-disk material that the daemon requires to\nfunction properly. When using REST, this field must be encoded as base64."
+        },
+        "wallet_pub_password": {
+          "type": "string",
+          "format": "byte",
+          "title": "wallet_pub_password is the pubic passphrase by default is nil for pkt"
         },
         "recovery_window": {
           "type": "integer",
@@ -344,45 +396,13 @@
         },
         "stateless_init": {
           "type": "boolean",
+          "format": "boolean",
           "description": "stateless_init is an optional argument instructing the daemon NOT to create\nany *.macaroon files in its file system."
         }
       }
     },
     "lnrpcUnlockWalletResponse": {
       "type": "object"
-    },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "type_url": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "runtimeError": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
     }
   }
 }

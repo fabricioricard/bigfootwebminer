@@ -1,7 +1,6 @@
 package lnrpc
 
 import (
-	"encoding/hex"
 	"sort"
 
 	"github.com/pkt-cash/pktd/btcutil/er"
@@ -36,7 +35,7 @@ func RPCTransactionDetails(txns []*lnwallet.TransactionDetail) *TransactionDetai
 			TimeStamp:        tx.Timestamp,
 			TotalFees:        tx.TotalFees,
 			DestAddresses:    destAddresses,
-			RawTxHex:         hex.EncodeToString(tx.RawTx),
+			RawTxHex:         tx.RawTx,
 			Label:            tx.Label,
 		}
 	}

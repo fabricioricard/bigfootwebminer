@@ -3,6 +3,7 @@ package lnd
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"math"
@@ -20,6 +21,7 @@ import (
 	proxy "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkt-cash/pktd/blockchain"
 	"github.com/pkt-cash/pktd/btcec"
+	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/btcutil"
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/btcutil/psbt"
@@ -55,6 +57,7 @@ import (
 	"github.com/pkt-cash/pktd/lnd/lnwallet/chanfunding"
 	"github.com/pkt-cash/pktd/lnd/lnwire"
 	"github.com/pkt-cash/pktd/lnd/macaroons"
+	"github.com/pkt-cash/pktd/lnd/metaservice"
 	"github.com/pkt-cash/pktd/lnd/monitoring"
 	"github.com/pkt-cash/pktd/lnd/peer"
 	"github.com/pkt-cash/pktd/lnd/peernotifier"
@@ -67,10 +70,13 @@ import (
 	"github.com/pkt-cash/pktd/lnd/zpay32"
 	"github.com/pkt-cash/pktd/pktconfig/version"
 	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
+	"github.com/pkt-cash/pktd/pktwallet/wallet"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txauthor"
+	"github.com/pkt-cash/pktd/pktwallet/wallet/txrules"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
-	"github.com/tv42/zbase32"
+	"github.com/pkt-cash/pktd/wire/ruleerror"
 	"google.golang.org/grpc"
 	"gopkg.in/macaroon-bakery.v2/bakery"
 )
@@ -239,10 +245,6 @@ func MainRPCServerPermissions() map[string][]bakery.Op {
 		"/lnrpc.Lightning/SignMessage": {{
 			Entity: "message",
 			Action: "write",
-		}},
-		"/lnrpc.Lightning/VerifyMessage": {{
-			Entity: "message",
-			Action: "read",
 		}},
 		"/lnrpc.Lightning/ConnectPeer": {{
 			Entity: "peers",
@@ -471,6 +473,77 @@ func MainRPCServerPermissions() map[string][]bakery.Op {
 			Entity: "offchain",
 			Action: "write",
 		}},
+		"/lnrpc.Lightning/GetAddressBalances": {{
+			Entity: "wallet",
+			Action: "read",
+		}},
+		"/lnrpc.Lightning/ReSync": {{
+			Entity: "onchain",
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/StopReSync": {{
+			Entity: "onchain",
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/GetWalletSeed": {{
+			Entity: "wallet",
+			Action: "read",
+		}},
+		"/lnrpc.Lightning/GetSecret": {{
+			Entity: "wallet",
+			Action: "read",
+		}},
+		"/lnrpc.Lightning/ImportPrivKey": {{
+			Entity: "wallet",
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/ListLockUnspent": {{
+			Entity: "wallet",
+			Action: "read",
+		}},
+		"/lnrpc.Lightning/LockUnspent": {{
+			Entity: "wallet",
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/CreateTransaction": {{
+			Entity: "wallet",
+			Action: "read",
+		}, {
+			Entity: "wallet",
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/DumpPrivKey": {{
+			Entity: "wallet",
+			Action: "read",
+		}},
+		"/lnrpc.Lightning/GetNewAddress": {{
+			Entity: "wallet",
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/GetTransaction": {{
+			Entity: "wallet",
+			Action: "read",
+		}},
+		"/lnrpc.Lightning/GetNetworkStewardVote": {{
+			Entity: "onchain", //onchain
+			Action: "read",
+		}},
+		"/lnrpc.Lightning/SetNetworkStewardVote": {{
+			Entity: "onchain", //onchain
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/BcastTransaction": {{
+			Entity: "onchain", //onchain
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/SendFrom": {{
+			Entity: "onchain",
+			Action: "write",
+		}},
+		"/lnrpc.Lightning/CreateWallet": {{
+			Entity: "wallet",
+			Action: "write",
+		}},
 	}
 }
 
@@ -538,6 +611,8 @@ type rpcServer struct {
 	// allPermissions is a map of all registered gRPC URIs (including
 	// internal and external subservers) to the permissions they require.
 	allPermissions map[string][]bakery.Op
+
+	wallet *wallet.Wallet
 }
 
 // A compile time check to ensure that rpcServer fully implements the
@@ -556,7 +631,7 @@ func newRPCServer(cfg *Config, s *server, macService *macaroons.Service,
 	tower *watchtower.Standalone,
 	restListen func(net.Addr) (net.Listener, er.R),
 	getListeners rpcListeners,
-	chanPredicate *chanacceptor.ChainedAcceptor) (*rpcServer, er.R) {
+	chanPredicate *chanacceptor.ChainedAcceptor, metaService *metaservice.MetaService) (*rpcServer, er.R) {
 
 	// Set up router rpc backend.
 	channelGraph := s.localChanDB.ChannelGraph()
@@ -765,8 +840,10 @@ func newRPCServer(cfg *Config, s *server, macService *macaroons.Service,
 		macService:      macService,
 		selfNode:        selfNode.PubKeyBytes,
 		allPermissions:  permissions,
+		wallet:          metaService.Wallet,
 	}
 	lnrpc.RegisterLightningServer(grpcServer, rootRPCServer)
+	lnrpc.RegisterMetaServiceServer(grpcServer, metaService)
 
 	// Now the main RPC server has been registered, we'll iterate through
 	// all the sub-RPC servers and register them to ensure that requests
@@ -1140,9 +1217,9 @@ func (r *rpcServer) EstimateFee(ctx context.Context,
 	// We will ask the wallet to create a tx using this fee rate. We set
 	// dryRun=true to avoid inflating the change addresses in the db.
 	var tx *txauthor.AuthoredTx
-	wallet := r.server.cc.Wallet
-	err = wallet.WithCoinSelectLock(func() er.R {
-		tx, err = wallet.CreateSimpleTx(outputs, feePerKw, true)
+	walletx := r.server.cc.Wallet
+	err = walletx.WithCoinSelectLock(func() er.R {
+		tx, err = walletx.CreateSimpleTx(outputs, feePerKw, wallet.SendModeUnsigned)
 		return err
 	})
 	if err != nil {
@@ -1435,60 +1512,13 @@ func (r *rpcServer) SignMessage(ctx context.Context,
 	}
 
 	in.Msg = append(signedMsgPrefix, in.Msg...)
-	sigBytes, err := r.server.nodeSigner.SignCompact(in.Msg)
+	src, err := r.server.nodeSigner.SignCompact(in.Msg)
 	if err != nil {
 		return nil, er.Native(err)
 	}
+	sigBytes := base64.StdEncoding.EncodeToString(src)
 
-	sig := zbase32.EncodeToString(sigBytes)
-	return &lnrpc.SignMessageResponse{Signature: sig}, nil
-}
-
-// VerifyMessage verifies a signature over a msg. The signature must be zbase32
-// encoded and signed by an active node in the resident node's channel
-// database. In addition to returning the validity of the signature,
-// VerifyMessage also returns the recovered pubkey from the signature.
-func (r *rpcServer) VerifyMessage(ctx context.Context,
-	in *lnrpc.VerifyMessageRequest) (*lnrpc.VerifyMessageResponse, error) {
-
-	if in.Msg == nil {
-		return nil, er.Native(er.Errorf("need a message to verify"))
-	}
-
-	// The signature should be zbase32 encoded
-	sig, errr := zbase32.DecodeString(in.Signature)
-	if errr != nil {
-		return nil, er.Native(er.Errorf("failed to decode signature: %v", errr))
-	}
-
-	// The signature is over the double-sha256 hash of the message.
-	in.Msg = append(signedMsgPrefix, in.Msg...)
-	digest := chainhash.DoubleHashB(in.Msg)
-
-	// RecoverCompact both recovers the pubkey and validates the signature.
-	pubKey, _, err := btcec.RecoverCompact(btcec.S256(), sig, digest)
-	if err != nil {
-		return &lnrpc.VerifyMessageResponse{Valid: false}, nil
-	}
-	pubKeyHex := hex.EncodeToString(pubKey.SerializeCompressed())
-
-	var pub [33]byte
-	copy(pub[:], pubKey.SerializeCompressed())
-
-	// Query the channel graph to ensure a node in the network with active
-	// channels signed the message.
-	//
-	// TODO(phlip9): Require valid nodes to have capital in active channels.
-	graph := r.server.localChanDB.ChannelGraph()
-	_, active, err := graph.HasLightningNode(pub)
-	if err != nil {
-		return nil, er.Native(er.Errorf("failed to query graph: %v", err))
-	}
-
-	return &lnrpc.VerifyMessageResponse{
-		Valid:  active,
-		Pubkey: pubKeyHex,
-	}, nil
+	return &lnrpc.SignMessageResponse{Signature: sigBytes}, nil
 }
 
 func (r *rpcServer) ConnectPeer(ctx context.Context,
@@ -2525,7 +2555,7 @@ func (r *rpcServer) GetInfo0(ctx context.Context,
 	nPendingChannels := uint32(len(pendingChannels))
 
 	idPub := r.server.identityECDH.PubKey().SerializeCompressed()
-	encodedIDPub := hex.EncodeToString(idPub)
+	encodedIDPub := idPub
 
 	bestHash, bestHeight, err := r.server.cc.ChainIO.GetBestBlock()
 	if err != nil {
@@ -2683,7 +2713,7 @@ func (r *rpcServer) ListPeers(ctx context.Context,
 		)
 
 		rpcPeer := &lnrpc.Peer{
-			PubKey:    hex.EncodeToString(nodePub[:]),
+			PubKey:    nodePub[:],
 			Address:   serverPeer.Conn().RemoteAddr().String(),
 			Inbound:   serverPeer.Inbound(),
 			BytesRecv: serverPeer.BytesReceived(),
@@ -2776,13 +2806,13 @@ func (r *rpcServer) SubscribePeerEvents(req *lnrpc.PeerEventSubscription,
 			switch peerEvent := e.(type) {
 			case peernotifier.PeerOfflineEvent:
 				event = &lnrpc.PeerEvent{
-					PubKey: hex.EncodeToString(peerEvent.PubKey[:]),
+					PubKey: peerEvent.PubKey[:],
 					Type:   lnrpc.PeerEvent_PEER_OFFLINE,
 				}
 
 			case peernotifier.PeerOnlineEvent:
 				event = &lnrpc.PeerEvent{
-					PubKey: hex.EncodeToString(peerEvent.PubKey[:]),
+					PubKey: peerEvent.PubKey[:],
 					Type:   lnrpc.PeerEvent_PEER_ONLINE,
 				}
 
@@ -3002,7 +3032,7 @@ func (r *rpcServer) PendingChannels(ctx context.Context,
 
 		resp.PendingOpenChannels[i] = &lnrpc.PendingChannelsResponse_PendingOpenChannel{
 			Channel: &lnrpc.PendingChannelsResponse_PendingChannel{
-				RemoteNodePub:        hex.EncodeToString(pub),
+				RemoteNodePub:        pub,
 				ChannelPoint:         pendingChan.FundingOutpoint.String(),
 				Capacity:             int64(pendingChan.Capacity),
 				LocalBalance:         int64(localCommitment.LocalBalance.ToSatoshis()),
@@ -3042,7 +3072,7 @@ func (r *rpcServer) PendingChannels(ctx context.Context,
 		// who initiated the channel, so we set the initiator field to
 		// unknown.
 		channel := &lnrpc.PendingChannelsResponse_PendingChannel{
-			RemoteNodePub:  hex.EncodeToString(pub),
+			RemoteNodePub:  pub,
 			ChannelPoint:   chanPoint.String(),
 			Capacity:       int64(pendingClose.Capacity),
 			LocalBalance:   int64(pendingClose.SettledBalance),
@@ -3188,7 +3218,7 @@ func (r *rpcServer) PendingChannels(ctx context.Context,
 		}
 
 		channel := &lnrpc.PendingChannelsResponse_PendingChannel{
-			RemoteNodePub:        hex.EncodeToString(pub),
+			RemoteNodePub:        pub,
 			ChannelPoint:         chanPoint.String(),
 			Capacity:             int64(waitingClose.Capacity),
 			LocalBalance:         int64(waitingClose.LocalCommitment.LocalBalance.ToSatoshis()),
@@ -3541,7 +3571,7 @@ func createRPCOpenChannel(r *rpcServer, graph *channeldb.ChannelGraph,
 	dbChannel *channeldb.OpenChannel, isActive bool) (*lnrpc.Channel, er.R) {
 
 	nodePub := dbChannel.IdentityPub
-	nodeID := hex.EncodeToString(nodePub.SerializeCompressed())
+	nodeID := nodePub.SerializeCompressed()
 	chanPoint := dbChannel.FundingOutpoint
 
 	// Next, we'll determine whether the channel is public or not.
@@ -3746,7 +3776,7 @@ func (r *rpcServer) createRPCClosedChannel(
 	dbChannel *channeldb.ChannelCloseSummary) (*lnrpc.ChannelCloseSummary, er.R) {
 
 	nodePub := dbChannel.RemotePub
-	nodeID := hex.EncodeToString(nodePub.SerializeCompressed())
+	nodeID := nodePub.SerializeCompressed()
 
 	var (
 		closeType      lnrpc.ChannelCloseSummary_ClosureType
@@ -4998,7 +5028,7 @@ func (r *rpcServer) SubscribeTransactions(req *lnrpc.GetTransactionsRequest,
 				TimeStamp:        tx.Timestamp,
 				TotalFees:        tx.TotalFees,
 				DestAddresses:    destAddresses,
-				RawTxHex:         hex.EncodeToString(tx.RawTx),
+				RawTxHex:         tx.RawTx,
 			}
 			if err := updateStream.Send(detail); err != nil {
 				return err
@@ -5015,7 +5045,7 @@ func (r *rpcServer) SubscribeTransactions(req *lnrpc.GetTransactionsRequest,
 				TimeStamp:     tx.Timestamp,
 				TotalFees:     tx.TotalFees,
 				DestAddresses: destAddresses,
-				RawTxHex:      hex.EncodeToString(tx.RawTx),
+				RawTxHex:      tx.RawTx,
 			}
 			if err := updateStream.Send(detail); err != nil {
 				return err
@@ -5042,9 +5072,25 @@ func (r *rpcServer) GetTransactions(ctx context.Context,
 		endHeight = req.EndHeight
 	}
 
+	var limit int32 = 0
+	// If the user has provided a limit, we overwrite our default.
+	if req.TxnsLimit != 0 {
+		limit = req.TxnsLimit
+	}
+	var skip int32 = 0
+	// If the user has provided a skip, we overwrite our default.
+	if req.TxnsSkip != 0 {
+		skip = req.TxnsSkip
+	}
+	//coinbaseExclude is default
+	var coinbase int32 = 2
+	// If the user has provided coinbase, we overwrite our default.
+	if req.Coinbase != 0 {
+		coinbase = req.Coinbase
+	}
+
 	transactions, err := r.server.cc.Wallet.ListTransactionDetails(
-		req.StartHeight, endHeight,
-	)
+		req.StartHeight, endHeight, skip, limit, coinbase)
 	if err != nil {
 		return nil, er.Native(err)
 	}
@@ -5154,8 +5200,8 @@ func marshalDbEdge(edgeInfo *channeldb.ChannelEdgeInfo,
 		ChanPoint: edgeInfo.ChannelPoint.String(),
 		// TODO(roasbeef): update should be on edge info itself
 		LastUpdate: uint32(lastUpdate),
-		Node1Pub:   hex.EncodeToString(edgeInfo.NodeKey1Bytes[:]),
-		Node2Pub:   hex.EncodeToString(edgeInfo.NodeKey2Bytes[:]),
+		Node1Pub:   edgeInfo.NodeKey1Bytes[:],
+		Node2Pub:   edgeInfo.NodeKey2Bytes[:],
 		Capacity:   int64(edgeInfo.Capacity),
 	}
 
@@ -5765,13 +5811,13 @@ func (r *rpcServer) DecodePayReq(ctx context.Context,
 
 	dest := payReq.Destination.SerializeCompressed()
 	return &lnrpc.PayReq{
-		Destination:     hex.EncodeToString(dest),
-		PaymentHash:     hex.EncodeToString(payReq.PaymentHash[:]),
+		Destination:     dest,
+		PaymentHash:     payReq.PaymentHash[:],
 		NumSatoshis:     amtSat,
 		NumMsat:         amtMsat,
 		Timestamp:       payReq.Timestamp.Unix(),
 		Description:     desc,
-		DescriptionHash: hex.EncodeToString(descHash[:]),
+		DescriptionHash: descHash[:],
 		FallbackAddr:    fallbackAddr,
 		Expiry:          expiry,
 		CltvExpiry:      int64(payReq.MinFinalCLTVExpiry()),
@@ -6577,10 +6623,10 @@ func (r *rpcServer) BakeMacaroon0(ctx context.Context,
 	if errr != nil {
 		return nil, er.E(errr)
 	}
-	resp := &lnrpc.BakeMacaroonResponse{}
-	resp.Macaroon = hex.EncodeToString(newMacBytes)
 
-	return resp, nil
+	return &lnrpc.BakeMacaroonResponse{
+		Macaroon: newMacBytes,
+	}, nil
 }
 
 func (r *rpcServer) ListMacaroonIDs(ctx context.Context, req *lnrpc.ListMacaroonIDsRequest) (
@@ -6841,4 +6887,601 @@ func (r *rpcServer) FundingStateStep0(ctx context.Context,
 	// TODO(roasbeef): return resulting state? also add a method to query
 	// current state?
 	return &lnrpc.FundingStateStepResp{}, nil
+}
+
+// Resync
+func (r *rpcServer) ReSync(ctx context.Context, req *lnrpc.ReSyncChainRequest) (*lnrpc.ReSyncChainResponse, error) {
+	fh := req.FromHeight
+	th := req.ToHeight
+	var a []string
+	if req.Addresses != nil {
+		a = req.Addresses
+	}
+	drop := req.DropDb
+	err := r.wallet.ResyncChain(fh, th, a, drop)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	return &lnrpc.ReSyncChainResponse{}, nil
+}
+
+// StopResync
+func (r *rpcServer) StopReSync(ctx context.Context, req *lnrpc.StopReSyncRequest) (*lnrpc.StopReSyncResponse, error) {
+
+	msg, err := r.wallet.StopResync()
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	return &lnrpc.StopReSyncResponse{
+		Value: msg,
+	}, nil
+}
+
+// GetWalletSeed
+func (r *rpcServer) GetWalletSeed(ctx context.Context, req *lnrpc.GetWalletSeedRequest) (*lnrpc.GetWalletSeedResponse, error) {
+	seed := r.wallet.Manager.Seed()
+	if seed == nil {
+		return nil, er.Native(er.New("No seed found, this is probably a legacy wallet"))
+	}
+	words, err := seed.Words("english")
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	return &lnrpc.GetWalletSeedResponse{
+		Seed: words,
+	}, nil
+}
+
+//Getsecret
+func (r *rpcServer) GetSecret(ctx context.Context, req *lnrpc.GetSecretRequest) (*lnrpc.GetSecretResponse, error) {
+	ptrsecret, err := r.wallet.GetSecret(req.Name)
+	secret := ""
+	if ptrsecret != nil {
+		secret = *ptrsecret
+	}
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	return &lnrpc.GetSecretResponse{
+		Secret: secret,
+	}, nil
+}
+
+//ImportPrivKey
+func (r *rpcServer) ImportPrivKey(ctx context.Context, req *lnrpc.ImportPrivKeyRequest) (*lnrpc.ImportPrivKeyResponse, error) {
+	wif, err := btcutil.DecodeWIF(req.PrivateKey)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	w := r.wallet
+	if !wif.IsForNet(w.ChainParams()) {
+		// If the wif is for the wrong chain, lets attempt to import it anyway
+		var err er.R
+		wif, err = btcutil.NewWIF(wif.PrivKey, w.ChainParams(), wif.CompressPubKey)
+		if err != nil {
+			return nil, er.Native(err)
+		}
+	}
+
+	scope := waddrmgr.KeyScopeBIP0084
+	if req.Legacy {
+		scope = waddrmgr.KeyScopeBIP0044
+	}
+
+	// Import the private key, handling any errors.
+	addr, err := w.ImportPrivateKey(scope, wif, nil, req.Rescan)
+	switch {
+	case waddrmgr.ErrLocked.Is(err):
+		return nil, er.Native(er.New("ErrRPCWalletUnlockNeeded: -13 Enter the wallet passphrase with walletpassphrase first"))
+	}
+
+	return &lnrpc.ImportPrivKeyResponse{
+		Address: addr,
+	}, er.Native(err)
+}
+
+//ListLockUnspent
+func (r *rpcServer) ListLockUnspent(ctx context.Context, req *lnrpc.ListLockUnspentRequest) (*lnrpc.ListLockUnspentResponse, error) {
+	list := r.wallet.LockedOutpoints()
+	var lockedunspent []string
+	for i := 0; i < len(list); i++ {
+		lockedunspent = append(lockedunspent, fmt.Sprintf("%s-txid-%s-vout-%d", list[i].LockName, list[i].Txid, list[i].Vout))
+	}
+	return &lnrpc.ListLockUnspentResponse{
+		LockedUnspent: lockedunspent,
+	}, nil
+}
+
+//LockUnspent
+func (r *rpcServer) LockUnspent(ctx context.Context, req *lnrpc.LockUnspentRequest) (*lnrpc.LockUnspentResponse, error) {
+	w := r.wallet
+	lockname := "none"
+	if req.Lockname != "" {
+		lockname = req.Lockname
+	}
+	unlock := req.Unlock
+	transactions := req.Transactions
+	switch {
+	case unlock && len(transactions) == 0:
+		w.ResetLockedOutpoints(&lockname)
+	default:
+		for _, input := range transactions {
+			txHash, err := chainhash.NewHashFromStr(input.Txid)
+			if err != nil {
+				return nil, er.Native(err)
+			}
+			op := wire.OutPoint{Hash: *txHash, Index: uint32(input.Vout)}
+			if unlock {
+				w.UnlockOutpoint(op)
+			} else {
+				w.LockOutpoint(op, lockname)
+			}
+		}
+	}
+
+	return &lnrpc.LockUnspentResponse{
+		Result: true,
+	}, nil
+}
+
+// makeOutputs creates a slice of transaction outputs from a pair of address
+// strings to amounts.  This is used to create the outputs to include in newly
+// created transactions from a JSON object describing the output destinations
+// and amounts.
+func makeOutputs(pairs map[string]btcutil.Amount, vote *waddrmgr.NetworkStewardVote,
+	chainParams *chaincfg.Params) ([]*wire.TxOut, er.R) {
+	outputs := make([]*wire.TxOut, 0, len(pairs))
+	if vote == nil {
+		vote = &waddrmgr.NetworkStewardVote{}
+	}
+	for addrStr, amt := range pairs {
+		addr, err := btcutil.DecodeAddress(addrStr, chainParams)
+		if err != nil {
+			return nil, er.Errorf("cannot decode address: %s", err)
+		}
+
+		pkScript, err := txscript.PayToAddrScriptWithVote(addr, vote.VoteFor, vote.VoteAgainst)
+		if err != nil {
+			return nil, er.Errorf("cannot create txout script: %s", err)
+		}
+
+		outputs = append(outputs, wire.NewTxOut(int64(amt), pkScript))
+	}
+	return outputs, nil
+}
+
+func sendOutputs(
+	w *wallet.Wallet,
+	amounts map[string]btcutil.Amount,
+	vote *waddrmgr.NetworkStewardVote,
+	fromAddressses *[]string,
+	minconf int32,
+	feeSatPerKb btcutil.Amount,
+	sendMode wallet.SendMode,
+	changeAddress *string,
+	inputMinHeight int,
+	maxInputs int,
+) (*txauthor.AuthoredTx, er.R) {
+	req := wallet.CreateTxReq{
+		Minconf:        minconf,
+		FeeSatPerKB:    feeSatPerKb,
+		SendMode:       sendMode,
+		InputMinHeight: inputMinHeight,
+		MaxInputs:      maxInputs,
+		Label:          "",
+	}
+	if inputMinHeight > 0 {
+		// TODO(cjd): Ideally we would expose the comparator choice to the
+		// API consumer, but this is an API break. When we're using inputMinHeight
+		// it's normally because we're trying to do multiple createtransaction
+		// requests without double-spending, so it's important to prefer oldest
+		// in this case.
+		req.InputComparator = wallet.PreferOldest
+	}
+	var err er.R
+	req.Outputs, err = makeOutputs(amounts, vote, w.ChainParams())
+	if err != nil {
+		return nil, err
+	}
+	if changeAddress != nil && *changeAddress != "" {
+		addr, err := btcutil.DecodeAddress(*changeAddress, w.ChainParams())
+		if err != nil {
+			return nil, err
+		}
+		req.ChangeAddress = &addr
+	}
+	if fromAddressses != nil && len(*fromAddressses) > 0 {
+		addrs := make([]btcutil.Address, 0, len(*fromAddressses))
+		for _, addrStr := range *fromAddressses {
+			addr, err := btcutil.DecodeAddress(addrStr, w.ChainParams())
+			if err != nil {
+				return nil, err
+			}
+			addrs = append(addrs, addr)
+		}
+		req.InputAddresses = &addrs
+	}
+	tx, err := w.SendOutputs(req)
+	if err != nil {
+		if ruleerror.ErrNegativeTxOutValue.Is(err) {
+			return nil, er.New("amount must be positive")
+		}
+		if waddrmgr.ErrLocked.Is(err) {
+			return nil, er.New("Enter the wallet passphrase with walletpassphrase first")
+		}
+		if btcjson.Err.Is(err) {
+			return nil, err
+		}
+		return nil, btcjson.ErrRPCInternal.New("SendOutputs failed", err)
+	}
+	return tx, nil
+}
+
+//CreateTransaction
+func (r *rpcServer) CreateTransaction(ctx context.Context, req *lnrpc.CreateTransactionRequest) (*lnrpc.CreateTransactionResponse, error) {
+	toaddress := req.ToAddress
+	amount := req.Amount
+	fromaddresses := req.FromAddress
+
+	autolock := req.Autolock
+
+	if amount < 0 {
+		return nil, er.Native(er.New("amount must be positive"))
+	}
+	minconf := int32(req.MinConf)
+	if minconf < 0 {
+		return nil, er.Native(er.New("minconf must be positive"))
+	}
+	inputminheight := 0
+	if req.InputMinHeight > 0 {
+		inputminheight = int(req.InputMinHeight)
+	}
+	// Create map of address and amount pairs.
+	amt, err := btcutil.NewAmount(float64(amount))
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	amounts := map[string]btcutil.Amount{
+		toaddress: amt,
+	}
+
+	var vote *waddrmgr.NetworkStewardVote
+	vote, err = r.wallet.NetworkStewardVote(0, waddrmgr.KeyScopeBIP0044)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	maxinputs := -1
+	maxinputs = int(req.MaxInputs)
+	sendmode := wallet.SendModeSigned
+	if !req.Sign {
+		sendmode = wallet.SendModeUnsigned
+	}
+	tx, err := sendOutputs(r.wallet, amounts, vote, &fromaddresses, minconf, txrules.DefaultRelayFeePerKb, sendmode, &req.ChangeAddress, inputminheight, maxinputs)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+
+	for _, in := range tx.Tx.TxIn {
+		op := in.PreviousOutPoint
+		r.wallet.LockOutpoint(op, autolock)
+	}
+
+	var transaction []byte
+	if req.ElectrumFormat {
+		b := new(bytes.Buffer)
+		if err := tx.Tx.BtcEncode(b, 0, wire.ForceEptfEncoding); err != nil {
+			return nil, er.Native(err)
+		}
+		transaction = b.Bytes()
+	} else {
+		b := bytes.NewBuffer(make([]byte, 0, tx.Tx.SerializeSize()))
+		if err := tx.Tx.Serialize(b); err != nil {
+			return nil, er.Native(err)
+		}
+		transaction = b.Bytes()
+	}
+
+	return &lnrpc.CreateTransactionResponse{
+		Transaction: transaction,
+	}, nil
+}
+
+func decodeAddress(s string, params *chaincfg.Params) (btcutil.Address, er.R) {
+	addr, err := btcutil.DecodeAddress(s, params)
+	if err != nil {
+		msg := fmt.Sprintf("Invalid address %q: decode failed", s)
+		return nil, btcjson.ErrRPCInvalidAddressOrKey.New(msg, err)
+	}
+	if !addr.IsForNet(params) {
+		msg := fmt.Sprintf("Invalid address %q: not intended for use on %s",
+			addr, params.Name)
+		return nil, btcjson.ErrRPCInvalidAddressOrKey.New(msg, nil)
+	}
+	return addr, nil
+}
+
+//DumpPrivKey
+func (r *rpcServer) DumpPrivKey(ctx context.Context, req *lnrpc.DumpPrivKeyRequest) (*lnrpc.DumpPrivKeyResponse, error) {
+	addr, err := decodeAddress(req.Address, r.wallet.ChainParams())
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	key, err := r.wallet.DumpWIFPrivateKey(addr)
+	if waddrmgr.ErrLocked.Is(err) {
+		// Address was found, but the private key isn't
+		// accessible.
+		return nil, er.Native(er.New("ErrRPCWalletUnlockNeeded -13 Enter the wallet passphrase with walletpassphrase first"))
+	}
+	return &lnrpc.DumpPrivKeyResponse{
+		PrivateKey: key,
+	}, nil
+}
+
+func (r *rpcServer) GetNewAddress(ctx context.Context, req *lnrpc.GetNewAddressRequest) (*lnrpc.GetNewAddressResponse, error) {
+	scope := waddrmgr.KeyScopeBIP0084
+	if req.Legacy {
+		scope = waddrmgr.KeyScopeBIP0044
+	}
+	if addr, err := r.wallet.NewAddress(waddrmgr.DefaultAccountNum, scope); err != nil {
+		return nil, er.Native(err)
+	} else {
+		return &lnrpc.GetNewAddressResponse{
+			Address: addr.EncodeAddress(),
+		}, nil
+	}
+}
+
+// confirms returns the number of confirmations for a transaction in a block at
+// height txHeight (or -1 for an unconfirmed tx) given the chain height
+// curHeight.
+func confirms(txHeight, curHeight int32) int32 {
+	switch {
+	case txHeight == -1, txHeight > curHeight:
+		return 0
+	default:
+		return curHeight - txHeight + 1
+	}
+}
+
+func (r *rpcServer) GetTransaction(ctx context.Context, req *lnrpc.GetTransactionRequest) (*lnrpc.GetTransactionResponse, error) {
+	w := r.wallet
+	txHash, err := chainhash.NewHashFromStr(req.Txid)
+	if err != nil {
+		return nil, er.Native(btcjson.ErrRPCDecodeHexString.New("Transaction hash string decode failed", err))
+	}
+
+	details, err := wallet.UnstableAPI(w).TxDetails(txHash)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	if details == nil {
+		return nil, er.Native(btcjson.ErrRPCNoTxInfo.Default())
+	}
+
+	syncBlock := w.Manager.SyncedTo()
+
+	// TODO: The serialized transaction is already in the DB, so
+	// reserializing can be avoided here.
+	var txBuf bytes.Buffer
+	txBuf.Grow(details.MsgTx.SerializeSize())
+	err = details.MsgTx.Serialize(&txBuf)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+
+	// TODO: Add a "generated" field to this result type.  "generated":true
+	// is only added if the transaction is a coinbase.
+	transaction := lnrpc.TransactionResult{
+		Txid:            req.Txid,
+		Raw:             txBuf.Bytes(),
+		Time:            details.Received.Unix(),
+		TimeReceived:    details.Received.Unix(),
+		WalletConflicts: []string{},
+	}
+
+	if details.Block.Height != -1 {
+		transaction.BlockHash = details.Block.Hash.String()
+		transaction.BlockTime = details.Block.Time.Unix()
+		transaction.Confirmations = int64(confirms(details.Block.Height, syncBlock.Height))
+	}
+
+	var (
+		debitTotal  btcutil.Amount
+		creditTotal btcutil.Amount // Excludes change
+		fee         btcutil.Amount
+		feeF64      float64
+	)
+	for _, deb := range details.Debits {
+		debitTotal += deb.Amount
+	}
+	for _, cred := range details.Credits {
+		if !cred.Change {
+			creditTotal += cred.Amount
+		}
+	}
+	// Fee can only be determined if every input is a debit.
+	if len(details.Debits) == len(details.MsgTx.TxIn) {
+		var outputTotal btcutil.Amount
+		for _, output := range details.MsgTx.TxOut {
+			outputTotal += btcutil.Amount(output.Value)
+		}
+		fee = debitTotal - outputTotal
+		feeF64 = fee.ToBTC()
+	}
+
+	if len(details.Debits) == 0 {
+		// Credits must be set later, but since we know the full length
+		// of the details slice, allocate it with the correct cap.
+		transaction.Details = make([]*lnrpc.GetTransactionDetailsResult, 0, len(details.Credits))
+	} else {
+		transaction.Details = make([]*lnrpc.GetTransactionDetailsResult, 1, len(details.Credits)+1)
+
+		transaction.Details[0] = &lnrpc.GetTransactionDetailsResult{
+			// Fields left zeroed:
+			//   InvolvesWatchOnly
+			//   Account
+			//   Address
+			//   Vout
+			//
+			// TODO(jrick): Address and Vout should always be set,
+			// but we're doing the wrong thing here by not matching
+			// core.  Instead, gettransaction should only be adding
+			// details for transaction outputs, just like
+			// listtransactions (but using the short result format).
+			Category:    "send",
+			Amount:      (-debitTotal).ToBTC(), // negative since it is a send
+			AmountUnits: uint64(debitTotal),
+		}
+		transaction.Fee = feeF64
+		transaction.FeeUnits = uint64(fee)
+	}
+
+	credCat := wallet.RecvCategory(details, syncBlock.Height, w.ChainParams()).String()
+	for _, cred := range details.Credits {
+		// Change is ignored.
+		if cred.Change {
+			continue
+		}
+
+		var address string
+		_, addrs, _, err := txscript.ExtractPkScriptAddrs(
+			details.MsgTx.TxOut[cred.Index].PkScript, w.ChainParams())
+		if err == nil && len(addrs) == 1 {
+			addr := addrs[0]
+			address = addr.EncodeAddress()
+		}
+
+		transaction.Details = append(transaction.Details, &lnrpc.GetTransactionDetailsResult{
+			// Fields left zeroed:
+			//   InvolvesWatchOnly
+			//   Fee
+			Address:  address,
+			Category: credCat,
+			Amount:   cred.Amount.ToBTC(),
+			Vout:     cred.Index,
+		})
+	}
+	transaction.Amount = creditTotal.ToBTC()
+	transaction.AmountUnits = uint64(creditTotal)
+
+	return &lnrpc.GetTransactionResponse{
+		Transaction: &transaction,
+	}, nil
+}
+
+func (r *rpcServer) GetNetworkStewardVote(ctx context.Context, req *lnrpc.GetNetworkStewardVoteRequest) (*lnrpc.GetNetworkStewardVoteResponse, error) {
+	vote, err := r.wallet.NetworkStewardVote(waddrmgr.DefaultAccountNum, waddrmgr.KeyScopeBIP0044)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	response := &lnrpc.GetNetworkStewardVoteResponse{}
+	if vote == nil {
+		return response, nil
+	}
+	params := r.wallet.ChainParams()
+	if vote.VoteFor != nil {
+		response.VoteFor = txscript.PkScriptToAddress(vote.VoteFor, params).EncodeAddress()
+	}
+	if vote.VoteAgainst != nil {
+		response.VoteAgainst = txscript.PkScriptToAddress(vote.VoteAgainst, params).EncodeAddress()
+	}
+	return response, nil
+}
+
+func (r *rpcServer) SetNetworkStewardVote(ctx context.Context, req *lnrpc.SetNetworkStewardVoteRequest) (*lnrpc.SetNetworkStewardVoteResponse, error) {
+	vote := waddrmgr.NetworkStewardVote{}
+	params := r.wallet.ChainParams()
+	if req.VoteFor == "" {
+	} else if vf, err := btcutil.DecodeAddress(req.VoteFor, params); err != nil {
+		return nil, er.Native(err)
+	} else if vfs, err := txscript.PayToAddrScript(vf); err != nil {
+		return nil, er.Native(err)
+	} else {
+		vote.VoteFor = vfs
+	}
+	if req.VoteAgainst == "" {
+	} else if va, err := btcutil.DecodeAddress(req.VoteAgainst, params); err != nil {
+		return nil, er.Native(err)
+	} else if vas, err := txscript.PayToAddrScript(va); err != nil {
+		return nil, er.Native(err)
+	} else {
+		vote.VoteAgainst = vas
+	}
+	result := &lnrpc.SetNetworkStewardVoteResponse{}
+	err := r.wallet.PutNetworkStewardVote(waddrmgr.DefaultAccountNum, waddrmgr.KeyScopeBIP0044, &vote)
+	return result, er.Native(err)
+}
+
+func (r *rpcServer) BcastTransaction(ctx context.Context, req *lnrpc.BcastTransactionRequest) (*lnrpc.BcastTransactionResponse, error) {
+	dst := make([]byte, hex.DecodedLen(len(req.Tx)))
+	_, err := hex.Decode(dst, req.Tx)
+	if err != nil {
+		return nil, err
+	}
+	var msgTx wire.MsgTx
+	msgTx.Deserialize(bytes.NewReader(dst))
+	txidhash, errr := r.wallet.ReliablyPublishTransaction(&msgTx, "")
+	return &lnrpc.BcastTransactionResponse{
+		TxnHash: txidhash.String(),
+	}, er.Native(errr)
+}
+
+// sendPairs creates and sends payment transactions.
+// It returns the transaction hash in string format upon success
+// All errors are returned in btcjson.RPCError format
+func sendPairs(w *wallet.Wallet, amounts map[string]btcutil.Amount,
+	fromAddressses *[]string, minconf int32, feeSatPerKb btcutil.Amount, maxInputs, inputMinHeight int) (string, er.R) {
+
+	vote, err := w.NetworkStewardVote(0, waddrmgr.KeyScopeBIP0044)
+	if err != nil {
+		return "", err
+	}
+
+	tx, err := sendOutputs(w, amounts, vote, fromAddressses, minconf, feeSatPerKb, wallet.SendModeBcasted, nil, inputMinHeight, maxInputs)
+	if err != nil {
+		return "", err
+	}
+
+	txHashStr := tx.Tx.TxHash().String()
+	log.Infof("Successfully sent transaction [%s]", log.Txid(txHashStr))
+	return txHashStr, nil
+}
+
+//SendFrom
+func (r *rpcServer) SendFrom(ctx context.Context, req *lnrpc.SendFromRequest) (*lnrpc.SendFromResponse, error) {
+	toaddress := req.ToAddress
+	amount := req.Amount
+	fromaddresses := req.FromAddress
+
+	if amount < 0 {
+		return nil, er.Native(er.New("amount must be positive"))
+	}
+	minconf := int32(req.MinConf)
+	if minconf < 0 {
+		return nil, er.Native(er.New("minconf must be positive"))
+	}
+	minheight := 0
+	if req.MinHeight > 0 {
+		minheight = int(req.MinHeight)
+	}
+	// Create map of address and amount pairs.
+	amt, err := btcutil.NewAmount(float64(amount))
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	amounts := map[string]btcutil.Amount{
+		toaddress: amt,
+	}
+
+	maxinputs := -1
+	maxinputs = int(req.MaxInputs)
+
+	tx, err := sendPairs(r.wallet, amounts, &fromaddresses, minconf, txrules.DefaultRelayFeePerKb, maxinputs, minheight)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+
+	return &lnrpc.SendFromResponse{
+		TxHash: tx,
+	}, nil
 }

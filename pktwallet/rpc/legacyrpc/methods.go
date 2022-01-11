@@ -10,7 +10,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"net"
 	"strconv"
 	"sync"
 	"time"
@@ -19,7 +18,7 @@ import (
 
 	"github.com/pkt-cash/pktd/blockchain"
 	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/neutrino/banman"
+	"github.com/pkt-cash/pktd/connmgr/banmgr"
 	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/txscript/params"
 	"github.com/pkt-cash/pktd/wire/ruleerror"
@@ -483,15 +482,13 @@ func getInfo(icmd interface{}, w *wallet.Wallet, chainClient chain.Interface) (i
 		for _, p := range neut.CS.Peers() {
 			ni.Peers = append(ni.Peers, p.Describe())
 		}
-		if err := neut.CS.BanStore().ForEachBannedAddr(func(
-			a *net.IPNet,
-			r banman.Reason,
-			t time.Time,
+		if err := neut.CS.BanMgr().ForEachIp(func(
+			bi banmgr.BanInfo,
 		) er.R {
 			ni.Bans = append(ni.Bans, btcjson.NeutrinoBan{
-				Addr:    a.String(),
-				Reason:  r.String(),
-				EndTime: t.String(),
+				Addr:    bi.Addr,
+				Reason:  bi.Reason,
+				EndTime: bi.BanExpiresTime.String(),
 			})
 			return nil
 		}); err != nil {
@@ -1190,7 +1187,7 @@ func sendOutputs(
 	fromAddressses *[]string,
 	minconf int32,
 	feeSatPerKb btcutil.Amount,
-	dryRun bool,
+	sendMode wallet.SendMode,
 	changeAddress *string,
 	inputMinHeight int,
 	maxInputs int,
@@ -1198,7 +1195,7 @@ func sendOutputs(
 	req := wallet.CreateTxReq{
 		Minconf:        minconf,
 		FeeSatPerKB:    feeSatPerKb,
-		DryRun:         dryRun,
+		SendMode:       sendMode,
 		InputMinHeight: inputMinHeight,
 		MaxInputs:      maxInputs,
 		Label:          "",
@@ -1223,7 +1220,7 @@ func sendOutputs(
 		}
 		req.ChangeAddress = &addr
 	}
-	if fromAddressses != nil {
+	if fromAddressses != nil && len(*fromAddressses) > 0 {
 		addrs := make([]btcutil.Address, 0, len(*fromAddressses))
 		for _, addrStr := range *fromAddressses {
 			addr, err := btcutil.DecodeAddress(addrStr, w.ChainParams())
@@ -1261,7 +1258,7 @@ func sendPairs(w *wallet.Wallet, amounts map[string]btcutil.Amount,
 		return "", err
 	}
 
-	tx, err := sendOutputs(w, amounts, vote, fromAddressses, minconf, feeSatPerKb, false, nil, inputMinHeight, maxInputs)
+	tx, err := sendOutputs(w, amounts, vote, fromAddressses, minconf, feeSatPerKb, wallet.SendModeBcasted, nil, inputMinHeight, maxInputs)
 	if err != nil {
 		return "", err
 	}
@@ -1360,8 +1357,13 @@ func createTransaction(icmd interface{}, w *wallet.Wallet) (interface{}, er.R) {
 		maxInputs = *cmd.MaxInputs
 	}
 
+	sendMode := wallet.SendModeSigned
+	if cmd.NoSign != nil && *cmd.NoSign {
+		sendMode = wallet.SendModeUnsigned
+	}
+
 	tx, err := sendOutputs(w, amounts, vote, cmd.FromAddresses, minconf,
-		feeSatPerKb, true, cmd.ChangeAddress, inputMinHeight, maxInputs)
+		feeSatPerKb, sendMode, cmd.ChangeAddress, inputMinHeight, maxInputs)
 	if err != nil {
 		return "", err
 	}

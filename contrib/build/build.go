@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"runtime"
 )
 
 // generic stuff
@@ -66,7 +67,7 @@ type config struct {
 }
 
 func build(name string, pkg string, conf *config) {
-	if os.Getenv("GOOS") == "windows" {
+	if runtime.GOOS == "windows" {
 		name = name + ".exe"
 	}
 	fmt.Printf("Building %s\n", name)

@@ -759,7 +759,7 @@ func existsRawUnspent(ns walletdb.ReadBucket, k []byte) (credKey []byte) {
 	return credKey
 }
 
-func deleteRawUnspent(ns walletdb.ReadWriteBucket, k []byte) er.R {
+func DeleteRawUnspent(ns walletdb.ReadWriteBucket, k []byte) er.R {
 	err := ns.NestedReadWriteBucket(bucketUnspent).Delete(k)
 	if err != nil {
 		str := "failed to delete unspent"

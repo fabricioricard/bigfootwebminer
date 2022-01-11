@@ -6,8 +6,6 @@ package lnd
 
 import (
 	"context"
-	"crypto/tls"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -31,14 +29,11 @@ import (
 	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
-	"golang.org/x/crypto/acme/autocert"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon.v2"
 
 	"github.com/pkt-cash/pktd/lnd/autopilot"
-	"github.com/pkt-cash/pktd/lnd/cert"
 	"github.com/pkt-cash/pktd/lnd/chainreg"
 	"github.com/pkt-cash/pktd/lnd/chanacceptor"
 	"github.com/pkt-cash/pktd/lnd/channeldb"
@@ -46,8 +41,8 @@ import (
 	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/lnwallet"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/btcwallet"
 	"github.com/pkt-cash/pktd/lnd/macaroons"
+	"github.com/pkt-cash/pktd/lnd/metaservice"
 	"github.com/pkt-cash/pktd/lnd/signal"
 	"github.com/pkt-cash/pktd/lnd/tor"
 	"github.com/pkt-cash/pktd/lnd/walletunlocker"
@@ -61,14 +56,8 @@ import (
 // NOTE: This should only be called after the WalletUnlocker listener has
 // signaled it is ready.
 func WalletUnlockerAuthOptions(cfg *Config) ([]grpc.DialOption, er.R) {
-	creds, err := credentials.NewClientTLSFromFile(cfg.TLSCertPath, "")
-	if err != nil {
-		return nil, er.Errorf("unable to read TLS cert: %v", err)
-	}
-
-	// Create a dial options array with the TLS credentials.
 	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(creds),
+		grpc.WithInsecure(),
 	}
 
 	return opts, nil
@@ -80,14 +69,10 @@ func WalletUnlockerAuthOptions(cfg *Config) ([]grpc.DialOption, er.R) {
 // NOTE: This should only be called after the RPCListener has signaled it is
 // ready.
 func AdminAuthOptions(cfg *Config) ([]grpc.DialOption, er.R) {
-	creds, err := credentials.NewClientTLSFromFile(cfg.TLSCertPath, "")
-	if err != nil {
-		return nil, er.Errorf("unable to read TLS cert: %v", err)
-	}
 
 	// Create a dial options array.
 	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(creds),
+		grpc.WithInsecure(),
 	}
 
 	// Get the admin macaroon if macaroons are active.
@@ -263,15 +248,8 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 
 	defer cleanUp()
 
-	// Only process macaroons if --no-macaroons isn't set.
-	serverOpts, restDialOpts, restListen, cleanUp, err := getTLSConfig(cfg)
-	if err != nil {
-		err := er.Errorf("unable to load TLS credentials: %v", err)
-		log.Error(err)
-		return err
-	}
-
-	defer cleanUp()
+	// get gRPC and REST Options (without TLS)
+	serverOpts, restDialOpts, restListen := getRpcRestConfig(cfg)
 
 	// We use the first RPC listener as the destination for our REST proxy.
 	// If the listener is set to listen on all interfaces, we replace it
@@ -372,6 +350,9 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		return getListeners()
 	}
 
+	// Set up meta Service pass neutrino for getinfo
+	metaService := metaservice.NewMetaService(neutrinoCS)
+
 	// We wait until the user provides a password over RPC. In case lnd is
 	// started with the --noseedbackup flag, we use the default password
 	// for wallet encryption.
@@ -379,7 +360,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 	if !cfg.NoSeedBackup {
 		params, shutdown, err := waitForWalletPassword(
 			cfg, cfg.RESTListeners, serverOpts, restDialOpts,
-			restProxyDest, restListen, walletUnlockerListeners,
+			restProxyDest, restListen, walletUnlockerListeners, metaService,
 		)
 		if err != nil {
 			err := er.Errorf("unable to set up wallet password "+
@@ -392,6 +373,8 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		shutdownUnlocker = shutdown
 		privateWalletPw = walletInitParams.Password
 		publicWalletPw = walletInitParams.Password
+		//Pass wallet to metaservice for getinfo2
+		metaService.SetWallet(walletInitParams.Wallet)
 		defer func() {
 			if err := walletInitParams.UnloadWallet(); err != nil {
 				log.Errorf("Could not unload wallet: %v", err)
@@ -730,7 +713,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 	rpcServer, err := newRPCServer(
 		cfg, server, macaroonService, cfg.SubRPCServers, serverOpts,
 		restDialOpts, restProxyDest, atplManager, server.invoices,
-		tower, restListen, rpcListeners, chainedAcceptor,
+		tower, restListen, rpcListeners, chainedAcceptor, metaService,
 	)
 	if err != nil {
 		err := er.Errorf("unable to create RPC server: %v", err)
@@ -830,191 +813,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 	return nil
 }
 
-// getTLSConfig1 returns a TLS configuration for the gRPC server and credentials
-// and a proxy destination for the REST reverse proxy.
-func getTLSConfig1(cfg *Config) (
-	[]grpc.ServerOption,
-	*tls.Config,
-	func(),
-	er.R,
-) {
-
-	// Ensure we create TLS key and certificate if they don't exist.
-	if !fileExists(cfg.TLSCertPath) && !fileExists(cfg.TLSKeyPath) {
-		log.Infof("Generating TLS certificates...")
-		err := cert.GenCertPair(
-			"lnd autogenerated cert", cfg.TLSCertPath,
-			cfg.TLSKeyPath, cfg.TLSExtraIPs, cfg.TLSExtraDomains,
-			cfg.TLSDisableAutofill, cert.DefaultAutogenValidity,
-		)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		log.Infof("Done generating TLS certificates")
-	}
-
-	certData, parsedCert, errr := cert.LoadCert(
-		cfg.TLSCertPath, cfg.TLSKeyPath,
-	)
-	if errr != nil {
-		return nil, nil, nil, er.E(errr)
-	}
-
-	// We check whether the certifcate we have on disk match the IPs and
-	// domains specified by the config. If the extra IPs or domains have
-	// changed from when the certificate was created, we will refresh the
-	// certificate if auto refresh is active.
-	refresh := false
-	var err er.R
-	if cfg.TLSAutoRefresh {
-		refresh, err = cert.IsOutdated(
-			parsedCert, cfg.TLSExtraIPs,
-			cfg.TLSExtraDomains, cfg.TLSDisableAutofill,
-		)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-	}
-
-	// If the certificate expired or it was outdated, delete it and the TLS
-	// key and generate a new pair.
-	if time.Now().After(parsedCert.NotAfter) || refresh {
-		log.Info("TLS certificate is expired or outdated, " +
-			"generating a new one")
-
-		errr := os.Remove(cfg.TLSCertPath)
-		if errr != nil {
-			return nil, nil, nil, er.E(errr)
-		}
-
-		errr = os.Remove(cfg.TLSKeyPath)
-		if errr != nil {
-			return nil, nil, nil, er.E(errr)
-		}
-
-		log.Infof("Renewing TLS certificates...")
-		err = cert.GenCertPair(
-			"lnd autogenerated cert", cfg.TLSCertPath,
-			cfg.TLSKeyPath, cfg.TLSExtraIPs, cfg.TLSExtraDomains,
-			cfg.TLSDisableAutofill, cert.DefaultAutogenValidity,
-		)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		log.Infof("Done renewing TLS certificates")
-
-		// Reload the certificate data.
-		certData, _, errr = cert.LoadCert(
-			cfg.TLSCertPath, cfg.TLSKeyPath,
-		)
-		if errr != nil {
-			return nil, nil, nil, er.E(errr)
-		}
-	}
-
-	tlsCfg := cert.TLSConfFromCert(certData)
-
-	// If Let's Encrypt is enabled, instantiate autocert to request/renew
-	// the certificates.
-	cleanUp := func() {}
-	if cfg.LetsEncryptDomain != "" {
-		log.Infof("Using Let's Encrypt certificate for domain %v",
-			cfg.LetsEncryptDomain)
-
-		manager := autocert.Manager{
-			Cache:      autocert.DirCache(cfg.LetsEncryptDir),
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(cfg.LetsEncryptDomain),
-		}
-
-		srv := &http.Server{
-			Addr:    cfg.LetsEncryptListen,
-			Handler: manager.HTTPHandler(nil),
-		}
-		shutdownCompleted := make(chan struct{})
-		cleanUp = func() {
-			err := srv.Shutdown(context.Background())
-			if err != nil {
-				log.Errorf("Autocert listener shutdown "+
-					" error: %v", err)
-
-				return
-			}
-			<-shutdownCompleted
-			log.Infof("Autocert challenge listener stopped")
-		}
-
-		go func() {
-			log.Infof("Autocert challenge listener started "+
-				"at %v", cfg.LetsEncryptListen)
-
-			err := srv.ListenAndServe()
-			if err != http.ErrServerClosed {
-				log.Errorf("autocert http: %v", err)
-			}
-			close(shutdownCompleted)
-		}()
-
-		getCertificate := func(h *tls.ClientHelloInfo) (
-			*tls.Certificate, error) {
-
-			lecert, err := manager.GetCertificate(h)
-			if err != nil {
-				log.Errorf("GetCertificate: %v", err)
-				return &certData, nil
-			}
-
-			return lecert, err
-		}
-
-		// The self-signed tls.cert remains available as fallback.
-		tlsCfg.GetCertificate = getCertificate
-	}
-
-	serverCreds := credentials.NewTLS(tlsCfg)
-	serverOpts := []grpc.ServerOption{grpc.Creds(serverCreds)}
-
-	return serverOpts, tlsCfg, cleanUp, nil
-
-	// // For our REST dial options, we'll still use TLS, but also increase
-	// // the max message size that we'll decode to allow clients to hit
-	// // endpoints which return more data such as the DescribeGraph call.
-	// // We set this to 200MiB atm. Should be the same value as maxMsgRecvSize
-	// // in cmd/lncli/main.go.
-	// restDialOpts := []grpc.DialOption{
-	// 	grpc.WithTransportCredentials(restCreds),
-	// 	grpc.WithDefaultCallOptions(
-	// 		grpc.MaxCallRecvMsgSize(1 * 1024 * 1024 * 200),
-	// 	),
-	// }
-
-	// // Return a function closure that can be used to listen on a given
-	// // address with the current TLS config.
-	// restListen := func(addr net.Addr) (net.Listener, er.R) {
-	// 	// For restListen we will call ListenOnAddress if TLS is
-	// 	// disabled.
-	// 	if cfg.DisableRestTLS {
-	// 		return lncfg.ListenOnAddress(addr)
-	// 	}
-
-	// 	return lncfg.TLSListenOnAddress(addr, tlsCfg)
-	// }
-
-	// return serverOpts, restDialOpts, restListen, cleanUp, nil
-}
-
-// getTLSConfig1 returns a TLS configuration for the gRPC server and credentials
-// and a proxy destination for the REST reverse proxy.
-func getTLSConfig(cfg *Config) (
-	[]grpc.ServerOption,
-	[]grpc.DialOption,
-	func(net.Addr) (net.Listener, er.R),
-	func(), er.R,
-) {
-	restCreds, errr := credentials.NewClientTLSFromFile(cfg.TLSCertPath, "")
-	if errr != nil {
-		return nil, nil, nil, nil, er.E(errr)
-	}
+func getRpcRestConfig(cfg *Config) ([]grpc.ServerOption, []grpc.DialOption, func(net.Addr) (net.Listener, er.R)) {
 
 	// For our REST dial options, we'll still use TLS, but also increase
 	// the max message size that we'll decode to allow clients to hit
@@ -1022,37 +821,18 @@ func getTLSConfig(cfg *Config) (
 	// We set this to 200MiB atm. Should be the same value as maxMsgRecvSize
 	// in cmd/lncli/main.go.
 	restDialOpts := []grpc.DialOption{
-		grpc.WithTransportCredentials(restCreds),
+		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(
 			grpc.MaxCallRecvMsgSize(1 * 1024 * 1024 * 200),
 		),
 	}
 
-	cleanUp := func() {}
 	var serverOpts []grpc.ServerOption
-	var tlsCfg *tls.Config
-
-	if !cfg.NoTLS {
-		var err er.R
-		serverOpts, tlsCfg, cleanUp, err = getTLSConfig1(cfg)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-	}
-
-	// Return a function closure that can be used to listen on a given
-	// address with the current TLS config.
 	restListen := func(addr net.Addr) (net.Listener, er.R) {
-		// For restListen we will call ListenOnAddress if TLS is
-		// disabled.
-		if cfg.DisableRestTLS || tlsCfg == nil {
-			return lncfg.ListenOnAddress(addr)
-		}
-
-		return lncfg.TLSListenOnAddress(addr, tlsCfg)
+		return lncfg.ListenOnAddress(addr)
 	}
 
-	return serverOpts, restDialOpts, restListen, cleanUp, nil
+	return serverOpts, restDialOpts, restListen
 }
 
 // fileExists reports whether the named file or directory exists.
@@ -1179,7 +959,7 @@ type WalletUnlockParams struct {
 func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	serverOpts []grpc.ServerOption, restDialOpts []grpc.DialOption,
 	restProxyDest string, restListen func(net.Addr) (net.Listener, er.R),
-	getListeners rpcListeners) (*WalletUnlockParams, func(), er.R) {
+	getListeners rpcListeners, metaService *metaservice.MetaService) (*WalletUnlockParams, func(), er.R) {
 
 	chainConfig := cfg.Bitcoin
 	if cfg.registeredChains.PrimaryChain() == chainreg.LitecoinChain {
@@ -1194,16 +974,23 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	macaroonFiles := []string{
 		cfg.AdminMacPath, cfg.ReadMacPath, cfg.InvoiceMacPath,
 	}
-	fmt.Printf("\n\nchainConfig.ChainDir = %s\n\n", chainConfig.ChainDir)
+	//Parse filename from --wallet or default
+	walletPath, walletFilename := WalletFilename(cfg.WalletFile)
+	//Get default pkt dir ~/.pktwallet/pkt
+	if walletPath == "" {
+		walletPath = cfg.Pktmode.WalletDir
+	}
 	pwService := walletunlocker.New(
 		chainConfig.ChainDir, cfg.ActiveNetParams.Params,
-		!cfg.SyncFreelist, macaroonFiles,
+		!cfg.SyncFreelist, macaroonFiles, walletPath, walletFilename,
 	)
 
 	// Set up a new PasswordService, which will listen for passwords
 	// provided over RPC.
 	grpcServer := grpc.NewServer(serverOpts...)
 	lnrpc.RegisterWalletUnlockerServer(grpcServer, pwService)
+	// Set up metaservice allowing getinfo to work even when wallet is locked
+	lnrpc.RegisterMetaServiceServer(grpcServer, metaService)
 
 	var shutdownFuncs []func()
 	shutdown := func() {
@@ -1287,7 +1074,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	wg.Wait()
 
 	// Wait for user to provide the password.
-	log.Infof("Waiting for wallet encryption password. Use `lncli " +
+	log.Infof("Waiting for wallet (" + walletFilename + ") encryption password. Use `lncli " +
 		"create` to create a wallet, `lncli unlock` to unlock an " +
 		"existing wallet, or `lncli changepassword` to change the " +
 		"password of an existing wallet and unlock it.")
@@ -1302,33 +1089,16 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	// we'll create the wallet early to load the seed.
 	case initMsg := <-pwService.InitMsgs:
 		password := initMsg.Passphrase
-		cipherSeed := initMsg.WalletSeed
+		cipherSeed := initMsg.Seed
 		recoveryWindow := initMsg.RecoveryWindow
 
-		// Before we proceed, we'll check the internal version of the
-		// seed. If it's greater than the current key derivation
-		// version, then we'll return an error as we don't understand
-		// this.
-		if cipherSeed.InternalVersion != keychain.KeyDerivationVersion {
-			return nil, shutdown, er.Errorf("invalid internal "+
-				"seed version %v, current version is %v",
-				cipherSeed.InternalVersion,
-				keychain.KeyDerivationVersion)
-		}
-
-		netDir := btcwallet.NetworkDir(
-			chainConfig.ChainDir, cfg.ActiveNetParams.Params,
-		)
 		loader := wallet.NewLoader(
-			cfg.ActiveNetParams.Params, netDir, "wallet.db", !cfg.SyncFreelist,
+			cfg.ActiveNetParams.Params, walletPath, walletFilename, !cfg.SyncFreelist,
 			recoveryWindow,
 		)
 
-		// With the seed, we can now use the wallet loader to create
-		// the wallet, then pass it back to avoid unlocking it again.
-		birthday := cipherSeed.BirthdayTime()
 		newWallet, err := loader.CreateNewWallet(
-			password, password, []byte(hex.EncodeToString(cipherSeed.Entropy[:])), birthday, nil,
+			nil, password, nil, time.Time{}, cipherSeed,
 		)
 		if err != nil {
 			// Don't leave the file open in case the new wallet
@@ -1348,7 +1118,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 
 		return &WalletUnlockParams{
 			Password:        password,
-			Birthday:        birthday,
+			Birthday:        cipherSeed.Birthday(),
 			RecoveryWindow:  recoveryWindow,
 			Wallet:          newWallet,
 			ChansToRestore:  initMsg.ChanBackups,
@@ -1642,4 +1412,18 @@ func parseHeaderStateAssertion(state string) (*headerfs.FilterHeader, er.R) {
 		Height:     uint32(height),
 		FilterHash: *hash,
 	}, nil
+}
+
+// Parse wallet filename,
+// return path and filename when it starts with /
+func WalletFilename(walletName string) (string, string) {
+	if strings.HasSuffix(walletName, ".db") {
+		if strings.HasPrefix(walletName, "/") {
+			dir, filename := filepath.Split(walletName)
+			return dir, filename
+		}
+		return "", walletName
+	} else {
+		return "", fmt.Sprintf("wallet_%s.db", walletName)
+	}
 }

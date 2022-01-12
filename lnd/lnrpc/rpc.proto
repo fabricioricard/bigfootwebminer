@@ -3935,7 +3935,7 @@ message BcastTransactionResponse{
 
 message SendFromRequest{
     string to_address = 1;
-    int32 amount = 2;
+    double amount = 2;
     repeated string from_address = 3;
     int32 min_conf = 4;
     int32 max_inputs = 5;

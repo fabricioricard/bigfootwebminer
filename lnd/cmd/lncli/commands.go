@@ -3443,10 +3443,10 @@ func sendFrom(ctx *cli.Context) er.R {
 			return er.Errorf("To address argument missing")
 		}
 	}
-	amount := int64(0)
+	amount := float64(0)
 	var err error
 	if len(args) > 1 {
-		amount, err = strconv.ParseInt(args[1], 10, 0)
+		amount, err = strconv.ParseFloat(args[1], 0)
 		if err != nil {
 			return er.Errorf("Amount argument missing")
 		}
@@ -3478,7 +3478,7 @@ func sendFrom(ctx *cli.Context) er.R {
 	}
 	req := &lnrpc.SendFromRequest{
 		ToAddress:   toaddress,
-		Amount:      int32(amount),
+		Amount:      amount,
 		FromAddress: fromaddresses,
 		MinHeight:   int32(minheight),
 		MinConf:     int32(minconf),

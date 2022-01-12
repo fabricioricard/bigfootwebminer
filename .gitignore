@@ -54,3 +54,7 @@ _testmain.go
 
 *.rpm
 *.deb
+
+#testing output files
+*.out
+

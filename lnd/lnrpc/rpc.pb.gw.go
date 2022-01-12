@@ -2958,7 +2958,7 @@ var (
 
 	pattern_Lightning_BcastTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pkt", "v1", "BcastTransaction"}, ""))
 
-	pattern_Lightning_SendFrom_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pkt", "v1", "SendFrom"}, ""))
+	pattern_Lightning_SendFrom_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pkt", "v1", "sendfrom"}, ""))
 )
 
 var (

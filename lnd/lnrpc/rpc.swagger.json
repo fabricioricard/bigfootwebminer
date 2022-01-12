@@ -42,33 +42,6 @@
         ]
       }
     },
-    "/pkt/v1/SendFrom": {
-      "post": {
-        "summary": "SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.",
-        "operationId": "SendFrom",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcSendFromResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/lnrpcSendFromRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      }
-    },
     "/pkt/v1/createtransaction": {
       "post": {
         "summary": "Create a transaction but do not send it to the chain",
@@ -344,6 +317,33 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/lnrpcReSyncChainRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Lightning"
+        ]
+      }
+    },
+    "/pkt/v1/sendfrom": {
+      "post": {
+        "summary": "SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.",
+        "operationId": "SendFrom",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcSendFromResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcSendFromRequest"
             }
           }
         ],
@@ -5597,8 +5597,8 @@
           "type": "string"
         },
         "amount": {
-          "type": "integer",
-          "format": "int32"
+          "type": "number",
+          "format": "double"
         },
         "from_address": {
           "type": "array",

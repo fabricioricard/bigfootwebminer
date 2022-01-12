@@ -178,7 +178,7 @@ http:
       post: "/pkt/v1/BcastTransaction"
       body: "*"  
     - selector: lnrpc.Lightning.SendFrom
-      post: "/pkt/v1/SendFrom"
+      post: "/pkt/v1/sendfrom"
       body: "*"   
 
     # walletunlocker.proto

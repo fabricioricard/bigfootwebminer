@@ -280,7 +280,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 	var neutrinoCS *neutrino.ChainService
 	if mainChain.Node == "neutrino" {
 		neutrinoBackend, neutrinoCleanUp, err := initNeutrinoBackend(
-			cfg, mainChain.ChainDir,
+			cfg, cfg.PktDir,
 		)
 		if err != nil {
 			err := er.Errorf("unable to initialize neutrino "+
@@ -980,6 +980,9 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	if walletPath == "" {
 		walletPath = cfg.Pktmode.WalletDir
 	}
+	if cfg.PktDir != "" {
+		walletPath = cfg.PktDir
+	}
 	pwService := walletunlocker.New(
 		chainConfig.ChainDir, cfg.ActiveNetParams.Params,
 		!cfg.SyncFreelist, macaroonFiles, walletPath, walletFilename,
@@ -1096,7 +1099,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 			cfg.ActiveNetParams.Params, walletPath, walletFilename, !cfg.SyncFreelist,
 			recoveryWindow,
 		)
-		
+
 		newWallet, err := loader.CreateNewWallet(
 			[]byte(wallet.InsecurePubPassphrase), password, nil, time.Time{}, cipherSeed,
 		)
@@ -1295,19 +1298,12 @@ func initializeDatabases(ctx context.Context,
 func initNeutrinoBackend(cfg *Config, chainDir string) (*neutrino.ChainService,
 	func(), er.R) {
 
-	// First we'll open the database file for neutrino, creating the
-	// database if needed. We append the normalized network name here to
-	// match the behavior of btcwallet.
-	dbPath := filepath.Join(
-		chainDir, lncfg.NormalizeNetwork(cfg.ActiveNetParams.Name),
-	)
-
 	// Ensure that the neutrino db path exists.
-	if errr := os.MkdirAll(dbPath, 0700); errr != nil {
+	if errr := os.MkdirAll(chainDir, 0700); errr != nil {
 		return nil, nil, er.E(errr)
 	}
 
-	dbName := filepath.Join(dbPath, "neutrino.db")
+	dbName := filepath.Join(chainDir, "neutrino.db")
 	db, err := walletdb.Create("bdb", dbName, !cfg.SyncFreelist)
 	if err != nil {
 		return nil, nil, er.Errorf("unable to create neutrino "+
@@ -1326,7 +1322,7 @@ func initNeutrinoBackend(cfg *Config, chainDir string) (*neutrino.ChainService,
 	// neutrino light client. We pass in relevant configuration parameters
 	// required.
 	config := neutrino.Config{
-		DataDir:      dbPath,
+		DataDir:      chainDir,
 		Database:     db,
 		ChainParams:  *cfg.ActiveNetParams.Params,
 		AddPeers:     cfg.NeutrinoMode.AddPeers,

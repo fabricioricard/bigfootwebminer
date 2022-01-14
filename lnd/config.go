@@ -181,6 +181,7 @@ type Config struct {
 	ShowVersion bool `short:"V" long:"version" description:"Display version information and exit"`
 
 	LndDir       string `long:"lnddir" description:"The base directory that contains lnd's data, logs, configuration file, etc."`
+	PktDir       string `long:"pktdir" description:"The base directory that contains pktwallet's data etc."`
 	ConfigFile   string `short:"C" long:"configfile" description:"Path to configuration file"`
 	DataDir      string `short:"b" long:"datadir" description:"The directory to store lnd's data within"`
 	WalletFile   string `long:"wallet" description:"Wallet file name or path, if a simple word such as 'personal' then pktwallet will look for wallet_personal.db, if prefixed with a / then pktwallet will consider it an absolute path. (default: wallet.db)"`
@@ -337,6 +338,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		LndDir:            DefaultLndDir,
+		PktDir:            defaultPktWalletDir,
 		ConfigFile:        DefaultConfigFile,
 		DataDir:           defaultDataDir,
 		WalletFile:        defaultWalletFile,
@@ -610,6 +612,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, er.R) {
 	// to directories and files are cleaned and expanded before attempting
 	// to use them later on.
 	cfg.DataDir = CleanAndExpandPath(cfg.DataDir)
+	cfg.PktDir = CleanAndExpandPath(cfg.PktDir)
 	cfg.LetsEncryptDir = CleanAndExpandPath(cfg.LetsEncryptDir)
 	cfg.AdminMacPath = CleanAndExpandPath(cfg.AdminMacPath)
 	cfg.ReadMacPath = CleanAndExpandPath(cfg.ReadMacPath)
@@ -628,6 +631,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, er.R) {
 	// for files that point to outside of the lnddir.
 	dirs := []string{
 		lndDir, cfg.DataDir,
+		cfg.PktDir,
 		cfg.LetsEncryptDir, cfg.Watchtower.TowerDir,
 		filepath.Dir(cfg.AdminMacPath), filepath.Dir(cfg.ReadMacPath),
 		filepath.Dir(cfg.InvoiceMacPath),

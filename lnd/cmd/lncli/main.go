@@ -34,6 +34,7 @@ const (
 
 var (
 	defaultLndDir      = btcutil.AppDataDir("lnd", false)
+	defaultPktDir      = btcutil.AppDataDir("pktwallet", false)
 	defaultTLSCertPath = filepath.Join(defaultLndDir, defaultTLSCertFilename)
 
 	// maxMsgRecvSize is the largest message our client will receive. We
@@ -165,7 +166,7 @@ func getClientConn(ctx *cli.Context, skipMacaroons bool) *grpc.ClientConn {
 
 // extractPathArgs parses the TLS certificate and macaroon paths from the
 // command.
-func extractPathArgs(ctx *cli.Context) (string, string, er.R) {
+func extractPathArgs(ctx *cli.Context) (string, string, string, er.R) {
 	// We'll start off by parsing the active chain and network. These are
 	// needed to determine the correct path to the macaroon when not
 	// specified.
@@ -173,14 +174,14 @@ func extractPathArgs(ctx *cli.Context) (string, string, er.R) {
 	switch chain {
 	case "bitcoin", "litecoin", "pkt":
 	default:
-		return "", "", er.Errorf("unknown chain: %v", chain)
+		return "", "", "", er.Errorf("unknown chain: %v", chain)
 	}
 
 	network := strings.ToLower(ctx.GlobalString("network"))
 	switch network {
 	case "mainnet", "testnet", "regtest", "simnet":
 	default:
-		return "", "", er.Errorf("unknown network: %v", network)
+		return "", "", "", er.Errorf("unknown network: %v", network)
 	}
 
 	// We'll now fetch the lnddir so we can make a decision  on how to
@@ -188,6 +189,8 @@ func extractPathArgs(ctx *cli.Context) (string, string, er.R) {
 	// either be the default, or will have been overwritten by the end
 	// user.
 	lndDir := lncfg.CleanAndExpandPath(ctx.GlobalString("lnddir"))
+
+	pktDir := lncfg.CleanAndExpandPath(ctx.GlobalString("pktdir"))
 
 	// If the macaroon path as been manually provided, then we'll only
 	// target the specified file.
@@ -215,7 +218,11 @@ func extractPathArgs(ctx *cli.Context) (string, string, er.R) {
 		tlsCertPath = filepath.Join(lndDir, defaultTLSCertFilename)
 	}
 
-	return tlsCertPath, macPath, nil
+	if pktDir == "" {
+		pktDir = defaultPktDir
+	}
+
+	return tlsCertPath, macPath, pktDir, nil
 }
 
 func main() {
@@ -233,6 +240,11 @@ func main() {
 			Name:  "lnddir",
 			Value: defaultLndDir,
 			Usage: "The path to lnd's base directory.",
+		},
+		cli.StringFlag{
+			Name:  "pktdir",
+			Value: defaultPktDir,
+			Usage: "The path to pktwallet's base directory.",
 		},
 		cli.BoolFlag{
 			Name:  "notls",

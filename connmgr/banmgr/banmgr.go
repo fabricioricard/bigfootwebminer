@@ -108,6 +108,9 @@ func (b *BanMgr) ForEachIp(f func(bi BanInfo) er.R) er.R {
 }
 
 func (b *BanMgr) AddBanScore(host string, persistent, transient uint32, reason string) bool {
+	b.m.Lock()
+	defer b.m.Unlock()
+
 	ip := TrimAddress(host)
 	// No warning is logged and no score is calculated if banning is disabled.
 	if b.config.DisableBanning {
@@ -133,27 +136,21 @@ func (b *BanMgr) AddBanScore(host string, persistent, transient uint32, reason s
 	if transient == 0 && persistent == 0 {
 		// The score is not being increased, but a warning message is still
 		// logged if the score is above the warn threshold.
-		b.m.Lock()
 		score := b.suspicious[ip].dynamicBanScore.Int()
-		b.m.Unlock()
 		if score > warnThreshold {
 			log.Warnf("Misbehaving peer %s: %s -- ban score is %d, it was not increased this time", ip, reason, score)
 		}
 		return false
 	}
 	//Increase is safe for concurrent access
-	b.m.Lock()
 	score := b.suspicious[ip].dynamicBanScore.Increase(persistent, transient)
-	b.m.Unlock()
 	log.Debugf("Suspicious peer ban score increased!")
 	if score > warnThreshold {
 		log.Warnf("Misbehaving peer %s: %s -- ban score increased to %d", ip, reason, score)
 		if score > b.config.BanThreashold {
 			log.Warnf("Misbehaving peer %s -- banning and disconnecting", ip)
 			//add to banned
-			b.m.Lock()
 			b.banned[ip] = BannedPeers{time.Now(), reason}
-			b.m.Unlock()
 			return true
 			//Will be done by the server
 			//sp.server.BanPeer(ip)

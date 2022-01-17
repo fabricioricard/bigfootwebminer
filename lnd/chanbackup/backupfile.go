@@ -57,6 +57,15 @@ func NewMultiFile(fileName string) *MultiFile {
 	// We'll our temporary backup file in the very same directory as the
 	// main backup file.
 	backupFileDir := filepath.Dir(fileName)
+	//Check if folder exists
+	_, err := os.Stat(backupFileDir)
+	if os.IsNotExist(err) {
+		if err := os.MkdirAll(backupFileDir, 0700); err != nil {
+			log.Errorf("unable to create folder %s", backupFileDir)
+			return nil
+		}
+	}
+
 	tempFileName := filepath.Join(
 		backupFileDir, DefaultTempBackupFileName,
 	)

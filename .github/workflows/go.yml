@@ -1,0 +1,45 @@
+name: Go
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+
+  pull_request:
+    types: [synchronize]
+    branches:
+      - master
+      - develop
+
+env:
+  HOME_PATH: ${{ github.workspace }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+
+      - name: Install Korn shell
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install ksh
+
+      - name: Build
+        shell: ksh
+        run: |
+          cd ${HOME_PATH}
+          ./do
+
+      - name: Integration Tests
+        shell: ksh
+        run: |
+          cd ${HOME_PATH}
+          ./do --test

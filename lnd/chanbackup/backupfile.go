@@ -102,7 +102,13 @@ func (b *MultiFile) UpdateAndSwap(newBackup PackedMulti) er.R {
 
 	// Now that we know the staging area is clear, we'll create the new
 	// temporary back up file.
-	var err error
+	tempFileDir := filepath.Dir(b.tempFileName)
+	_, err := os.Stat(tempFileDir)
+	if os.IsNotExist(err) {
+		if err := os.MkdirAll(tempFileDir, 0700); err != nil {
+			return er.Errorf("unable to create folder: %s", tempFileDir)
+		}
+	}
 	b.tempFile, err = os.Create(b.tempFileName)
 	if err != nil {
 		return er.Errorf("unable to create temp file: %v", err)

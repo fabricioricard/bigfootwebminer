@@ -1,8 +1,9 @@
 pktd
 ====
 
-![Build Status](https://github.com/aldebap/transactionAPI/actions/workflows/go.yml/badge.svg)
 [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://Copyfree.org)
+![Master branch build Status](https://github.com/pkt-cash/pktd/actions/workflows/go.yml/badge.svg?branch=master)
+![Develop branch build Status](https://github.com/pkt-cash/pktd/actions/workflows/go.yml/badge.svg?branch=develop)
 
 `pktd` is the primary full node *PKT Cash* implementation, written in Go.
 

@@ -3,13 +3,13 @@ name: Go
 on:
   push:
     branches:
-      - main
+      - master
       - develop
 
   pull_request:
     types: [synchronize]
     branches:
-      - main
+      - master
       - develop
 
 env:

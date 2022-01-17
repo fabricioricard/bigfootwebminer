@@ -20,26 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.16.x
 
-      - name: Install Korn shell
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt-get install ksh
-
       - name: Build
-        shell: ksh
+        shell: bash
         run: |
           cd ${HOME_PATH}
           ./do
 
       - name: Integration Tests
-        shell: ksh
+        shell: bash
         run: |
           cd ${HOME_PATH}
           ./do --test

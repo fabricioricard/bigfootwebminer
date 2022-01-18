@@ -139,7 +139,7 @@ func TestTxToOutputsDryRun(t *testing.T) {
 		Outputs:        txOuts,
 		Minconf:        1,
 		FeeSatPerKB:    1000,
-		SendMode:       SendModeSigned,
+		SendMode:       SendModeUnsigned,
 		ChangeAddress:  nil,
 		InputMinHeight: 0,
 	}

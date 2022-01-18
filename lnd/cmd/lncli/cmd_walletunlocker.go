@@ -638,8 +638,6 @@ func changePassword(ctx *cli.Context) er.R {
 	if newPubPw == nil {
 		newPubPw = []byte("public")
 	}
-	fmt.Printf("current pub pass is set as: %s\n", currentPubPw)
-	fmt.Printf("new pub pass is set as: %s\n", newPubPw)
 	// Should the daemon be initialized stateless? Then we expect an answer
 	// with the admin macaroon later. Because the --save_to is related to
 	// stateless init, it doesn't make sense to be set on its own.

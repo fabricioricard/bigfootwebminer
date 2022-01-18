@@ -968,12 +968,18 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		chainConfig = cfg.Pkt
 	}
 
+	//Make macaroonFiles an empty slide, only populate it if noMacaroons is not set,
+	//this way we check if macaroonservice needs to start in the unlockerservice or not
+	macaroonFiles := []string{}
 	// The macaroonFiles are passed to the wallet unlocker so they can be
 	// deleted and recreated in case the root macaroon key is also changed
 	// during the change password operation.
-	macaroonFiles := []string{
-		cfg.AdminMacPath, cfg.ReadMacPath, cfg.InvoiceMacPath,
-	}
+	if !cfg.NoMacaroons {
+		macaroonFiles = []string{
+			cfg.AdminMacPath, cfg.ReadMacPath, cfg.InvoiceMacPath,
+		}
+	}  
+	
 	//Parse filename from --wallet or default
 	walletPath, walletFilename := WalletFilename(cfg.WalletFile)
 	//Get default pkt dir ~/.pktwallet/pkt

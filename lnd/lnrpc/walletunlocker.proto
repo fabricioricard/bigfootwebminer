@@ -211,11 +211,16 @@ message ChangePasswordRequest {
     */
     bytes current_password = 1;
 
+    /* to support old pld created wallet we need to pass the pub password as well */
+    bytes current_pub_password = 2;
+
     /*
     new_password should be the new passphrase that will be needed to unlock the
     daemon. When using REST, this field must be encoded as base64.
     */
-    bytes new_password = 2;
+    bytes new_password = 3;
+
+    bytes new_pub_password = 4;
 
     /*
     stateless_init is an optional argument instructing the daemon NOT to create
@@ -223,14 +228,14 @@ message ChangePasswordRequest {
     admin macaroon returned in the response MUST be stored by the caller of the
     RPC as otherwise all access to the daemon will be lost!
     */
-    bool stateless_init = 3;
+    bool stateless_init = 5;
 
     /*
     new_macaroon_root_key is an optional argument instructing the daemon to
     rotate the macaroon root key when set to true. This will invalidate all
     previously generated macaroons.
     */
-    bool new_macaroon_root_key = 4;
+    bool new_macaroon_root_key = 6;
 }
 message ChangePasswordResponse {
     /*

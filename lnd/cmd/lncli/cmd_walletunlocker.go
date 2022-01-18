@@ -528,10 +528,10 @@ func unlock(ctx *cli.Context) er.R {
 	}
 
 	req := &lnrpc.UnlockWalletRequest{
-		WalletPassword: pw,
+		WalletPassword:    pw,
 		WalletPubPassword: ppw,
-		RecoveryWindow: recoveryWindow,
-		StatelessInit:  ctx.Bool(statelessInitFlag.Name),
+		RecoveryWindow:    recoveryWindow,
+		StatelessInit:     ctx.Bool(statelessInitFlag.Name),
 	}
 	_, errr = client.UnlockWallet(ctxb, req)
 	if errr != nil {
@@ -595,25 +595,51 @@ func changePassword(ctx *cli.Context) er.R {
 	client, cleanUp := getWalletUnlockerClient(ctx)
 	defer cleanUp()
 
-	currentPw, err := readPassword("Input current wallet password: ")
+	currentPw, err := readPassword("Input current wallet private password: ")
 	if err != nil {
 		return err
 	}
 
-	newPw, err := readPassword("Input new wallet password: ")
+	newPw, err := readPassword("Input new wallet private password: ")
 	if err != nil {
 		return err
 	}
 
-	confirmPw, err := readPassword("Confirm new wallet password: ")
+	confirmPw, err := readPassword("Confirm new wallet private password: ")
 	if err != nil {
 		return err
 	}
 
 	if !bytes.Equal(newPw, confirmPw) {
-		return er.Errorf("passwords don't match")
+		return er.Errorf("private passwords don't match")
 	}
 
+	currentPubPw, err := readPassword("Input current wallet public password: ")
+	if err != nil {
+		return err
+	}
+
+	newPubPw, err := readPassword("Input new wallet public password: ")
+	if err != nil {
+		return err
+	}
+
+	confirmPubPw, err := readPassword("Confirm new wallet public password: ")
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Equal(newPubPw, confirmPubPw) {
+		return er.Errorf("public passwords don't match")
+	}
+	if currentPubPw == nil {
+		currentPubPw = []byte("public")
+	}
+	if newPubPw == nil {
+		newPubPw = []byte("public")
+	}
+	fmt.Printf("current pub pass is set as: %s\n", currentPubPw)
+	fmt.Printf("new pub pass is set as: %s\n", newPubPw)
 	// Should the daemon be initialized stateless? Then we expect an answer
 	// with the admin macaroon later. Because the --save_to is related to
 	// stateless init, it doesn't make sense to be set on its own.
@@ -625,7 +651,9 @@ func changePassword(ctx *cli.Context) er.R {
 
 	req := &lnrpc.ChangePasswordRequest{
 		CurrentPassword:    currentPw,
+		CurrentPubPassword: currentPubPw,
 		NewPassword:        newPw,
+		NewPubPassword:     newPubPw,
 		StatelessInit:      statelessInit,
 		NewMacaroonRootKey: ctx.Bool("new_mac_root_key"),
 	}

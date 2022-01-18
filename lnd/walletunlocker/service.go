@@ -466,9 +466,15 @@ func (u *UnlockerService) ChangePassword0(ctx context.Context,
 		return nil, er.New("wallet not found")
 	}
 
-	publicPw := in.CurrentPassword
+	publicPw := []byte(wallet.InsecurePubPassphrase)
+	if in.CurrentPubPassword != nil {
+		publicPw = in.CurrentPubPassword
+	}
 	privatePw := in.CurrentPassword
-
+	newPubPw := []byte(wallet.InsecurePubPassphrase)
+	if in.NewPubPassword != nil {
+		newPubPw = in.NewPubPassword
+	}
 	// If the current password is blank, we'll assume the user is coming
 	// from a --noseedbackup state, so we'll use the default passwords.
 	if len(in.CurrentPassword) == 0 {
@@ -479,6 +485,11 @@ func (u *UnlockerService) ChangePassword0(ctx context.Context,
 	// Make sure the new password meets our constraints.
 	if err := ValidatePassword(in.NewPassword); err != nil {
 		return nil, err
+	}
+	if in.NewPubPassword != nil {
+		if err := ValidatePassword(in.NewPassword); err != nil {
+			return nil, err
+		}
 	}
 
 	// Load the existing wallet in order to proceed with the password change.
@@ -519,66 +530,69 @@ func (u *UnlockerService) ChangePassword0(ctx context.Context,
 	// wallet. This will be done atomically in order to prevent one
 	// passphrase change from being successful and not the other.
 	err = w.ChangePassphrases(
-		publicPw, in.NewPassword, privatePw, in.NewPassword,
+		publicPw, newPubPw, privatePw, in.NewPassword,
 	)
 	if err != nil {
 		return nil, er.Errorf("unable to change wallet passphrase: "+
 			"%v", err)
 	}
 
-	// The next step is to load the macaroon database, change the password
-	// then close it again.
-	// Attempt to open the macaroon DB, unlock it and then change
-	// the passphrase.
-	macaroonService, err := macaroons.NewService(
-		netDir, "lnd", in.StatelessInit,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	err = macaroonService.CreateUnlock(&privatePw)
-	if err != nil {
-		closeErr := macaroonService.Close()
-		if closeErr != nil {
-			return nil, er.Errorf("could not create unlock: %v "+
-				"--> follow-up error when closing: %v", err,
-				closeErr)
+	// Check if macaroonFiles is populated, if not it's due to noMacaroon flag is set
+	//so we do not need the service
+	if len(u.macaroonFiles) > 0 {
+		// The next step is to load the macaroon database, change the password
+		// then close it again.
+		// Attempt to open the macaroon DB, unlock it and then change
+		// the passphrase.
+		macaroonService, err := macaroons.NewService(
+			netDir, "lnd", in.StatelessInit,
+		)
+		if err != nil {
+			return nil, err
 		}
-		return nil, err
-	}
-	err = macaroonService.ChangePassword(privatePw, in.NewPassword)
-	if err != nil {
-		closeErr := macaroonService.Close()
-		if closeErr != nil {
-			return nil, er.Errorf("could not change password: %v "+
-				"--> follow-up error when closing: %v", err,
-				closeErr)
-		}
-		return nil, err
-	}
 
-	// If requested by the user, attempt to replace the existing
-	// macaroon root key with a new one.
-	if in.NewMacaroonRootKey {
-		err = macaroonService.GenerateNewRootKey()
+		err = macaroonService.CreateUnlock(&privatePw)
 		if err != nil {
 			closeErr := macaroonService.Close()
 			if closeErr != nil {
-				return nil, er.Errorf("could not generate "+
-					"new root key: %v --> follow-up error "+
-					"when closing: %v", err, closeErr)
+				return nil, er.Errorf("could not create unlock: %v "+
+					"--> follow-up error when closing: %v", err,
+					closeErr)
 			}
 			return nil, err
 		}
-	}
+		err = macaroonService.ChangePassword(privatePw, in.NewPassword)
+		if err != nil {
+			closeErr := macaroonService.Close()
+			if closeErr != nil {
+				return nil, er.Errorf("could not change password: %v "+
+					"--> follow-up error when closing: %v", err,
+					closeErr)
+			}
+			return nil, err
+		}
 
-	err = macaroonService.Close()
-	if err != nil {
-		return nil, er.Errorf("could not close macaroon service: %v",
-			err)
-	}
+		// If requested by the user, attempt to replace the existing
+		// macaroon root key with a new one.
+		if in.NewMacaroonRootKey {
+			err = macaroonService.GenerateNewRootKey()
+			if err != nil {
+				closeErr := macaroonService.Close()
+				if closeErr != nil {
+					return nil, er.Errorf("could not generate "+
+						"new root key: %v --> follow-up error "+
+						"when closing: %v", err, closeErr)
+				}
+				return nil, err
+			}
+		}
 
+		err = macaroonService.Close()
+		if err != nil {
+			return nil, er.Errorf("could not close macaroon service: %v",
+				err)
+		}
+	}
 	// Finally, send the new password across the UnlockPasswords channel to
 	// automatically unlock the wallet.
 	walletUnlockMsg := &WalletUnlockMsg{

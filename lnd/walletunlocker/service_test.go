@@ -29,24 +29,13 @@ import (
 )
 
 const (
-	testWalletPath     string = "./"
-	testWalletFilename string = "serviceTestFile"
+	testWalletFilename string = "wallet.db"
 )
 
 var (
 	testPassword = []byte("test-password")
 	testSeed     = []byte("test-seed-123456789")
 	testMac      = []byte("fakemacaroon")
-
-	//	entropy not supported by wallet/seedwords
-	/*
-		testEntropy = [aezeed.EntropySize]byte{
-			0x81, 0xb6, 0x37, 0xd8,
-			0x63, 0x59, 0xe6, 0x96,
-			0x0d, 0xe7, 0x95, 0xe4,
-			0x1e, 0x0b, 0x4c, 0xfd,
-		}
-	*/
 
 	testNetParams = &chaincfg.MainNetParams
 
@@ -80,6 +69,7 @@ func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string,
 
 	// Create a new test wallet that uses fast scrypt as KDF.
 	netDir := btcwallet.NetworkDir(dir, netParams)
+	log.Debugf(">>>>> 5.5. wallet path: %s/%s", netDir, "wallet.db")
 	loader := wallet.NewLoader(netParams, netDir, "wallet.db", true, 0)
 	_, err := loader.CreateNewWallet(
 		pubPw, privPw, []byte(hex.EncodeToString(testSeed)), time.Time{}, nil,
@@ -89,22 +79,6 @@ func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string,
 	util.RequireNoErr(t, err)
 }
 
-//	previous test code
-/*
-func createSeedAndMnemonic(t *testing.T,
-	pass []byte) (*aezeed.CipherSeed, aezeed.Mnemonic) {
-	cipherSeed, err := aezeed.New(
-		keychain.KeyDerivationVersion, &testEntropy, time.Now(),
-	)
-	util.RequireNoErr(t, err)
-
-	// With the new seed created, we'll convert it into a mnemonic phrase
-	// that we'll send over to initialize the wallet.
-	mnemonic, err := cipherSeed.ToMnemonic(pass)
-	util.RequireNoErr(t, err)
-	return cipherSeed, mnemonic
-}
-*/
 func createSeedAndMnemonic(t *testing.T, pass []byte) (*seedwords.Seed, string) {
 
 	cipherSeed, err := seedwords.RandomSeed()
@@ -112,6 +86,8 @@ func createSeedAndMnemonic(t *testing.T, pass []byte) (*seedwords.Seed, string) 
 
 	encipheredSeed := cipherSeed.Encrypt(pass)
 
+	// With the new seed created, we'll convert it into a mnemonic phrase
+	// that we'll send over to initialize the wallet.
 	mnemonic, err := encipheredSeed.Words("english")
 	util.RequireNoErr(t, err)
 
@@ -171,7 +147,7 @@ func TestGenSeed(t *testing.T) {
 		_ = os.RemoveAll(testDir)
 	}()
 
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testWalletPath, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
 
 	// Now that the service has been created, we'll ask it to generate a
 	// new seed for us given a test passphrase.
@@ -187,13 +163,6 @@ func TestGenSeed(t *testing.T) {
 
 	// We should then be able to take the generated mnemonic, and properly
 	// decipher both it.
-
-	//	previous test code
-	/*
-		var mnemonic aezeed.Mnemonic
-		copy(mnemonic[:], seedResp.CipherSeedMnemonic[:])
-		_, err := mnemonic.ToCipherSeed(aezeedPass)
-	*/
 	mnemonic := strings.Join(seedResp.CipherSeedMnemonic, " ")
 	_, err := seedwords.SeedFromWords(mnemonic)
 	util.RequireNoErr(t, err)
@@ -205,6 +174,7 @@ func TestGenSeed(t *testing.T) {
 func TestGenSeedGenerateEntropy(t *testing.T) {
 	t.Parallel()
 
+	log.Debugf(">>>>> running TestGenSeedGenerateEntropy()")
 	// First, we'll create a new test directory and unlocker service for
 	// that directory.
 	testDir, errr := ioutil.TempDir("", "testcreate")
@@ -212,7 +182,7 @@ func TestGenSeedGenerateEntropy(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(testDir)
 	}()
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testWalletPath, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
 
 	// Now that the service has been created, we'll ask it to generate a
 	// new seed for us given a test passphrase. Note that we don't actually
@@ -227,24 +197,22 @@ func TestGenSeedGenerateEntropy(t *testing.T) {
 
 	// We should then be able to take the generated mnemonic, and properly
 	// decipher both it.
-
-	//	previous test code
-	/*
-		var mnemonic aezeed.Mnemonic
-		copy(mnemonic[:], seedResp.CipherSeedMnemonic[:])
-		_, err := mnemonic.ToCipherSeed(aezeedPass)
-	*/
 	mnemonic := strings.Join(seedResp.CipherSeedMnemonic, " ")
 	_, err := seedwords.SeedFromWords(mnemonic)
 	util.RequireNoErr(t, err)
 }
 
+/*
 // TestGenSeedInvalidEntropy tests that if a user attempt to create a seed with
 // the wrong number of bytes for the initial entropy, then the proper error is
 // returned.
+*/
+// TestGenSeedInvalidEntropy tests that if a user attempt to create a seed with
+// a non empty initial entropy, then the proper error is returned.
 func TestGenSeedInvalidEntropy(t *testing.T) {
 	t.Parallel()
 
+	log.Debugf(">>>>> running TestGenSeedInvalidEntropy()")
 	// First, we'll create a new test directory and unlocker service for
 	// that directory.
 	testDir, errr := ioutil.TempDir("", "testcreate")
@@ -252,7 +220,7 @@ func TestGenSeedInvalidEntropy(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(testDir)
 	}()
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testWalletPath, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
 
 	// Now that the service has been created, we'll ask it to generate a
 	// new seed for us given a test passphrase. However, we'll be using an
@@ -267,7 +235,7 @@ func TestGenSeedInvalidEntropy(t *testing.T) {
 	ctx := context.Background()
 	_, errr = service.GenSeed(ctx, genSeedReq)
 	require.Error(t, errr)
-	require.Contains(t, errr.Error(), "incorrect entropy length")
+	require.Contains(t, errr.Error(), "custom seed input entropy is not supported")
 }
 
 // TestInitWallet tests that the user is able to properly initialize the wallet
@@ -275,6 +243,7 @@ func TestGenSeedInvalidEntropy(t *testing.T) {
 func TestInitWallet(t *testing.T) {
 	t.Parallel()
 
+	log.Debugf(">>>>> running TestInitWallet()")
 	// testDir is empty, meaning wallet was not created from before.
 	testDir, errr := ioutil.TempDir("", "testcreate")
 	require.NoError(t, errr)
@@ -283,28 +252,19 @@ func TestInitWallet(t *testing.T) {
 	}()
 
 	// Create new UnlockerService.
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testWalletPath, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
 
 	// Once we have the unlocker service created, we'll now instantiate a
 	// new cipher seed and its mnemonic.
 	pass := []byte("test")
 	cipherSeed, mnemonic := createSeedAndMnemonic(t, pass)
+	log.Debugf(">>>>> 1. mnemonic: %s", mnemonic)
 
 	// Now that we have all the necessary items, we'll now issue the Init
 	// command to the wallet. This should check the validity of the cipher
 	// seed, then send over the initialization information over the init
 	// channel.
 	ctx := context.Background()
-	//	previous test code
-	/*
-		req := &lnrpc.InitWalletRequest{
-			WalletPassword:     testPassword,
-			CipherSeedMnemonic: mnemonic[:],
-			AezeedPassphrase:   pass,
-			RecoveryWindow:     int32(testRecoveryWindow),
-			StatelessInit:      true,
-		}
-	*/
 	req := &lnrpc.InitWalletRequest{
 		WalletPassword:     testPassword,
 		CipherSeedMnemonic: strings.Split(mnemonic, " "),
@@ -314,8 +274,11 @@ func TestInitWallet(t *testing.T) {
 	}
 
 	errChan := make(chan er.R, 1)
+
 	go func() {
+		log.Debugf(">>>>> 2. about to invoke InitWallet()")
 		response, err := service.InitWallet(ctx, req)
+		log.Debugf(">>>>> 4. InitWallet() returned")
 		if err != nil {
 			errChan <- er.E(err)
 			return
@@ -350,7 +313,7 @@ func TestInitWallet(t *testing.T) {
 		require.Equal(
 			t, cipherSeed.Version(), msgSeed.Version(),
 		)
-		require.Equal(t, cipherSeed.Birthday, msgSeed.Birthday)
+		require.Equal(t, cipherSeed.Birthday(), msgSeed.Birthday())
 		//	unnecessary check since entropy not supported by wallet/seedwords
 		/*
 			require.Equal(t, cipherSeed.Entropy, msgSeed.Entropy)
@@ -367,15 +330,28 @@ func TestInitWallet(t *testing.T) {
 	}
 
 	// Create a wallet in testDir.
-	createTestWallet(t, testDir, testNetParams)
+	log.Debugf(">>>>> 5. about to invoke createTestWallet()")
+	//	createTestWallet(t, testDir, testNetParams)
+	reqCreateWallet := &lnrpc.CreateWalletRequest{
+		WalletPassword:     testPassword,
+		CipherSeedMnemonic: strings.Split(mnemonic, " "),
+		AezeedPass:         pass,
+		StatelessInitFlag:  true,
+		// SaveTo               string   `protobuf:"bytes,5,opt,name=save_to,json=saveTo,proto3" json:"save_to,omitempty"`
+	}
+
+	_, errr = service.CreateWallet(ctx, reqCreateWallet)
+	require.NoError(t, errr)
 
 	// Now calling InitWallet should fail, since a wallet already exists in
 	// the directory.
+	log.Debugf(">>>>> 6. about to invoke InitWallet() again")
 	_, errr = service.InitWallet(ctx, req)
 	require.Error(t, errr)
 
 	// Similarly, if we try to do GenSeed again, we should get an error as
 	// the wallet already exists.
+	log.Debugf(">>>>> 7. about to invoke GenSeed()")
 	_, errr = service.GenSeed(ctx, &lnrpc.GenSeedRequest{})
 	require.Error(t, errr)
 }
@@ -385,6 +361,7 @@ func TestInitWallet(t *testing.T) {
 func TestCreateWalletInvalidEntropy(t *testing.T) {
 	t.Parallel()
 
+	log.Debugf(">>>>> running TestCreateWalletInvalidEntropy()")
 	// testDir is empty, meaning wallet was not created from before.
 	testDir, errr := ioutil.TempDir("", "testcreate")
 	require.NoError(t, errr)
@@ -393,7 +370,7 @@ func TestCreateWalletInvalidEntropy(t *testing.T) {
 	}()
 
 	// Create new UnlockerService.
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testWalletPath, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
 
 	// We'll attempt to init the wallet with an invalid cipher seed and
 	// passphrase.
@@ -414,6 +391,7 @@ func TestCreateWalletInvalidEntropy(t *testing.T) {
 func TestUnlockWallet(t *testing.T) {
 	t.Parallel()
 
+	log.Debugf(">>>>> running TestUnlockWallet()")
 	// testDir is empty, meaning wallet was not created from before.
 	testDir, errr := ioutil.TempDir("", "testunlock")
 	require.NoError(t, errr)
@@ -422,7 +400,7 @@ func TestUnlockWallet(t *testing.T) {
 	}()
 
 	// Create new UnlockerService.
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testWalletPath, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
 
 	ctx := context.Background()
 	req := &lnrpc.UnlockWalletRequest{
@@ -481,6 +459,7 @@ func TestUnlockWallet(t *testing.T) {
 func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	t.Parallel()
 
+	log.Debugf(">>>>> running TestChangeWalletPasswordNewRootkey()")
 	// testDir is empty, meaning wallet was not created from before.
 	testDir, errr := ioutil.TempDir("", "testchangepassword")
 	require.NoError(t, errr)
@@ -511,7 +490,7 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	}
 
 	// Create a new UnlockerService with our temp files.
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testWalletPath, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
 
 	ctx := context.Background()
 	newPassword := []byte("hunter2???")
@@ -589,6 +568,7 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 func TestChangeWalletPasswordStateless(t *testing.T) {
 	t.Parallel()
 
+	log.Debugf(">>>>> running TestChangeWalletPasswordStateless()")
 	// testDir is empty, meaning wallet was not created from before.
 	testDir, errr := ioutil.TempDir("", "testchangepasswordstateless")
 	require.NoError(t, errr)
@@ -621,7 +601,7 @@ func TestChangeWalletPasswordStateless(t *testing.T) {
 	// Create a new UnlockerService with our temp files.
 	service := walletunlocker.New(testDir, testNetParams, true, []string{
 		tempMacFile, nonExistingFile,
-	}, testWalletPath, testWalletFilename)
+	}, testDir, testWalletFilename)
 
 	// Create a wallet we can try to unlock. We use the default password
 	// so we can check that the unlocker service defaults to this when

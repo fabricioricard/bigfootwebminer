@@ -211,6 +211,11 @@ func (s *Seed) Birthday() time.Time {
 	return s.seedBin.getBday()
 }
 
+// Provide the seed version number
+func (s *Seed) Version() byte {
+	return s.seedBin.getVer()
+}
+
 // Bytes returns the secret seed, 19 bytes long including the birthday bytes
 // which provide a small amount of additional entropy.
 func (s *Seed) Bytes() []byte {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/pkt-cash/pktd/btcutil/er"
@@ -158,6 +159,7 @@ func New(chainDir string, params *chaincfg.Params, noFreelistSync bool,
 
 func (u *UnlockerService) GenSeed(_ context.Context,
 	in *lnrpc.GenSeedRequest) (*lnrpc.GenSeedResponse, error) {
+	//	TODO: should replace the nil context by context.TODO()
 	res, err := u.GenSeed0(nil, in)
 	return res, er.Native(err)
 }
@@ -647,7 +649,7 @@ func (u *UnlockerService) CreateWallet(ctx context.Context, req *lnrpc.CreateWal
 		log.Infof("Using provided cipher seed mnemonic.")
 		//Check Seed Mnemonic
 		if len(req.CipherSeedMnemonic) != 15 {
-			return response, er.Native(er.New("wrong cipher seed mnemonic length: got " + string(len(req.CipherSeedMnemonic)) + " words, expecting 15 words"))
+			return response, er.Native(er.New("wrong cipher seed mnemonic length: got " + strconv.Itoa(len(req.CipherSeedMnemonic)) + " words, expecting 15 words"))
 		}
 		cipherSeedString := strings.Join(cipherSeed, " ")
 		seedEnc, err := seedwords.SeedFromWords(cipherSeedString)

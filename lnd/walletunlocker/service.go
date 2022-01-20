@@ -159,7 +159,8 @@ func New(chainDir string, params *chaincfg.Params, noFreelistSync bool,
 
 func (u *UnlockerService) GenSeed(_ context.Context,
 	in *lnrpc.GenSeedRequest) (*lnrpc.GenSeedResponse, error) {
-	res, err := u.GenSeed0(context.TODO(), in)
+	//	TODO: should replace the nil context by context.TODO()
+	res, err := u.GenSeed0(nil, in)
 	return res, er.Native(err)
 }
 
@@ -294,7 +295,6 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 		netDir = u.walletPath
 	}
 	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, uint32(recoveryWindow))
-	log.Debugf(">>>>> 2.5. wallet path: %s/%s", netDir, u.walletFile)
 
 	walletExists, err := loader.WalletExists()
 	if err != nil {
@@ -308,7 +308,6 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 	}
 
 	mnemonic := strings.Join(in.CipherSeedMnemonic, " ")
-	log.Debugf(">>>>> 3. mnemonic: %s", mnemonic)
 	seedEnc, err := seedwords.SeedFromWords(mnemonic)
 	if err != nil {
 		return nil, err

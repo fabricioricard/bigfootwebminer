@@ -69,12 +69,25 @@ func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string,
 
 	// Create a new test wallet that uses fast scrypt as KDF.
 	netDir := btcwallet.NetworkDir(dir, netParams)
-	log.Debugf(">>>>> 5.5. wallet path: %s/%s", netDir, "wallet.db")
-	loader := wallet.NewLoader(netParams, netDir, "wallet.db", true, 0)
+	loader := wallet.NewLoader(netParams, netDir, testWalletFilename, true, 0)
 	_, err := loader.CreateNewWallet(
 		pubPw, privPw, []byte(hex.EncodeToString(testSeed)), time.Time{}, nil,
 	)
 	util.RequireNoErr(t, err)
+
+	realWalletPathname := wallet.WalletDbPath(netDir, testWalletFilename)
+	log.Debugf(">>>>> [1] wallet path: %s", realWalletPathname)
+	walletFileExists := true
+	_, errr := os.Stat(realWalletPathname)
+	if err != nil {
+		if os.IsNotExist(errr) {
+			walletFileExists = false
+		} else {
+			require.NoError(t, errr)
+		}
+	}
+	log.Debugf(">>>>> [2] after loader.CreateNewWallet() the wallet file exists: %t", walletFileExists)
+
 	err = loader.UnloadWallet()
 	util.RequireNoErr(t, err)
 }
@@ -147,7 +160,7 @@ func TestGenSeed(t *testing.T) {
 		_ = os.RemoveAll(testDir)
 	}()
 
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, "", testWalletFilename)
 
 	// Now that the service has been created, we'll ask it to generate a
 	// new seed for us given a test passphrase.
@@ -171,6 +184,8 @@ func TestGenSeed(t *testing.T) {
 // TestGenSeedInvalidEntropy tests that the gen seed method generates a valid
 // cipher seed mnemonic pass phrase even when the user doesn't provide its own
 // source of entropy.
+//	the following test makes no sense anymore, since the seedwords package doesn't support entropy
+/*
 func TestGenSeedGenerateEntropy(t *testing.T) {
 	t.Parallel()
 
@@ -201,6 +216,7 @@ func TestGenSeedGenerateEntropy(t *testing.T) {
 	_, err := seedwords.SeedFromWords(mnemonic)
 	util.RequireNoErr(t, err)
 }
+*/
 
 /*
 // TestGenSeedInvalidEntropy tests that if a user attempt to create a seed with
@@ -220,7 +236,7 @@ func TestGenSeedInvalidEntropy(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(testDir)
 	}()
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, "", testWalletFilename)
 
 	// Now that the service has been created, we'll ask it to generate a
 	// new seed for us given a test passphrase. However, we'll be using an
@@ -252,13 +268,12 @@ func TestInitWallet(t *testing.T) {
 	}()
 
 	// Create new UnlockerService.
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, "", testWalletFilename)
 
 	// Once we have the unlocker service created, we'll now instantiate a
 	// new cipher seed and its mnemonic.
 	pass := []byte("test")
 	cipherSeed, mnemonic := createSeedAndMnemonic(t, pass)
-	log.Debugf(">>>>> 1. mnemonic: %s", mnemonic)
 
 	// Now that we have all the necessary items, we'll now issue the Init
 	// command to the wallet. This should check the validity of the cipher
@@ -276,9 +291,7 @@ func TestInitWallet(t *testing.T) {
 	errChan := make(chan er.R, 1)
 
 	go func() {
-		log.Debugf(">>>>> 2. about to invoke InitWallet()")
 		response, err := service.InitWallet(ctx, req)
-		log.Debugf(">>>>> 4. InitWallet() returned")
 		if err != nil {
 			errChan <- er.E(err)
 			return
@@ -298,26 +311,12 @@ func TestInitWallet(t *testing.T) {
 		t.Fatalf("InitWallet call failed: %v", err)
 
 	case msg := <-service.InitMsgs:
-		//	previous test code
-		/*
-			msgSeed := msg.WalletSeed
-		*/
 		msgSeed := msg.Seed
 		require.Equal(t, testPassword, msg.Passphrase)
-		//	previous test code
-		/*
-			require.Equal(
-				t, cipherSeed.InternalVersion, msgSeed.InternalVersion,
-			)
-		*/
 		require.Equal(
 			t, cipherSeed.Version(), msgSeed.Version(),
 		)
 		require.Equal(t, cipherSeed.Birthday(), msgSeed.Birthday())
-		//	unnecessary check since entropy not supported by wallet/seedwords
-		/*
-			require.Equal(t, cipherSeed.Entropy, msgSeed.Entropy)
-		*/
 		require.Equal(t, testRecoveryWindow, msg.RecoveryWindow)
 		require.Equal(t, true, msg.StatelessInit)
 
@@ -330,30 +329,19 @@ func TestInitWallet(t *testing.T) {
 	}
 
 	// Create a wallet in testDir.
-	log.Debugf(">>>>> 5. about to invoke createTestWallet()")
-	//	createTestWallet(t, testDir, testNetParams)
-	reqCreateWallet := &lnrpc.CreateWalletRequest{
-		WalletPassword:     testPassword,
-		CipherSeedMnemonic: strings.Split(mnemonic, " "),
-		AezeedPass:         pass,
-		StatelessInitFlag:  true,
-		// SaveTo               string   `protobuf:"bytes,5,opt,name=save_to,json=saveTo,proto3" json:"save_to,omitempty"`
-	}
-
-	_, errr = service.CreateWallet(ctx, reqCreateWallet)
-	require.NoError(t, errr)
+	createTestWallet(t, testDir, testNetParams)
 
 	// Now calling InitWallet should fail, since a wallet already exists in
 	// the directory.
-	log.Debugf(">>>>> 6. about to invoke InitWallet() again")
 	_, errr = service.InitWallet(ctx, req)
 	require.Error(t, errr)
+	require.Contains(t, errr.Error(), "wallet already exists")
 
 	// Similarly, if we try to do GenSeed again, we should get an error as
 	// the wallet already exists.
-	log.Debugf(">>>>> 7. about to invoke GenSeed()")
 	_, errr = service.GenSeed(ctx, &lnrpc.GenSeedRequest{})
 	require.Error(t, errr)
+	require.Contains(t, errr.Error(), "wallet already exists")
 }
 
 // TestInitWalletInvalidCipherSeed tests that if we attempt to create a wallet
@@ -370,7 +358,7 @@ func TestCreateWalletInvalidEntropy(t *testing.T) {
 	}()
 
 	// Create new UnlockerService.
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, "", testWalletFilename)
 
 	// We'll attempt to init the wallet with an invalid cipher seed and
 	// passphrase.
@@ -383,6 +371,7 @@ func TestCreateWalletInvalidEntropy(t *testing.T) {
 	ctx := context.Background()
 	_, errr = service.InitWallet(ctx, req)
 	require.Error(t, errr)
+	require.Contains(t, errr.Error(), "Expected a 15 word seed")
 }
 
 // TestUnlockWallet checks that trying to unlock non-existing wallet fail, that
@@ -400,18 +389,20 @@ func TestUnlockWallet(t *testing.T) {
 	}()
 
 	// Create new UnlockerService.
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, "", testWalletFilename)
 
 	ctx := context.Background()
 	req := &lnrpc.UnlockWalletRequest{
-		WalletPassword: testPassword,
-		RecoveryWindow: int32(testRecoveryWindow),
-		StatelessInit:  true,
+		WalletPassword:    testPassword,
+		WalletPubPassword: testPassword,
+		RecoveryWindow:    int32(testRecoveryWindow),
+		StatelessInit:     true,
 	}
 
 	// Should fail to unlock non-existing wallet.
 	_, err := service.UnlockWallet(ctx, req)
 	require.Error(t, err)
+	require.Contains(t, err.Error(), "wallet not found")
 
 	// Create a wallet we can try to unlock.
 	createTestWallet(t, testDir, testNetParams)
@@ -422,12 +413,11 @@ func TestUnlockWallet(t *testing.T) {
 	}
 	_, err = service.UnlockWallet(ctx, wrongReq)
 	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid passphrase for master public key")
 
 	// With the correct password, we should be able to unlock the wallet.
 	errChan := make(chan er.R, 1)
 	go func() {
-		// With the correct password, we should be able to unlock the
-		// wallet.
 		_, err := service.UnlockWallet(ctx, req)
 		if err != nil {
 			errChan <- er.E(err)
@@ -474,7 +464,9 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 		testDir, &testPassword, testNetParams,
 	)
 	util.RequireNoErr(t, err)
-	util.RequireNoErr(t, store.Close())
+
+	err = store.Close()
+	util.RequireNoErr(t, err)
 
 	// Create some files that will act as macaroon files that should be
 	// deleted after a password change is successful with a new root key
@@ -486,17 +478,21 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 			t.Fatalf("unable to create temp file: %v", err)
 		}
 		tempFiles = append(tempFiles, file.Name())
-		require.NoError(t, file.Close())
+		err = file.Close()
+		require.NoError(t, err)
+
+		log.Debugf(">>>>> [3] macaroon file created: %s", file.Name())
 	}
 
 	// Create a new UnlockerService with our temp files.
-	service := walletunlocker.New(testDir, testNetParams, true, nil, testDir, testWalletFilename)
+	service := walletunlocker.New(testDir, testNetParams, true, nil, "", testWalletFilename)
 
 	ctx := context.Background()
 	newPassword := []byte("hunter2???")
 
 	req := &lnrpc.ChangePasswordRequest{
 		CurrentPassword:    testPassword,
+		CurrentPubPassword: testPassword,
 		NewPassword:        newPassword,
 		NewMacaroonRootKey: true,
 	}
@@ -504,6 +500,7 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	// Changing the password to a non-existing wallet should fail.
 	_, errr = service.ChangePassword(ctx, req)
 	require.Error(t, errr)
+	require.Contains(t, errr.Error(), "wallet not found")
 
 	// Create a wallet to test changing the password.
 	createTestWallet(t, testDir, testNetParams)
@@ -516,6 +513,7 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	}
 	_, errr = service.ChangePassword(ctx, wrongReq)
 	require.Error(t, errr)
+	require.Contains(t, errr.Error(), "invalid passphrase for master public key")
 
 	// The files should still exist after an unsuccessful attempt to change
 	// the wallet's password.
@@ -523,6 +521,7 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 		if _, err := os.Stat(tempFile); os.IsNotExist(err) {
 			t.Fatal("file does not exist but it should")
 		}
+		log.Debugf(">>>>> [4] macaroon file still exists: %s", tempFile)
 	}
 
 	// Attempting to change the wallet's password using an invalid
@@ -530,6 +529,7 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	wrongReq.NewPassword = []byte("8")
 	_, errr = service.ChangePassword(ctx, wrongReq)
 	require.Error(t, errr)
+	require.Contains(t, errr.Error(), "custom password must have at least 8 characters")
 
 	// When providing the correct wallet's current password and a new
 	// password that meets the length requirement, the password change
@@ -555,8 +555,8 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 
 	// The files should no longer exist.
 	for _, tempFile := range tempFiles {
-		if _, err := os.Open(tempFile); err == nil {
-			t.Fatal("file exists but it shouldn't")
+		if _, err := os.Stat(tempFile); os.IsNotExist(err) {
+			t.Fatal("file exists but it shouldn't: " + tempFile)
 		}
 	}
 }
@@ -601,7 +601,7 @@ func TestChangeWalletPasswordStateless(t *testing.T) {
 	// Create a new UnlockerService with our temp files.
 	service := walletunlocker.New(testDir, testNetParams, true, []string{
 		tempMacFile, nonExistingFile,
-	}, testDir, testWalletFilename)
+	}, "", testWalletFilename)
 
 	// Create a wallet we can try to unlock. We use the default password
 	// so we can check that the unlocker service defaults to this when
@@ -621,6 +621,7 @@ func TestChangeWalletPasswordStateless(t *testing.T) {
 	ctx := context.Background()
 	_, errr = service.ChangePassword(ctx, badReq)
 	require.Error(t, errr)
+	require.Contains(t, errr.Error(), "if the wallet was initialized stateless")
 
 	// Prepare the correct request we are going to send to the unlocker
 	// service. We don't provide a current password to indicate there

@@ -57,6 +57,7 @@ func setupBlockManager() (*blockManager, *headerfs.NeutrinoDBStore, func(), er.R
 
 	store, err := headerfs.NewNeutrinoDBStore(
 		db, &chaincfg.SimNetParams,
+		true,
 	)
 	if err != nil {
 		cleanUp()
@@ -874,7 +875,7 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 	for _, test := range testCases {
 		// Create a mock block header store. We only need to be able to
 		// serve a header for the target index.
-		neutrinoDb, _ := headerfs.NewNeutrinoDBStore(walletDb, &chaincfg.MainNetParams)
+		neutrinoDb, _ := headerfs.NewNeutrinoDBStore(walletDb, &chaincfg.MainNetParams, true)
 		//neutrinoDb.blockHeaderIndex.heights[targetIndex] = blockHeader
 		cs := &ChainService{
 			NeutrinoDB: neutrinoDb,

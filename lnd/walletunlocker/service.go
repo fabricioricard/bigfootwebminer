@@ -400,7 +400,13 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 		// password was incorrect.
 		return nil, err
 	}
-
+	//Also test against private password
+	err = unlockedWallet.Unlock(privpassword, nil)
+	if err != nil {
+		//unload wallet so future unlock calls can be processed
+		loader.UnloadWallet()
+		return nil, err
+	}
 	// We successfully opened the wallet and pass the instance back to
 	// avoid it needing to be unlocked again.
 	walletUnlockMsg := &WalletUnlockMsg{

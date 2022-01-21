@@ -24,7 +24,6 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/integration/rpctest"
 	"github.com/pkt-cash/pktd/neutrino"
-	"github.com/pkt-cash/pktd/neutrino/banman"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txauthor"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
@@ -827,8 +826,9 @@ func testRandomBlocks(harness *neutrinoHarness, t *testing.T) {
 			}()
 			defer wg.Done()
 			// Get block header from database.
-			blockHeader, err := harness.svc.BlockHeaders.
-				FetchHeaderByHeight(height)
+			//blockHeader, err := harness.svc.BlockHeaders.
+			//	FetchHeaderByHeight(height)
+			blockHeader, err := harness.svc.NeutrinoDB.FetchBlockHeaderByHeight(height)
 			if err != nil {
 				errChan <- er.Errorf("Couldn't get block "+
 					"header by height %d: %s", height, err)
@@ -947,8 +947,9 @@ func testRandomBlocks(harness *neutrinoHarness, t *testing.T) {
 				return
 			}
 			// Get previous basic filter header from the database.
-			prevHeader, err := harness.svc.RegFilterHeaders.
-				FetchHeader(&blockHeader.PrevBlock)
+			//prevHeader, err := harness.svc.RegFilterHeaders.
+			//	FetchHeader(&blockHeader.PrevBlock)
+			prevHeader, _, err := harness.svc.NeutrinoDB.FetchBlockHeader(&blockHeader.PrevBlock)
 			if err != nil {
 				errChan <- er.Errorf("Couldn't get basic "+
 					"filter header for block %d (%s) from "+
@@ -957,8 +958,9 @@ func testRandomBlocks(harness *neutrinoHarness, t *testing.T) {
 				return
 			}
 			// Get current basic filter header from the database.
-			curHeader, err := harness.svc.RegFilterHeaders.
-				FetchHeader(&blockHash)
+			//curHeader, err := harness.svc.RegFilterHeaders.
+			//	FetchHeader(&blockHash)
+			curHeader, _, err := harness.svc.NeutrinoDB.FetchBlockHeader(&blockHash)
 			if err != nil {
 				errChan <- er.Errorf("Couldn't get basic "+
 					"filter header for block %d (%s) from "+
@@ -966,17 +968,26 @@ func testRandomBlocks(harness *neutrinoHarness, t *testing.T) {
 				return
 			}
 			// Check that the filter and header line up.
+			//calcHeader, err := builder.MakeHeaderForFilter(
+			//	calcFilter, *prevHeader)
 			calcHeader, err := builder.MakeHeaderForFilter(
-				calcFilter, *prevHeader)
+				calcFilter, prevHeader.BlockHash())
 			if err != nil {
 				errChan <- er.Errorf("Couldn't calculate "+
 					"header for basic filter for block "+
 					"%d (%s): %s", height, blockHash, err)
 				return
 			}
-			if !bytes.Equal(curHeader[:], calcHeader[:]) {
+			//if !bytes.Equal(curHeader[:], calcHeader[:]) {
+			//	errChan <- er.Errorf("Filter header doesn't "+
+			//		"match. Want: %s, got: %s", curHeader,
+			//		calcHeader)
+			//	return
+			//}
+			curHeaderHash := curHeader.BlockHash()
+			if !bytes.Equal(curHeaderHash[:], calcHeader[:]) {
 				errChan <- er.Errorf("Filter header doesn't "+
-					"match. Want: %s, got: %s", curHeader,
+					"match. Want: %s, got: %s", curHeaderHash,
 					calcHeader)
 				return
 			}
@@ -1233,7 +1244,8 @@ func waitForSync(t *testing.T, svc *neutrino.ChainService,
 				"cfheaders synchronization.\n%s", syncTimeout,
 				goroutineDump())
 		}
-		haveBasicHeader, err = svc.RegFilterHeaders.FetchHeader(knownBestHash)
+		//haveBasicHeader, err = svc.RegFilterHeaders.FetchHeader(knownBestHash)
+		haveBasicHeader, err = svc.NeutrinoDB.FetchFilterHeader(knownBestHash)
 		if err != nil {
 			if er.Wrapped(err) == io.EOF {
 				haveBasicHeader = &chainhash.Hash{}
@@ -1299,14 +1311,16 @@ func waitForSync(t *testing.T, svc *neutrino.ChainService,
 				"cfheaders DB to catch up.\n%s", syncTimeout,
 				goroutineDump())
 		}
-		head, err := svc.BlockHeaders.FetchHeaderByHeight(uint32(i))
+		//head, err := svc.BlockHeaders.FetchHeaderByHeight(uint32(i))
+		head, err := svc.NeutrinoDB.FetchBlockHeaderByHeight(uint32(i))
 		if err != nil {
 			return er.Errorf("Couldn't read block by "+
 				"height: %s", err)
 		}
 
 		hash := head.BlockHash()
-		haveBasicHeader, err = svc.RegFilterHeaders.FetchHeader(&hash)
+		//haveBasicHeader, err = svc.RegFilterHeaders.FetchHeader(&hash)
+		haveBasicHeader, err = svc.NeutrinoDB.FetchFilterHeader(&hash)
 		if er.Wrapped(err) == io.EOF {
 			// This sometimes happens due to reorgs after the
 			// service decides it's current. Just wait for the
@@ -1489,11 +1503,16 @@ func banPeer(t *testing.T, svc *neutrino.ChainService, harness *rpctest.Harness)
 			continue
 		}
 
-		err := svc.BanPeer(peerAddr, banman.ExceededBanThreshold)
-		if err != nil {
+		//err := svc.BanPeer(peerAddr, banman.ExceededBanThreshold)
+		//if err != nil {
+		//	if logLevel != log.LevelOff {
+		//		t.Fatalf("unable to ban peer %v: %v", peerAddr,
+		//			err)
+		//	}
+		//}
+		if !svc.BanMgr().AddBanScore(peerAddr, 0, 10, "BanPeer Test") {
 			if logLevel != log.LevelOff {
-				t.Fatalf("unable to ban peer %v: %v", peerAddr,
-					err)
+				t.Fatalf("unable to ban peer %v", peerAddr)
 			}
 		}
 

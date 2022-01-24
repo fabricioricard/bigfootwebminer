@@ -14,7 +14,178 @@
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/pkt/v1/changepassword": {
+      "post": {
+        "summary": "lncli: `changepassword`\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
+        "operationId": "ChangePassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcChangePasswordResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/lnrpcChangePasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetaService"
+        ]
+      }
+    },
+    "/pkt/v1/getinfo2": {
+      "get": {
+        "operationId": "GetInfo2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/lnrpcGetInfo2Response"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "InfoResponse.version",
+            "description": "The version of the LND software that the node is running.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "InfoResponse.commit_hash",
+            "description": "The SHA1 commit hash that the daemon is compiled with.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "InfoResponse.identity_pubkey",
+            "description": "The identity pubkey of the current node.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "InfoResponse.alias",
+            "description": "If applicable, the alias of the current node, e.g. \"bob\".",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "InfoResponse.color",
+            "description": "The color of the current node in hex code format.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "InfoResponse.num_pending_channels",
+            "description": "Number of pending channels.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "InfoResponse.num_active_channels",
+            "description": "Number of active channels.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "InfoResponse.num_inactive_channels",
+            "description": "Number of inactive channels.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "InfoResponse.num_peers",
+            "description": "Number of peers.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "InfoResponse.block_height",
+            "description": "The node's current view of the height of the best block.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "InfoResponse.block_hash",
+            "description": "The node's current view of the hash of the best block.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "InfoResponse.best_header_timestamp",
+            "description": "Timestamp of the block best known to the wallet.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "InfoResponse.synced_to_chain",
+            "description": "Whether the wallet's view is synced to the main chain.",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "InfoResponse.synced_to_graph",
+            "description": "Whether we consider ourselves synced with the public channel graph.",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "InfoResponse.testnet",
+            "description": "Whether the current node is connected to testnet. This field is\ndeprecated and the network field should be used instead.",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "InfoResponse.uris",
+            "description": "The URIs of the current node.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "MetaService"
+        ]
+      }
+    }
+  },
   "definitions": {
     "lnrpcChain": {
       "type": "object",
@@ -26,6 +197,50 @@
         "network": {
           "type": "string",
           "title": "The network the node is on (eg regtest, testnet, mainnet)"
+        }
+      }
+    },
+    "lnrpcChangePasswordRequest": {
+      "type": "object",
+      "properties": {
+        "current_password": {
+          "type": "string",
+          "format": "byte",
+          "description": "current_password should be the current valid passphrase used to unlock the\ndaemon. When using REST, this field must be encoded as base64."
+        },
+        "current_pub_password": {
+          "type": "string",
+          "format": "byte",
+          "title": "to support old pld created wallet we need to pass the pub password as well"
+        },
+        "new_password": {
+          "type": "string",
+          "format": "byte",
+          "description": "new_password should be the new passphrase that will be needed to unlock the\ndaemon. When using REST, this field must be encoded as base64."
+        },
+        "new_pub_password": {
+          "type": "string",
+          "format": "byte"
+        },
+        "stateless_init": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "stateless_init is an optional argument instructing the daemon NOT to create\nany *.macaroon files in its filesystem. If this parameter is set, then the\nadmin macaroon returned in the response MUST be stored by the caller of the\nRPC as otherwise all access to the daemon will be lost!"
+        },
+        "new_macaroon_root_key": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "new_macaroon_root_key is an optional argument instructing the daemon to\nrotate the macaroon root key when set to true. This will invalidate all\npreviously generated macaroons."
+        }
+      }
+    },
+    "lnrpcChangePasswordResponse": {
+      "type": "object",
+      "properties": {
+        "admin_macaroon": {
+          "type": "string",
+          "format": "byte",
+          "description": "The binary serialized admin macaroon that can be used to access the daemon\nafter rotating the macaroon root key. If both the stateless_init and\nnew_macaroon_root_key parameter were set to true, this is the ONLY copy of\nthe macaroon that was created from the new root key and MUST be stored\nsafely by the caller. Otherwise a copy of this macaroon is also persisted on\ndisk by the daemon, together with other macaroon files."
         }
       }
     },

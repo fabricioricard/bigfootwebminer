@@ -350,8 +350,22 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		return getListeners()
 	}
 
-	// Set up meta Service pass neutrino for getinfo
+	// Set up meta Service pass neutrino for getinfo and changepassword
+	// call init later to pass arguments needed for changepassword
 	metaService := metaservice.NewMetaService(neutrinoCS)
+	macaroonFiles := []string{}
+	//Parse filename from --wallet or default
+	walletPath, walletFilename := WalletFilename(cfg.WalletFile)
+	//Get default pkt dir ~/.pktwallet/pkt
+	if walletPath == "" {
+		walletPath = cfg.Pktmode.WalletDir
+	}
+	if cfg.PktDir != "" {
+		walletPath = cfg.PktDir
+	}
+	//Initialize the metaservice with params needed for change password
+	metaService.Init(walletInitParams.MacResponseChan, cfg.Pkt.ChainDir,
+		!cfg.SyncFreelist, cfg.ActiveNetParams.Params, macaroonFiles, walletFilename, walletPath)
 
 	// We wait until the user provides a password over RPC. In case lnd is
 	// started with the --noseedbackup flag, we use the default password
@@ -978,8 +992,8 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		macaroonFiles = []string{
 			cfg.AdminMacPath, cfg.ReadMacPath, cfg.InvoiceMacPath,
 		}
-	}  
-	
+	}
+
 	//Parse filename from --wallet or default
 	walletPath, walletFilename := WalletFilename(cfg.WalletFile)
 	//Get default pkt dir ~/.pktwallet/pkt
@@ -1051,6 +1065,14 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	)
 	if errr != nil {
 		return nil, shutdown, er.E(errr)
+	}
+
+	//Launching REST for MetaService, for getinfo2 and changepassword
+	//on walletunlocker shutdown this is closed so we are relaunching it
+	//in the rpcserver
+	errrr := lnrpc.RegisterMetaServiceHandlerFromEndpoint(ctx, mux, restProxyDest, restDialOpts)
+	if errrr != nil {
+		return nil, shutdown, er.E(errrr)
 	}
 
 	srv := &http.Server{Handler: allowCORS(mux, cfg.RestCORS)}

@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/pkt-cash/pktd/connmgr/banmgr"
+	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/txscript/opcode"
 
 	"github.com/pkt-cash/pktd/btcutil/gcs"
@@ -84,6 +86,7 @@ func setupBlockManager() (*blockManager, *headerfs.NeutrinoDBStore, func(), er.R
 	cs := &ChainService{
 		chainParams: chaincfg.SimNetParams,
 		NeutrinoDB:  store,
+		banMgr:      *banmgr.New(&banmgr.Config{}),
 	}
 
 	// Set up a blockManager with the chain service we defined.
@@ -813,6 +816,8 @@ var _ QueryAccess = (*mockQueryAccess)(nil)
 // TestBlockManagerDetectBadPeers checks that we detect bad peers, like peers
 // not responding to our filter query, serving inconsistent filters etc.
 func TestBlockManagerDetectBadPeers(t *testing.T) {
+	log.Debugf(">>>>> Running test TestBlockManagerDetectBadPeers()")
+
 	var (
 		stopHash       = chainhash.Hash{}
 		prev           = chainhash.Hash{}
@@ -872,10 +877,30 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
+	// Set up the block and filter header stores.
+	tempDir, errr := ioutil.TempDir("", "neutrino")
+	if errr != nil {
+		t.Fatalf("failed to crete temporary directory: %s", errr)
+	}
+	defer os.RemoveAll(tempDir)
+
+	db, err := walletdb.Create("bdb", tempDir+"/weks.db", true)
+	if err != nil {
+		os.RemoveAll(tempDir)
+		t.Fatalf("Error opening DB: %s", err)
+	}
+	walletDb = db
+	defer db.Close()
+
+	for i, test := range testCases {
+		log.Debugf(">>>>> test case: %d", i)
+
 		// Create a mock block header store. We only need to be able to
 		// serve a header for the target index.
-		neutrinoDb, _ := headerfs.NewNeutrinoDBStore(walletDb, &chaincfg.MainNetParams, true)
+		neutrinoDb, err := headerfs.NewNeutrinoDBStore(walletDb, &chaincfg.MainNetParams, true)
+		if err != nil {
+			t.Fatalf("failed to crete new NeutrinoDB: %v", err)
+		}
 		//neutrinoDb.blockHeaderIndex.heights[targetIndex] = blockHeader
 		cs := &ChainService{
 			NeutrinoDB: neutrinoDb,

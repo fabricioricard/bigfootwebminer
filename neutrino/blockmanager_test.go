@@ -930,22 +930,19 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// Write all block headers but the genesis, since it is already
-		// in the store.
-		var blockHeaders []headerfs.BlockHeader
-		blockHeaders = append(blockHeaders, headerfs.BlockHeader{
-			BlockHeader: genesisBlockHeader,
-			Height:      0,
-		})
-
-		header := heightToHeader(targetIndex)
-		blockHeader := headerfs.BlockHeader{
-			BlockHeader: header,
-			Height:      targetIndex,
+		genesisFilterHeader, _, err := neutrinoDb.FilterChainTip1(tx)
+		if err != nil {
+			t.Fatal(err)
 		}
 
-		blockHeaders = append(blockHeaders, blockHeader)
-		if err = neutrinoDb.WriteBlockHeaders(tx, blockHeaders[1:]...); err != nil {
+		testHeaders, err := generateHeaders(genesisBlockHeader, genesisFilterHeader, nil)
+		if err != nil {
+			t.Fatalf("unable to generate headers: %v", err)
+		}
+
+		// Write all block headers but the genesis, since it is already
+		// in the store.
+		if err = neutrinoDb.WriteBlockHeaders(tx, testHeaders.blockHeaders[1:]...); err != nil {
 			t.Fatalf("Error writing batch of headers: %s", err)
 		}
 
@@ -990,6 +987,10 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 		)
 		if err != nil {
 			t.Fatalf("failed to detect bad peers: %v", err)
+		}
+
+		for _, bad := range badPeers {
+			log.Debugf(">>>>> bad peer detected: %s", bad)
 		}
 
 		if err := assertBadPeers(expBad, badPeers); err != nil {

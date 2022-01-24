@@ -951,6 +951,15 @@ func (r *rpcServer) Start() er.R {
 	if errr != nil {
 		return er.E(errr)
 	}
+	//Launching REST for MetaService, for getinfo2 and changepassword
+	//it is also launched on waitforwalletpassword, and on unlock closes
+	errrr := lnrpc.RegisterMetaServiceHandlerFromEndpoint(
+		restCtx, restMux, r.restProxyDest, r.restDialOpts,
+	)
+	if errrr != nil {
+		return er.E(errrr)
+	}
+
 	for _, subServer := range r.subServers {
 		err := subServer.RegisterWithRestServer(
 			restCtx, restMux, r.restProxyDest, r.restDialOpts,

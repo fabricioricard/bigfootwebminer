@@ -592,7 +592,7 @@ var changePasswordCommand = cli.Command{
 
 func changePassword(ctx *cli.Context) er.R {
 	ctxb := context.Background()
-	client, cleanUp := getWalletUnlockerClient(ctx)
+	client, cleanUp := getMetaServiceClient(ctx)
 	defer cleanUp()
 
 	currentPw, err := readPassword("Input current wallet private password: ")

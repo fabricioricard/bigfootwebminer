@@ -1,7 +1,6 @@
 package neutrino
 
 import (
-	"errors"
 	"reflect"
 	"sync"
 	"testing"
@@ -448,7 +447,7 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 	mockChainClient.SetBlock(&block100000Hash, btcutil.NewBlock(&Block100000))
 	mockChainClient.SetBestSnapshot(&block100000Hash, 100000)
 
-	fetchErr := errors.New("cannot fetch block")
+	//fetchErr := errors.New("cannot fetch block")
 
 	// Create a mock function that will block when the utxoscanner tries to
 	// retrieve a block from the network. It will return fetchErr when it
@@ -458,7 +457,8 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 		GetBlock: func(chainhash.Hash, ...QueryOption,
 		) (*btcutil.Block, er.R) {
 			<-block
-			return nil, er.E(fetchErr)
+			//return nil, er.E(fetchErr)
+			return nil, er.LoopBreak
 		},
 		GetBlockHash:       mockChainClient.GetBlockHash,
 		BestSnapshot:       mockChainClient.BestSnapshot,
@@ -466,7 +466,7 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 	})
 
 	scanner.Start()
-	//defer scanner.Stop()
+	defer scanner.Stop()
 
 	// Add the requests in order of their block heights.
 	req100000, err := scanner.Enqueue(makeTestInputWithScript(), 100000)
@@ -477,7 +477,6 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to enqueue scan request: %v", err)
 	}
-	log.Debugf(">>>>> step 1")
 
 	// Spawn our first task with a cancel chan, which we'll test to make
 	// sure it can break away early.
@@ -495,7 +494,6 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 		_, err := req100001.Result(nil)
 		err100001 <- err
 	}()
-	log.Debugf(">>>>> step 2")
 
 	// Check that neither succeed without any further action.
 	select {
@@ -504,14 +502,12 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 	case <-time.After(50 * time.Millisecond):
 	}
 
-	log.Debugf(">>>>> step 3")
 	select {
 	case <-err100001:
 		t.Fatalf("getutxo should not have been canceled yet")
 	case <-time.After(50 * time.Millisecond):
 	}
 
-	log.Debugf(">>>>> step 4")
 	// Cancel the first request, which should cause it to return
 	// ErrGetUtxoCanceled.
 	close(cancel100000)
@@ -526,7 +522,6 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 	case <-time.After(50 * time.Millisecond):
 		t.Fatalf("getutxo should have been canceled")
 	}
-	log.Debugf(">>>>> step 5")
 
 	// The second task shouldn't have been started yet, and should deliver a
 	// message since it wasn't tied to the same cancel chan.
@@ -535,7 +530,6 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 		t.Fatalf("getutxo should not have been canceled yet")
 	case <-time.After(50 * time.Millisecond):
 	}
-	log.Debugf(">>>>> step 6")
 
 	// Spawn a goroutine to stop the scanner, we add a wait group to make
 	// sure it cleans up at the end of the test.
@@ -558,7 +552,6 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 	case <-time.After(50 * time.Millisecond):
 		t.Fatalf("getutxo should have been canceled")
 	}
-	log.Debugf(">>>>> step 7")
 
 	// Ensure that GetBlock gets unblocked so the batchManager can properly
 	// exit.
@@ -566,7 +559,6 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 	case block <- struct{}{}:
 	default:
 	}
-	log.Debugf(">>>>> step 8")
 
 	// Wait for the utxo scanner to exit fully.
 	wg.Wait()

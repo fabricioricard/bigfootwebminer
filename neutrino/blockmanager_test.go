@@ -902,9 +902,54 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 			t.Fatalf("failed to crete new NeutrinoDB: %v", err)
 		}
 		//neutrinoDb.blockHeaderIndex.heights[targetIndex] = blockHeader
+
+		// Set up a chain service for the block manager. Each test should set
+		// custom query methods on this chain service.
 		cs := &ChainService{
-			NeutrinoDB: neutrinoDb,
+			chainParams: chaincfg.SimNetParams,
+			NeutrinoDB:  neutrinoDb,
+			banMgr:      *banmgr.New(&banmgr.Config{}),
 		}
+
+		//	begin a write TX
+		tx, err := db.BeginReadWriteTx()
+		if err != nil {
+			t.Fatalf("unable to start tx: %v", err)
+		}
+		defer func() {
+			if tx != nil {
+				tx.Rollback()
+			}
+		}()
+
+		// Keep track of the filter headers and block headers. Since
+		// the genesis headers are written automatically when the store
+		// is created, we query it to add to the slices.
+		genesisBlockHeader, _, err := neutrinoDb.BlockChainTip1(tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Write all block headers but the genesis, since it is already
+		// in the store.
+		var blockHeaders []headerfs.BlockHeader
+		blockHeaders = append(blockHeaders, headerfs.BlockHeader{
+			BlockHeader: genesisBlockHeader,
+			Height:      0,
+		})
+
+		header := heightToHeader(targetIndex)
+		blockHeader := headerfs.BlockHeader{
+			BlockHeader: header,
+			Height:      targetIndex,
+		}
+
+		blockHeaders = append(blockHeaders, blockHeader)
+		if err = neutrinoDb.WriteBlockHeaders(tx, blockHeaders[1:]...); err != nil {
+			t.Fatalf("Error writing batch of headers: %s", err)
+		}
+
+		tx.Commit()
 
 		// We set up the mock QueryAccess to only respond according to
 		// the active testcase.
@@ -932,6 +977,7 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 			headers[peer] = msg
 		}
 
+		// Set up a blockManager with the chain service we defined.
 		bm := &blockManager{
 			server:  cs,
 			queries: mock,

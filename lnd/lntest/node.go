@@ -824,9 +824,9 @@ func (hn *HarnessNode) FetchNodeInfo() er.R {
 		return er.E(errr)
 	}
 
-	hn.PubKeyStr = info.IdentityPubkey
+	hn.PubKeyStr = string(info.IdentityPubkey)
 
-	pubkey, err := util.DecodeHex(info.IdentityPubkey)
+	pubkey, err := util.DecodeHex(string(info.IdentityPubkey))
 	if err != nil {
 		return err
 	}

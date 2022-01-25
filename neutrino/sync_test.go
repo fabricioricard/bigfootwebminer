@@ -802,6 +802,8 @@ func testRescanResults(harness *neutrinoHarness, t *testing.T) {
 // laptop with default query optimization settings.
 // TODO: Make this a benchmark instead.
 func testRandomBlocks(harness *neutrinoHarness, t *testing.T) {
+	log.Debugf(">>>>> Running test testRandomBlocks()")
+
 	var haveBest *waddrmgr.BlockStamp
 	haveBest, err := harness.svc.BestBlock()
 	if err != nil {
@@ -949,7 +951,7 @@ func testRandomBlocks(harness *neutrinoHarness, t *testing.T) {
 			// Get previous basic filter header from the database.
 			//prevHeader, err := harness.svc.RegFilterHeaders.
 			//	FetchHeader(&blockHeader.PrevBlock)
-			prevHeader, _, err := harness.svc.NeutrinoDB.FetchBlockHeader(&blockHeader.PrevBlock)
+			prevHeader, err := harness.svc.NeutrinoDB.FetchFilterHeader(&blockHeader.PrevBlock)
 			if err != nil {
 				errChan <- er.Errorf("Couldn't get basic "+
 					"filter header for block %d (%s) from "+
@@ -960,7 +962,7 @@ func testRandomBlocks(harness *neutrinoHarness, t *testing.T) {
 			// Get current basic filter header from the database.
 			//curHeader, err := harness.svc.RegFilterHeaders.
 			//	FetchHeader(&blockHash)
-			curHeader, _, err := harness.svc.NeutrinoDB.FetchBlockHeader(&blockHash)
+			curHeader, err := harness.svc.NeutrinoDB.FetchFilterHeader(&blockHash)
 			if err != nil {
 				errChan <- er.Errorf("Couldn't get basic "+
 					"filter header for block %d (%s) from "+
@@ -968,26 +970,17 @@ func testRandomBlocks(harness *neutrinoHarness, t *testing.T) {
 				return
 			}
 			// Check that the filter and header line up.
-			//calcHeader, err := builder.MakeHeaderForFilter(
-			//	calcFilter, *prevHeader)
 			calcHeader, err := builder.MakeHeaderForFilter(
-				calcFilter, prevHeader.BlockHash())
+				calcFilter, *prevHeader)
 			if err != nil {
 				errChan <- er.Errorf("Couldn't calculate "+
 					"header for basic filter for block "+
 					"%d (%s): %s", height, blockHash, err)
 				return
 			}
-			//if !bytes.Equal(curHeader[:], calcHeader[:]) {
-			//	errChan <- er.Errorf("Filter header doesn't "+
-			//		"match. Want: %s, got: %s", curHeader,
-			//		calcHeader)
-			//	return
-			//}
-			curHeaderHash := curHeader.BlockHash()
-			if !bytes.Equal(curHeaderHash[:], calcHeader[:]) {
+			if !bytes.Equal(curHeader[:], calcHeader[:]) {
 				errChan <- er.Errorf("Filter header doesn't "+
-					"match. Want: %s, got: %s", curHeaderHash,
+					"match. Want: %s, got: %s", curHeader,
 					calcHeader)
 				return
 			}
@@ -1016,6 +1009,8 @@ func testRandomBlocks(harness *neutrinoHarness, t *testing.T) {
 }
 
 func TestNeutrinoSync(t *testing.T) {
+	log.Debugf(">>>>> Running test TestNeutrinoSync()")
+
 	if os.Getenv("ALL_TESTS") == "" {
 		t.Skip("Skipping TestNeutrinoSync because it is slow, use ALL_TESTS=1 to enable")
 		return

@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/pkt-cash/pktd/connmgr/banmgr"
+	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/txscript/opcode"
 
 	"github.com/pkt-cash/pktd/btcutil/gcs"
@@ -57,6 +59,7 @@ func setupBlockManager() (*blockManager, *headerfs.NeutrinoDBStore, func(), er.R
 
 	store, err := headerfs.NewNeutrinoDBStore(
 		db, &chaincfg.SimNetParams,
+		true,
 	)
 	if err != nil {
 		cleanUp()
@@ -83,6 +86,7 @@ func setupBlockManager() (*blockManager, *headerfs.NeutrinoDBStore, func(), er.R
 	cs := &ChainService{
 		chainParams: chaincfg.SimNetParams,
 		NeutrinoDB:  store,
+		banMgr:      *banmgr.New(&banmgr.Config{}),
 	}
 
 	// Set up a blockManager with the chain service we defined.
@@ -812,6 +816,8 @@ var _ QueryAccess = (*mockQueryAccess)(nil)
 // TestBlockManagerDetectBadPeers checks that we detect bad peers, like peers
 // not responding to our filter query, serving inconsistent filters etc.
 func TestBlockManagerDetectBadPeers(t *testing.T) {
+	log.Debugf(">>>>> Running test TestBlockManagerDetectBadPeers()")
+
 	var (
 		stopHash       = chainhash.Hash{}
 		prev           = chainhash.Hash{}
@@ -871,14 +877,83 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		// Create a mock block header store. We only need to be able to
-		// serve a header for the target index.
-		neutrinoDb, _ := headerfs.NewNeutrinoDBStore(walletDb, &chaincfg.MainNetParams)
-		//neutrinoDb.blockHeaderIndex.heights[targetIndex] = blockHeader
-		cs := &ChainService{
-			NeutrinoDB: neutrinoDb,
+	// Set up the block and filter header stores.
+	tempDir, errr := ioutil.TempDir("", "neutrino")
+	if errr != nil {
+		t.Fatalf("failed to crete temporary directory: %s", errr)
+	}
+	defer os.RemoveAll(tempDir)
+
+	db, err := walletdb.Create("bdb", tempDir+"/weks.db", true)
+	if err != nil {
+		os.RemoveAll(tempDir)
+		t.Fatalf("Error opening DB: %s", err)
+	}
+	walletDb = db
+	defer db.Close()
+
+	// Create a mock block header store. We only need to be able to
+	// serve a header for the target index.
+	neutrinoDb, err := headerfs.NewNeutrinoDBStore(walletDb, &chaincfg.MainNetParams, true)
+	if err != nil {
+		t.Fatalf("failed to crete new NeutrinoDB: %v", err)
+	}
+	//neutrinoDb.blockHeaderIndex.heights[targetIndex] = blockHeader
+
+	// Set up a chain service for the block manager. Each test should set
+	// custom query methods on this chain service.
+	cs := &ChainService{
+		chainParams: chaincfg.SimNetParams,
+		NeutrinoDB:  neutrinoDb,
+		banMgr:      *banmgr.New(&banmgr.Config{}),
+	}
+
+	//	begin a write TX
+	tx, err := db.BeginReadWriteTx()
+	if err != nil {
+		t.Fatalf("unable to start tx: %v", err)
+	}
+	defer func() {
+		if tx != nil {
+			tx.Rollback()
 		}
+	}()
+
+	// Keep track of the filter headers and block headers. Since
+	// the genesis headers are written automatically when the store
+	// is created, we query it to add to the slices.
+	genesisBlockHeader, _, err := neutrinoDb.BlockChainTip1(tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	genesisFilterHeader, _, err := neutrinoDb.FilterChainTip1(tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testHeaders, err := generateHeaders(genesisBlockHeader, genesisFilterHeader, nil)
+	if err != nil {
+		t.Fatalf("unable to generate headers: %v", err)
+	}
+
+	// Write all block headers but the genesis, since it is already
+	// in the store.
+	if err = neutrinoDb.WriteBlockHeaders(tx, testHeaders.blockHeaders[1:]...); err != nil {
+		t.Fatalf("Error writing batch of headers: %s", err)
+	}
+
+	tx.Commit()
+
+	// Get the block header for targetIndex height, because it's hash is necessary to create the mock query
+	header, err := neutrinoDb.FetchBlockHeaderByHeight(targetIndex)
+	if err != nil {
+		t.Fatalf("Error fetching header from DB: %s", err)
+	}
+	targetBlockHash = header.BlockHash()
+
+	for i, test := range testCases {
+		log.Debugf(">>>>> test case: %d", i)
 
 		// We set up the mock QueryAccess to only respond according to
 		// the active testcase.
@@ -906,6 +981,7 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 			headers[peer] = msg
 		}
 
+		// Set up a blockManager with the chain service we defined.
 		bm := &blockManager{
 			server:  cs,
 			queries: mock,
@@ -918,6 +994,10 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 		)
 		if err != nil {
 			t.Fatalf("failed to detect bad peers: %v", err)
+		}
+
+		for _, bad := range badPeers {
+			log.Debugf(">>>>> bad peer detected: %s", bad)
 		}
 
 		if err := assertBadPeers(expBad, badPeers); err != nil {

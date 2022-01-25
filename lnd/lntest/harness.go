@@ -465,7 +465,7 @@ func (n *NetworkHarness) EnsureConnected(ctx context.Context, a, b *HarnessNode)
 
 		req := &lnrpc.ConnectPeerRequest{
 			Addr: &lnrpc.LightningAddress{
-				Pubkey: bInfo.IdentityPubkey,
+				Pubkey: string(bInfo.IdentityPubkey),
 				Host:   b.Cfg.P2PAddr(),
 			},
 		}
@@ -537,7 +537,7 @@ func (n *NetworkHarness) EnsureConnected(ctx context.Context, a, b *HarnessNode)
 		}
 
 		for _, peer := range resp.Peers {
-			if peer.PubKey == a.PubKeyStr {
+			if string(peer.PubKey) == a.PubKeyStr {
 				return true
 			}
 		}
@@ -569,7 +569,7 @@ func (n *NetworkHarness) ConnectNodes(ctx context.Context, a, b *HarnessNode) er
 
 	req := &lnrpc.ConnectPeerRequest{
 		Addr: &lnrpc.LightningAddress{
-			Pubkey: bobInfo.IdentityPubkey,
+			Pubkey: string(bobInfo.IdentityPubkey),
 			Host:   b.Cfg.P2PAddr(),
 		},
 	}
@@ -588,7 +588,7 @@ func (n *NetworkHarness) ConnectNodes(ctx context.Context, a, b *HarnessNode) er
 		}
 
 		for _, peer := range resp.Peers {
-			if peer.PubKey == b.PubKeyStr {
+			if string(peer.PubKey) == b.PubKeyStr {
 				return true
 			}
 		}
@@ -611,7 +611,7 @@ func (n *NetworkHarness) DisconnectNodes(ctx context.Context, a, b *HarnessNode)
 	}
 
 	req := &lnrpc.DisconnectPeerRequest{
-		PubKey: bobInfo.IdentityPubkey,
+		PubKey: string(bobInfo.IdentityPubkey),
 	}
 
 	if _, errr := a.DisconnectPeer(ctx, req); errr != nil {
@@ -1076,7 +1076,7 @@ func (n *NetworkHarness) CloseChannel(ctx context.Context,
 		if err != nil {
 			return nil, nil, err
 		}
-		receivingNode, err := n.LookUpNodeByPub(targetChan.RemotePubkey)
+		receivingNode, err := n.LookUpNodeByPub(string(targetChan.RemotePubkey))
 		if err != nil {
 			return nil, nil, err
 		}

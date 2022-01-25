@@ -892,61 +892,68 @@ func TestBlockManagerDetectBadPeers(t *testing.T) {
 	walletDb = db
 	defer db.Close()
 
+	// Create a mock block header store. We only need to be able to
+	// serve a header for the target index.
+	neutrinoDb, err := headerfs.NewNeutrinoDBStore(walletDb, &chaincfg.MainNetParams, true)
+	if err != nil {
+		t.Fatalf("failed to crete new NeutrinoDB: %v", err)
+	}
+	//neutrinoDb.blockHeaderIndex.heights[targetIndex] = blockHeader
+
+	// Set up a chain service for the block manager. Each test should set
+	// custom query methods on this chain service.
+	cs := &ChainService{
+		chainParams: chaincfg.SimNetParams,
+		NeutrinoDB:  neutrinoDb,
+		banMgr:      *banmgr.New(&banmgr.Config{}),
+	}
+
+	//	begin a write TX
+	tx, err := db.BeginReadWriteTx()
+	if err != nil {
+		t.Fatalf("unable to start tx: %v", err)
+	}
+	defer func() {
+		if tx != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Keep track of the filter headers and block headers. Since
+	// the genesis headers are written automatically when the store
+	// is created, we query it to add to the slices.
+	genesisBlockHeader, _, err := neutrinoDb.BlockChainTip1(tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	genesisFilterHeader, _, err := neutrinoDb.FilterChainTip1(tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testHeaders, err := generateHeaders(genesisBlockHeader, genesisFilterHeader, nil)
+	if err != nil {
+		t.Fatalf("unable to generate headers: %v", err)
+	}
+
+	// Write all block headers but the genesis, since it is already
+	// in the store.
+	if err = neutrinoDb.WriteBlockHeaders(tx, testHeaders.blockHeaders[1:]...); err != nil {
+		t.Fatalf("Error writing batch of headers: %s", err)
+	}
+
+	tx.Commit()
+
+	// Get the block header for targetIndex height, because it's hash is necessary to create the mock query
+	header, err := neutrinoDb.FetchBlockHeaderByHeight(targetIndex)
+	if err != nil {
+		t.Fatalf("Error fetching header from DB: %s", err)
+	}
+	targetBlockHash = header.BlockHash()
+
 	for i, test := range testCases {
 		log.Debugf(">>>>> test case: %d", i)
-
-		// Create a mock block header store. We only need to be able to
-		// serve a header for the target index.
-		neutrinoDb, err := headerfs.NewNeutrinoDBStore(walletDb, &chaincfg.MainNetParams, true)
-		if err != nil {
-			t.Fatalf("failed to crete new NeutrinoDB: %v", err)
-		}
-		//neutrinoDb.blockHeaderIndex.heights[targetIndex] = blockHeader
-
-		// Set up a chain service for the block manager. Each test should set
-		// custom query methods on this chain service.
-		cs := &ChainService{
-			chainParams: chaincfg.SimNetParams,
-			NeutrinoDB:  neutrinoDb,
-			banMgr:      *banmgr.New(&banmgr.Config{}),
-		}
-
-		//	begin a write TX
-		tx, err := db.BeginReadWriteTx()
-		if err != nil {
-			t.Fatalf("unable to start tx: %v", err)
-		}
-		defer func() {
-			if tx != nil {
-				tx.Rollback()
-			}
-		}()
-
-		// Keep track of the filter headers and block headers. Since
-		// the genesis headers are written automatically when the store
-		// is created, we query it to add to the slices.
-		genesisBlockHeader, _, err := neutrinoDb.BlockChainTip1(tx)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		genesisFilterHeader, _, err := neutrinoDb.FilterChainTip1(tx)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		testHeaders, err := generateHeaders(genesisBlockHeader, genesisFilterHeader, nil)
-		if err != nil {
-			t.Fatalf("unable to generate headers: %v", err)
-		}
-
-		// Write all block headers but the genesis, since it is already
-		// in the store.
-		if err = neutrinoDb.WriteBlockHeaders(tx, testHeaders.blockHeaders[1:]...); err != nil {
-			t.Fatalf("Error writing batch of headers: %s", err)
-		}
-
-		tx.Commit()
 
 		// We set up the mock QueryAccess to only respond according to
 		// the active testcase.

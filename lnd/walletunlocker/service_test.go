@@ -295,6 +295,7 @@ func TestInitWallet(t *testing.T) {
 			errChan <- er.E(err)
 			return
 		}
+		log.Debugf(">>>>> [1] InitWallet() executed with success")
 
 		if !bytes.Equal(response.AdminMacaroon, testMac) {
 			errChan <- er.Errorf("mismatched macaroon: "+
@@ -310,6 +311,7 @@ func TestInitWallet(t *testing.T) {
 		t.Fatalf("InitWallet call failed: %v", err)
 
 	case msg := <-service.InitMsgs:
+		log.Debugf(">>>>> [2] initialization message received")
 		msgSeed := msg.Seed
 		require.Equal(t, testPassword, msg.Passphrase)
 		require.Equal(
@@ -321,6 +323,7 @@ func TestInitWallet(t *testing.T) {
 
 		// Send a fake macaroon that should be returned in the response
 		// in the async code above.
+		log.Debugf(">>>>> [3] fake macaroon sent back")
 		service.MacResponseChan <- testMac
 
 	case <-time.After(defaultTestTimeout):

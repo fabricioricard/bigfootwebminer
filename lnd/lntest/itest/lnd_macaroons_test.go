@@ -168,7 +168,7 @@ func testMacaroonAuthentication(net *lntest.NetworkHarness, ht *harnessTest) {
 
 			// Create a connection that uses the custom macaroon.
 			customMacBytes, err := util.DecodeHex(
-				bakeRes.Macaroon,
+				string(bakeRes.Macaroon),
 			)
 			util.RequireNoErr(t, err)
 			customMac := &macaroon.Macaroon{}
@@ -346,7 +346,7 @@ func testBakeMacaroon(net *lntest.NetworkHarness, t *harnessTest) {
 			bakeResp, errr := adminClient.BakeMacaroon(ctxt, req)
 			require.NoError(t, errr)
 
-			newMac, err := readMacaroonFromHex(bakeResp.Macaroon)
+			newMac, err := readMacaroonFromHex(string(bakeResp.Macaroon))
 			util.RequireNoErr(t, err)
 			cleanup, readOnlyClient := macaroonClient(
 				t, testNode, newMac,
@@ -433,7 +433,7 @@ func testDeleteMacaroonID(net *lntest.NetworkHarness, t *harnessTest) {
 		}
 		resp, errr := client.BakeMacaroon(ctxt, req)
 		require.NoError(t.t, errr)
-		macList = append(macList, resp.Macaroon)
+		macList = append(macList, string(resp.Macaroon))
 	}
 
 	// Check that the creation is successful.

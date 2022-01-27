@@ -322,6 +322,8 @@ type HarnessNode struct {
 
 	lnrpc.WalletUnlockerClient
 
+	lnrpc.MetaServiceClient
+
 	invoicesrpc.InvoicesClient
 
 	// SignerClient cannot be embedded because the name collisions of the
@@ -339,9 +341,10 @@ type HarnessNode struct {
 	WatchtowerClient wtclientrpc.WatchtowerClientClient
 }
 
-// Assert *HarnessNode implements the lnrpc.LightningClient interface.
+// Assert *HarnessNode implements all 4 interfaces it declares
 var _ lnrpc.LightningClient = (*HarnessNode)(nil)
 var _ lnrpc.WalletUnlockerClient = (*HarnessNode)(nil)
+var _ lnrpc.MetaServiceClient = (*HarnessNode)(nil)
 var _ invoicesrpc.InvoicesClient = (*HarnessNode)(nil)
 
 // newNode creates a new test lightning node instance from the passed config.

@@ -148,6 +148,7 @@ func New(chainDir string, params *chaincfg.Params, noFreelistSync bool,
 		// goroutine isn't blocking on writing to it.
 		MacResponseChan: make(chan []byte, 1),
 		chainDir:        chainDir,
+		noFreelistSync:  noFreelistSync,
 		netParams:       params,
 		macaroonFiles:   macaroonFiles,
 		walletFile:      walletFilename,

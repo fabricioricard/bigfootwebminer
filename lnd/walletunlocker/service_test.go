@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"io/ioutil"
 	"os"
-	"path"
 	"strings"
 	"testing"
 	"time"
@@ -14,10 +13,8 @@ import (
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/btcutil/util"
 	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/lnwallet/btcwallet"
-	"github.com/pkt-cash/pktd/lnd/macaroons"
 	"github.com/pkt-cash/pktd/lnd/walletunlocker"
 	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/snacl"
@@ -40,11 +37,8 @@ var (
 
 	testRecoveryWindow uint32 = 150
 
-	defaultTestTimeout = 3 * time.Second
-
-	defaultRootKeyIDContext = macaroons.ContextWithRootKeyID(
-		context.Background(), macaroons.DefaultRootKeyID,
-	)
+	//	due to the cipher routines, low timeout is making some test cases to fail when running on Github Actions
+	defaultTestTimeout = 10 * time.Second
 )
 
 func createTestWallet(t *testing.T, dir string, netParams *chaincfg.Params) {
@@ -75,7 +69,7 @@ func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string,
 	util.RequireNoErr(t, err)
 
 	realWalletPathname := wallet.WalletDbPath(netDir, testWalletFilename)
-	log.Debugf(">>>>> [1] wallet path: %s", realWalletPathname)
+	log.Debugf(">>> createTestWalletWithPw [1] wallet path: %s", realWalletPathname)
 	walletFileExists := true
 	_, errr := os.Stat(realWalletPathname)
 	if err != nil {
@@ -85,7 +79,7 @@ func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string,
 			require.NoError(t, errr)
 		}
 	}
-	log.Debugf(">>>>> [2] after loader.CreateNewWallet() the wallet file exists: %t", walletFileExists)
+	log.Debugf(">>> createTestWalletWithPw [2] after loader.CreateNewWallet() the wallet file exists: %t", walletFileExists)
 
 	err = loader.UnloadWallet()
 	util.RequireNoErr(t, err)
@@ -104,45 +98,6 @@ func createSeedAndMnemonic(t *testing.T, pass []byte) (*seedwords.Seed, string) 
 	util.RequireNoErr(t, err)
 
 	return cipherSeed, mnemonic
-}
-
-// openOrCreateTestMacStore opens or creates a bbolt DB and then initializes a
-// root key storage for that DB and then unlocks it, creating a root key in the
-// process.
-func openOrCreateTestMacStore(tempDir string, pw *[]byte,
-	netParams *chaincfg.Params) (*macaroons.RootKeyStorage, er.R) {
-
-	netDir := btcwallet.NetworkDir(tempDir, netParams)
-	errr := os.MkdirAll(netDir, 0700)
-	if errr != nil {
-		return nil, er.E(errr)
-	}
-	db, err := kvdb.Create(
-		kvdb.BoltBackendName, path.Join(netDir, macaroons.DBFilename),
-		true,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	store, err := macaroons.NewRootKeyStorage(db)
-	if err != nil {
-		_ = db.Close()
-		return nil, err
-	}
-
-	err = store.CreateUnlock(pw)
-	if err != nil {
-		_ = store.Close()
-		return nil, err
-	}
-	_, _, errr = store.RootKey(defaultRootKeyIDContext)
-	if errr != nil {
-		_ = store.Close()
-		return nil, er.E(errr)
-	}
-
-	return store, nil
 }
 
 // TestGenSeedUserEntropy tests that the gen seed method generates a valid
@@ -217,11 +172,6 @@ func TestGenSeedGenerateEntropy(t *testing.T) {
 }
 */
 
-/*
-// TestGenSeedInvalidEntropy tests that if a user attempt to create a seed with
-// the wrong number of bytes for the initial entropy, then the proper error is
-// returned.
-*/
 // TestGenSeedInvalidEntropy tests that if a user attempt to create a seed with
 // a non empty initial entropy, then the proper error is returned.
 func TestGenSeedInvalidEntropy(t *testing.T) {
@@ -295,7 +245,7 @@ func TestInitWallet(t *testing.T) {
 			errChan <- er.E(err)
 			return
 		}
-		log.Debugf(">>>>> [1] InitWallet() executed with success")
+		log.Debugf(">>> TestInitWallet [1] InitWallet() finished with success")
 
 		if !bytes.Equal(response.AdminMacaroon, testMac) {
 			errChan <- er.Errorf("mismatched macaroon: "+
@@ -311,7 +261,7 @@ func TestInitWallet(t *testing.T) {
 		t.Fatalf("InitWallet call failed: %v", err)
 
 	case msg := <-service.InitMsgs:
-		log.Debugf(">>>>> [2] initialization message received")
+		log.Debugf(">>> TestInitWallet [2] initialization message received")
 		msgSeed := msg.Seed
 		require.Equal(t, testPassword, msg.Passphrase)
 		require.Equal(
@@ -323,7 +273,7 @@ func TestInitWallet(t *testing.T) {
 
 		// Send a fake macaroon that should be returned in the response
 		// in the async code above.
-		log.Debugf(">>>>> [3] fake macaroon sent back")
+		log.Debugf(">>> TestInitWallet [3] fake macaroon sent back")
 		service.MacResponseChan <- testMac
 
 	case <-time.After(defaultTestTimeout):

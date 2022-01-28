@@ -37,7 +37,7 @@ var (
 
 	testRecoveryWindow uint32 = 150
 
-	//	it's making some test cases to fail when running on Github Actions
+	//	due to the cipher routines, low timeout is making some test cases to fail when running on Github Actions
 	defaultTestTimeout = 10 * time.Second
 )
 
@@ -245,7 +245,7 @@ func TestInitWallet(t *testing.T) {
 			errChan <- er.E(err)
 			return
 		}
-		log.Debugf(">>> TestInitWallet [1] InitWallet() executed with success")
+		log.Debugf(">>> TestInitWallet [1] InitWallet() finished with success")
 
 		if !bytes.Equal(response.AdminMacaroon, testMac) {
 			errChan <- er.Errorf("mismatched macaroon: "+

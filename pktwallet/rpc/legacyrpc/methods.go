@@ -173,7 +173,7 @@ func lazyApplyHandler(request *btcjson.Request, w *wallet.Wallet, chainClient ch
 	} else if hndlr.handler != nil {
 		return unm(func(cmd interface{}) (interface{}, er.R) { return hndlr.handler(cmd, w) })
 	} else if hndlr.handlerChain != nil {
-		err = btcjson.ErrRPCMisc.New("This RPC requires a connection to the blockchain", nil)
+		err = btcjson.ErrRPCMisc.New("The wallet is still initializing...", nil)
 	} else if hndlr.handlerNeutrino != nil {
 		err = btcjson.ErrRPCMisc.New("This RPC requires neutrino backend (not --userpc mode)", nil)
 	} else if hndlr.handlerRPC != nil {

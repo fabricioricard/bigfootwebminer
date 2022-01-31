@@ -1252,7 +1252,7 @@ func (s *ChainService) doFilterRequest(
 			if len(query.headerIndex) > 0 {
 				numFilters := query.stopHeight - query.startHeight + 1
 				log.Errorf("Query failed with %d out of %d filters "+
-					"received", len(query.headerIndex), numFilters)
+					"received", int(numFilters)-len(query.headerIndex), numFilters)
 			}
 			wg.Done()
 		}(q)
@@ -1468,9 +1468,9 @@ func (s *ChainService) GetBlock0(blockHash chainhash.Hash, height uint32,
 					s.chainParams.PowLimit,
 					s.timeSource,
 				); err != nil {
-					log.Warnf("Invalid block for %s "+
+					log.Warnf("Invalid block for %s (%s) "+
 						"received from %s -- "+
-						"disconnecting peer", blockHash,
+						"disconnecting peer", blockHash, err.Message(),
 						sp.Addr())
 					sp.Disconnect()
 					return false

@@ -1241,19 +1241,10 @@ var getInfoCommand = cli.Command{
 
 func getInfo(ctx *cli.Context) er.R {
 	ctxb := context.Background()
-	client, cleanUp := getClient(ctx)
-	defer cleanUp()
-	inforeq := &lnrpc.GetInfoRequest{}
-	inforesp, infoerr := client.GetInfo(ctxb, inforeq)
-	if infoerr != nil {
-		inforesp = nil
-	}
 	// call getinfo2 from metaservice hat will return some info even when wallet is locked
 	metaclient, cleanUpMeta := getMetaServiceClient(ctx)
 	defer cleanUpMeta()
-	info2req := &lnrpc.GetInfo2Request{
-		InfoResponse: inforesp,
-	}
+	info2req := &lnrpc.GetInfo2Request{}
 	info2resp, info2err := metaclient.GetInfo2(ctxb, info2req)
 	if info2err != nil {
 		return er.E(info2err)

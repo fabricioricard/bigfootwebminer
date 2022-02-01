@@ -9,13 +9,16 @@ import (
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/connmgr/banmgr"
+	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/lnwallet"
 	"github.com/pkt-cash/pktd/lnd/lnwallet/btcwallet"
 	"github.com/pkt-cash/pktd/lnd/macaroons"
 	"github.com/pkt-cash/pktd/neutrino"
+	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
+	"google.golang.org/grpc"
 )
 
 type MetaService struct {
@@ -66,6 +69,45 @@ func (m *MetaService) GetInfo2(ctx context.Context,
 	in *lnrpc.GetInfo2Request) (*lnrpc.GetInfo2Response, error) {
 	res, err := m.GetInfo20(ctx, in)
 	return res, er.Native(err)
+}
+
+func getClientConn(ctx *context.Context, skipMacaroons bool) *grpc.ClientConn {
+	var defaultRPCPort = "10009"
+	var maxMsgRecvSize = grpc.MaxCallRecvMsgSize(1 * 1024 * 1024 * 200)
+	// First, we'll get the selected stored profile or an ephemeral one
+	// created from the global options in the CLI context.
+
+	//profile, err := getGlobalOptions(ctx, true)
+	// if err != nil {
+	// 	log.Errorf("could not load global options: %v", err)
+	// }
+
+	var opts []grpc.DialOption
+	opts = append(opts, grpc.WithInsecure())
+
+	// We need to use a custom dialer so we can also connect to unix sockets
+	// and not just TCP addresses.
+	genericDialer := lncfg.ClientAddressDialer(defaultRPCPort)
+	opts = append(opts, grpc.WithContextDialer(genericDialer))
+	opts = append(opts, grpc.WithDefaultCallOptions(maxMsgRecvSize))
+
+	conn, errr := grpc.Dial("localhost:10009", opts...)
+	if errr != nil {
+		log.Errorf("unable to connect to RPC server: %v", errr)
+		return nil
+	}
+
+	return conn
+}
+
+func getClient(ctx *context.Context) (lnrpc.LightningClient, func()) {
+	conn := getClientConn(ctx, false)
+
+	cleanUp := func() {
+		conn.Close()
+	}
+
+	return lnrpc.NewLightningClient(conn), cleanUp
 }
 
 func (m *MetaService) GetInfo20(ctx context.Context,
@@ -176,11 +218,21 @@ func (m *MetaService) GetInfo20(ctx context.Context,
 	} else {
 		walletInfo = nil
 	}
+	//Get Lightning info
+	
+	ctxb := context.Background()
+	client, cleanUp := getClient(&ctx)
+	defer cleanUp()
+	inforeq := &lnrpc.GetInfoRequest{}
+	inforesp, infoerr := client.GetInfo(ctxb, inforeq)
+	if infoerr != nil {
+		inforesp = nil
+	}
 
 	return &lnrpc.GetInfo2Response{
 		Neutrino:  &ni,
 		Wallet:    walletInfo,
-		Lightning: in.InfoResponse,
+		Lightning: inforesp,
 	}, nil
 }
 

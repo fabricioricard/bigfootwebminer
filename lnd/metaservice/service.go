@@ -74,19 +74,8 @@ func (m *MetaService) GetInfo2(ctx context.Context,
 func getClientConn(ctx *context.Context, skipMacaroons bool) *grpc.ClientConn {
 	var defaultRPCPort = "10009"
 	var maxMsgRecvSize = grpc.MaxCallRecvMsgSize(1 * 1024 * 1024 * 200)
-	// First, we'll get the selected stored profile or an ephemeral one
-	// created from the global options in the CLI context.
-
-	//profile, err := getGlobalOptions(ctx, true)
-	// if err != nil {
-	// 	log.Errorf("could not load global options: %v", err)
-	// }
-
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure())
-
-	// We need to use a custom dialer so we can also connect to unix sockets
-	// and not just TCP addresses.
 	genericDialer := lncfg.ClientAddressDialer(defaultRPCPort)
 	opts = append(opts, grpc.WithContextDialer(genericDialer))
 	opts = append(opts, grpc.WithDefaultCallOptions(maxMsgRecvSize))
@@ -219,7 +208,7 @@ func (m *MetaService) GetInfo20(ctx context.Context,
 		walletInfo = nil
 	}
 	//Get Lightning info
-	
+
 	ctxb := context.Background()
 	client, cleanUp := getClient(&ctx)
 	defer cleanUp()

@@ -598,6 +598,7 @@ var PktMainNetParams = Params{
 		{"seed.cjd.li", false},
 		{"pktdseed.pkt.world", false},
 		{"seed.pkt.pink", false}
+		{"seed.pkt.ai", false},
 	},
 
 	// Chain parameters

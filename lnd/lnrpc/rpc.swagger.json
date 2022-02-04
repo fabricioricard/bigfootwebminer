@@ -1915,60 +1915,6 @@
       }
     },
     "/v1/transactions": {
-      "get": {
-        "summary": "lncli: `listchaintxns`\nGetTransactions returns a list describing all the known transactions\nrelevant to the wallet.",
-        "operationId": "GetTransactions",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/lnrpcTransactionDetails"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "start_height",
-            "description": "The height from which to list transactions, inclusive. If this value is\ngreater than end_height, transactions will be read in reverse.",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "end_height",
-            "description": "The height until which to list transactions, inclusive. To include\nunconfirmed transactions, this value should be set to -1, which will\nreturn transactions from start_height until the current chain tip and\nunconfirmed transactions. If no end_height is provided, the call will\ndefault to this option.",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "txns_limit",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "txns_skip",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "coinbase",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "tags": [
-          "Lightning"
-        ]
-      },
       "post": {
         "summary": "lncli: `sendcoins`\nSendCoins executes a request to send coins to a particular address. Unlike\nSendMany, this RPC call only allows creating a single output at a time. If\nneither target_conf, or sat_per_byte are set, then the internal wallet will\nconsult its fee model to determine a fee for the default confirmation\ntarget.",
         "operationId": "SendCoins",
@@ -3979,6 +3925,33 @@
       "properties": {
         "transaction": {
           "$ref": "#/definitions/lnrpcTransactionResult"
+        }
+      }
+    },
+    "lnrpcGetTransactionsRequest": {
+      "type": "object",
+      "properties": {
+        "start_height": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The height from which to list transactions, inclusive. If this value is\ngreater than end_height, transactions will be read in reverse."
+        },
+        "end_height": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The height until which to list transactions, inclusive. To include\nunconfirmed transactions, this value should be set to -1, which will\nreturn transactions from start_height until the current chain tip and\nunconfirmed transactions. If no end_height is provided, the call will\ndefault to this option."
+        },
+        "txns_limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "txns_skip": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "coinbase": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

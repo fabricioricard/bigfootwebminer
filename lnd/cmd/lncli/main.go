@@ -266,23 +266,26 @@ func main() {
 				"testnet, etc.",
 			Value: "mainnet",
 		},
-		cli.BoolFlag{
-			Name:  "no-macaroons",
-			Usage: "Disable macaroon authentication.",
-		},
-		cli.StringFlag{
-			Name:  "macaroonpath",
-			Usage: "The path to macaroon file.",
-		},
-		cli.Int64Flag{
-			Name:  "macaroontimeout",
-			Value: 60,
-			Usage: "Anti-replay macaroon validity time in seconds.",
-		},
-		cli.StringFlag{
-			Name:  "macaroonip",
-			Usage: "If set, lock macaroon to specific IP address.",
-		},
+		//	we want to disable the use of macaroons so, force that it's turned off
+		/*
+			cli.BoolFlag{
+				Name: "no-macaroons",
+				Usage: "Disable macaroon authentication.",
+			},
+			cli.StringFlag{
+				Name:  "macaroonpath",
+				Usage: "The path to macaroon file.",
+			},
+			cli.Int64Flag{
+				Name:  "macaroontimeout",
+				Value: 60,
+				Usage: "Anti-replay macaroon validity time in seconds.",
+			},
+			cli.StringFlag{
+				Name:  "macaroonip",
+				Usage: "If set, lock macaroon to specific IP address.",
+			},
+		*/
 		cli.StringFlag{
 			Name: "profile, p",
 			Usage: "Instead of reading settings from command " +
@@ -292,12 +295,15 @@ func main() {
 				"set to an empty string to disable reading " +
 				"values from the profiles file.",
 		},
-		cli.StringFlag{
-			Name: "macfromjar",
-			Usage: "Use this macaroon from the profile's " +
-				"macaroon jar instead of the default one. " +
-				"Can only be used if profiles are defined.",
-		},
+		//	we want to disable the use of macaroons so, force that it's turned off
+		/*
+			cli.StringFlag{
+				Name: "macfromjar",
+				Usage: "Use this macaroon from the profile's " +
+					"macaroon jar instead of the default one. " +
+					"Can only be used if profiles are defined.",
+			},
+		*/
 	}
 	app.Commands = []cli.Command{
 		createCommand,
@@ -347,11 +353,13 @@ func main() {
 		exportChanBackupCommand,
 		verifyChanBackupCommand,
 		restoreChanBackupCommand,
-		bakeMacaroonCommand,
-		listMacaroonIDsCommand,
-		deleteMacaroonIDCommand,
-		listPermissionsCommand,
-		printMacaroonCommand,
+		/*
+			bakeMacaroonCommand,
+			listMacaroonIDsCommand,
+			deleteMacaroonIDCommand,
+			listPermissionsCommand,
+			printMacaroonCommand,
+		*/
 		trackPaymentCommand,
 		versionCommand,
 		profileSubCommand,
@@ -393,7 +401,6 @@ func main() {
 	if !noMacaroons {
 		os.Args = append(os.Args, noMacaroonsArg)
 	}
-
 	if err := app.Run(os.Args); err != nil {
 		fatal(er.E(err))
 	}

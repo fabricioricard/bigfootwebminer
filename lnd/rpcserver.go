@@ -945,12 +945,19 @@ func (r *rpcServer) Start() er.R {
 
 	// With our custom REST proxy mux created, register our main RPC and
 	// give all subservers a chance to register as well.
-	errr := lnrpc.RegisterLightningHandlerFromEndpoint(
-		restCtx, restMux, r.restProxyDest, r.restDialOpts,
-	)
-	if errr != nil {
-		return er.E(errr)
-	}
+
+	//	after generating stubs with new grpc version the following comment was given:
+	//	"RegisterMetaServiceHandlerFromEndpoint is same as RegisterMetaServiceHandler but
+	// 	automatically dials to "endpoint" and closes the connection when "ctx" gets done.""
+
+	/*
+		errr := lnrpc.RegisterLightningHandlerFromEndpoint(
+			restCtx, restMux, r.restProxyDest, r.restDialOpts,
+		)
+		if errr != nil {
+			return er.E(errr)
+		}
+	*/
 	//Launching REST for MetaService, for getinfo2 and changepassword
 	//it is also launched on waitforwalletpassword, and on unlock closes
 	errrr := lnrpc.RegisterMetaServiceHandlerFromEndpoint(
@@ -6556,6 +6563,7 @@ func (r *rpcServer) ChannelAcceptor(stream lnrpc.Lightning_ChannelAcceptorServer
 
 // BakeMacaroon allows the creation of a new macaroon with custom read and write
 // permissions. No first-party caveats are added since this can be done offline.
+/*
 func (r *rpcServer) BakeMacaroon(ctx context.Context,
 	req *lnrpc.BakeMacaroonRequest) (*lnrpc.BakeMacaroonResponse, error) {
 	res, e := r.BakeMacaroon0(ctx, req)
@@ -6637,6 +6645,7 @@ func (r *rpcServer) BakeMacaroon0(ctx context.Context,
 		Macaroon: newMacBytes,
 	}, nil
 }
+*/
 
 func (r *rpcServer) ListMacaroonIDs(ctx context.Context, req *lnrpc.ListMacaroonIDsRequest) (
 	*lnrpc.ListMacaroonIDsResponse, error,

@@ -2036,6 +2036,9 @@ func testSignOutputUsingTweaks(r *rpctest.Harness,
 			t.Fatalf("unable to generate script: %v", err)
 		}
 
+		//	let's wait a bit for the wallet's funding transactions be confirmed !
+		time.Sleep(10 * time.Second)
+
 		// With the script fully assembled, instruct the wallet to fund
 		// the output with a newly created transaction.
 		newOutput := &wire.TxOut{

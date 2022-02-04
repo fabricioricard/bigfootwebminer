@@ -403,6 +403,10 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 	}
 
 	var macaroonService *macaroons.Service
+
+	//	just to helps us to make sure that macaroons are turned off
+	log.Infof("No-Macaroons option: %t", cfg.NoMacaroons)
+
 	if !cfg.NoMacaroons {
 		// Create the macaroon authentication/authorization service.
 		macaroonService, err = macaroons.NewService(

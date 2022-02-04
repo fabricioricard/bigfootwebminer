@@ -659,7 +659,7 @@ func (b *BtcWallet) ListTransactionDetails(startHeight,
 	// We'll attempt to find all transactions from start to end height.
 	start := base.NewBlockIdentifierFromHeight(startHeight)
 	stop := base.NewBlockIdentifierFromHeight(endHeight)
-	txns, err := b.wallet.GetTransactions(start, stop, skip, limit, coinbase, nil)
+	txns, err := b.wallet.GetTransactions(start, stop, limit, skip, coinbase, nil)
 	if err != nil {
 		return nil, err
 	}

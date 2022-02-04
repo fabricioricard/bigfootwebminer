@@ -17,9 +17,7 @@ service MetaService {
     rpc ChangePassword (ChangePasswordRequest) returns (ChangePasswordResponse);
 }
 
-message GetInfo2Request {
-    GetInfoResponse InfoResponse = 1;
-}
+message GetInfo2Request {}
 
 message GetInfo2Response { 
     NeutrinoInfo neutrino = 1;

@@ -9,7 +9,8 @@ http:
     - selector: lnrpc.Lightning.ChannelBalance
       get: "/v1/balance/channels"
     - selector: lnrpc.Lightning.GetTransactions
-      get: "/v1/transactions"
+      post: "/v1/transactions"
+      body: "*"
     - selector: lnrpc.Lightning.EstimateFee
       get: "/v1/transactions/fee"
     - selector: lnrpc.Lightning.SendCoins

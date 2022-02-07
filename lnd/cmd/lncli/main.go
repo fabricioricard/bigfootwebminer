@@ -78,6 +78,12 @@ func getClient(ctx *cli.Context) (lnrpc.LightningClient, func()) {
 }
 
 func getClientConn(ctx *cli.Context, skipMacaroons bool) *grpc.ClientConn {
+
+	//	we want to disable the use of macaroons so, force that it's turned off
+	//	ctx.GlobalSet("no-macaroons", "true")
+	_ = skipMacaroons
+	skipMacaroons = true
+
 	// First, we'll get the selected stored profile or an ephemeral one
 	// created from the global options in the CLI context.
 	profile, err := getGlobalOptions(ctx, skipMacaroons)
@@ -388,19 +394,6 @@ func main() {
 	app.Commands = append(app.Commands, watchtowerCommands()...)
 	app.Commands = append(app.Commands, wtclientCommands()...)
 
-	//	we want to disable the use of macaroons so, force that it's turned off
-	const noMacaroonsArg string = "--no-macaroons"
-	var noMacaroons bool = false
-
-	for _, arg := range os.Args {
-		if arg == noMacaroonsArg {
-			noMacaroons = true
-			break
-		}
-	}
-	if !noMacaroons {
-		os.Args = append(os.Args, noMacaroonsArg)
-	}
 	if err := app.Run(os.Args); err != nil {
 		fatal(er.E(err))
 	}

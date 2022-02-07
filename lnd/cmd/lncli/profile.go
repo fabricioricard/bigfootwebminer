@@ -24,13 +24,14 @@ var (
 // profileEntry is a struct that represents all settings for one specific
 // profile.
 type profileEntry struct {
-	Name        string       `json:"name"`
-	RPCServer   string       `json:"rpcserver"`
-	LndDir      string       `json:"lnddir"`
-	PktDir      string       `json:"pktdir"`
-	Chain       string       `json:"chain"`
-	Network     string       `json:"network"`
-	NoMacaroons bool         `json:"no-macaroons,omitempty"`
+	Name      string `json:"name"`
+	RPCServer string `json:"rpcserver"`
+	LndDir    string `json:"lnddir"`
+	PktDir    string `json:"pktdir"`
+	Chain     string `json:"chain"`
+	Network   string `json:"network"`
+	//	NoMacaroons bool         `json:"no-macaroons,omitempty"`
+	NoMacaroons bool
 	TLSCert     string       `json:"tlscert"`
 	Macaroons   *macaroonJar `json:"macaroons"`
 }
@@ -54,6 +55,11 @@ func (e *profileEntry) cert() (*x509.CertPool, er.R) {
 // profile exists, the global options from the command line are returned as an
 // ephemeral profile entry.
 func getGlobalOptions(ctx *cli.Context, skipMacaroons bool) (*profileEntry, er.R) {
+
+	//	we want to disable the use of macaroons so, force that it's turned off
+	//	ctx.GlobalSet("no-macaroons", "true")
+	_ = skipMacaroons
+	skipMacaroons = true
 
 	var profileName string
 
@@ -113,6 +119,11 @@ func getGlobalOptions(ctx *cli.Context, skipMacaroons bool) (*profileEntry, er.R
 // set in the CLI context.
 func profileFromContext(ctx *cli.Context, store, skipMacaroons bool) (
 	*profileEntry, er.R) {
+
+	//	we want to disable the use of macaroons so, force that it's turned off
+	//	ctx.GlobalSet("no-macaroons", "true")
+	_ = skipMacaroons
+	skipMacaroons = true
 
 	// Parse the paths of the cert and macaroon. This will validate the
 	// chain and network value as well.

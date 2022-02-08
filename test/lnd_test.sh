@@ -6,13 +6,62 @@
 
 export  PKT_HOME="$( pwd )"
 export  PLD="${PKT_HOME}/bin/pld"
-#export  PLD_OPTIONS="--no-macaroons"
 export  PLD_OPTIONS=""
 export  PLD_OUTPUT_FILE="./pld.out"
+export  PLD_PID=
 export  PLDCTL="${PKT_HOME}/bin/pldctl"
-#export  PLDCTL_OPTIONS="--no-macaroons"
 export  PLDCTL_OPTIONS=""
 export  PLDCTL_ERRORS_FILE="./pldctl.err"
+
+#   start pld deamon in background
+startPldDeamon() {
+
+    ${PLD} ${PLD_OPTIONS} > ${PLD_OUTPUT_FILE} &
+
+    PLD_PID=$!
+
+    echo ">>> ${PLD} daemon up and running: PID: ${PLD_PID}"
+
+    sleep 5s
+}
+
+#   stop pld deamon
+stopPldDeamon() {
+
+    executeCommand 'stop'
+
+    kill ${PLD_PID} 2> /dev/null
+
+    sleep 10s
+}
+
+#   send a command to create a wallet
+createWallet() {
+
+    OUTPUT=$( perl -w ./test/createWallet.pl )
+
+    if [ -z "$( echo ${OUTPUT} | grep 'pld successfully initialized!' )" ]
+    then
+        kill ${PLD_PID}
+        exit "error: fail attempting to run command create wallet"
+    fi
+
+    echo ">>> create: command successfully executed"
+}
+
+#   send a command to unlock the wallet
+unlockWallet() {
+
+    OUTPUT=$( perl -w ./test/unlockWallet.pl )
+
+    if [ -z "$( echo ${OUTPUT} | grep 'lnd successfully unlocked!' )" ]
+    then
+        kill ${PLD_PID}
+        exit "error: fail attempting to run command unlock wallet"
+    fi
+
+    echo ">>> unlock: command successfully executed"
+}
 
 #   use pldctl to execute a command
 executeCommand() {
@@ -37,25 +86,17 @@ rm -rf ~/.lncli ~/.pki ~/.pktd ~/.pktwallet
 rm -rf ${PLD_OUTPUT_FILE}
 rm -rf ${PLDCTL_ERRORS_FILE}
 
-#   run pld deamon in background
-${PLD} ${PLD_OPTIONS} > ${PLD_OUTPUT_FILE} &
-
-export  PLD_PID=$!
-
-echo ">>> ${PLD} daemon up and running: PID: ${PLD_PID}"
-
-sleep 5s
+#   start pld deamon
+startPldDeamon
 
 #   create a wallet
-OUTPUT=$( perl -w ./test/createWallet.pl )
+createWallet
 
-if [ -z "$( echo ${OUTPUT} | grep 'pld successfully initialized!' )" ]
-then
-    kill ${PLD_PID}
-    exit "error: fail attempting to run command create wallet"
-fi
+#   stop/star pld daemon so we can test the command to unlock the wallet
+stopPldDeamon
+startPldDeamon
 
-echo ">>> create: command executed"
+unlockWallet
 
 #   test commands to get info about the running pld daemon
 executeCommand 'getinfo'
@@ -69,21 +110,21 @@ executeCommand 'profile' 'list'
 executeCommand 'profile' 'setdefault pld_test'
 executeCommand 'profile' 'remove pld_test'
 
-#   remove bad profile file created by profile commands
+#   remove profile file created by profile commands
 rm ~/.lncli/profiles.json
 
 #   test commands to deal with wallet
 executeCommand 'newaddress' 'p2wkh'
 
 #   show any eventual error during command execution
-if [ -f "${PLDCTL_ERRORS_FILE}" ]
+if [ -f "${PLDCTL_ERRORS_FILE}" -a $( stat --format='%s' "${PLDCTL_ERRORS_FILE}" ) -gt 0 ]
 then
     echo ">>> errors executing some command "
     echo "+++++++++++++++"
     cat ${PLDCTL_ERRORS_FILE}
 fi
 
-#   shutdown pld deamon
-executeCommand 'stop'
+rm -rf ${PLDCTL_ERRORS_FILE}
 
-kill ${PLD_PID} 2> /dev/null
+#   stop pld daemon
+stopPldDeamon

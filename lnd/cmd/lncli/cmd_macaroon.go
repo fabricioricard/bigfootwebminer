@@ -1,5 +1,11 @@
 package main
 
+/*
+	we want to disable the use of macaroons just for the users so,
+    removing the four commands bellow that are necessary only for macaroons management
+*/
+
+/*
 import (
 	"bytes"
 	"context"
@@ -10,17 +16,19 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/btcutil/util"
 	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/macaroons"
 	"github.com/urfave/cli"
+	"google.golang.org/protobuf/proto"
 	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon.v2"
 )
+*/
 
+/*
 var bakeMacaroonCommand = cli.Command{
 	Name:     "bakemacaroon",
 	Category: "Macaroons",
@@ -204,7 +212,9 @@ func bakeMacaroon(ctx *cli.Context) er.R {
 
 	return nil
 }
+*/
 
+/*
 var listMacaroonIDsCommand = cli.Command{
 	Name:     "listmacaroonids",
 	Category: "Macaroons",
@@ -408,3 +418,4 @@ func printMacaroon(ctx *cli.Context) er.R {
 
 	return nil
 }
+*/

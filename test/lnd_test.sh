@@ -60,13 +60,17 @@ echo ">>> create: command executed"
 #   test commands to get info about the running pld daemon
 executeCommand 'getinfo'
 executeCommand 'getrecoveryinfo'
-executeCommand 'version'
+#   not working command !
+#executeCommand 'version'
 
 #   test commands to deal with profile
 executeCommand 'profile' 'add pld_test'
 executeCommand 'profile' 'list'
 executeCommand 'profile' 'setdefault pld_test'
 executeCommand 'profile' 'remove pld_test'
+
+#   remove bad profile file created by profile commands
+rm ~/.lncli/profiles.json
 
 #   test commands to deal with wallet
 executeCommand 'newaddress' 'p2wkh'

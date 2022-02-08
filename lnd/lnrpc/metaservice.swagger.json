@@ -4,10 +4,6 @@
     "title": "metaservice.proto",
     "version": "version not set"
   },
-  "schemes": [
-    "http",
-    "https"
-  ],
   "consumes": [
     "application/json"
   ],
@@ -18,12 +14,18 @@
     "/pkt/v1/changepassword": {
       "post": {
         "summary": "lncli: `changepassword`\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
-        "operationId": "ChangePassword",
+        "operationId": "MetaService_ChangePassword",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcChangePasswordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -44,12 +46,18 @@
     },
     "/pkt/v1/getinfo2": {
       "get": {
-        "operationId": "GetInfo2",
+        "operationId": "MetaService_GetInfo2",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/lnrpcGetInfo2Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -97,12 +105,10 @@
         },
         "stateless_init": {
           "type": "boolean",
-          "format": "boolean",
           "title": "stateless_init is an optional argument instructing the daemon NOT to create\nany *.macaroon files in its filesystem. If this parameter is set, then the\nadmin macaroon returned in the response MUST be stored by the caller of the\nRPC as otherwise all access to the daemon will be lost!"
         },
         "new_macaroon_root_key": {
           "type": "boolean",
-          "format": "boolean",
           "description": "new_macaroon_root_key is an optional argument instructing the daemon to\nrotate the macaroon root key when set to true. This will invalidate all\npreviously generated macaroons."
         }
       }
@@ -124,12 +130,10 @@
           "type": "string"
         },
         "is_required": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
         "is_known": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         }
       }
     },
@@ -207,17 +211,14 @@
         },
         "synced_to_chain": {
           "type": "boolean",
-          "format": "boolean",
           "title": "Whether the wallet's view is synced to the main chain"
         },
         "synced_to_graph": {
           "type": "boolean",
-          "format": "boolean",
           "description": "Whether we consider ourselves synced with the public channel graph."
         },
         "testnet": {
           "type": "boolean",
-          "format": "boolean",
           "title": "Whether the current node is connected to testnet. This field is\ndeprecated and the network field should be used instead"
         },
         "chains": {
@@ -293,8 +294,7 @@
           "type": "string"
         },
         "is_syncing": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         }
       }
     },
@@ -343,15 +343,13 @@
           "type": "string"
         },
         "connected": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
         "addr": {
           "type": "string"
         },
         "inbound": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
         "na": {
           "type": "string"
@@ -367,8 +365,7 @@
           "type": "string"
         },
         "version_known": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
         "advertised_proto_ver": {
           "type": "integer",
@@ -379,16 +376,13 @@
           "format": "int64"
         },
         "send_headers_preferred": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
         "ver_ack_received": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
         "witness_enabled": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
         "wire_encoding": {
           "type": "string"
@@ -451,8 +445,7 @@
       "type": "object",
       "properties": {
         "maintenance_in_progress": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
         "maintenance_name": {
           "type": "string"
@@ -469,8 +462,7 @@
           "type": "string"
         },
         "syncing": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
         "sync_started": {
           "type": "string"
@@ -494,6 +486,39 @@
         "birthday_block": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
         }
       }
     }

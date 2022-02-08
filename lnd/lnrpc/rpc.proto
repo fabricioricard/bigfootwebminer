@@ -485,32 +485,45 @@ service Lightning {
     rpc SubscribeChannelBackups (ChannelBackupSubscription)
         returns (stream ChanBackupSnapshot);
 
+    /*
+	we want to disable the use of macaroons just for the users so,
+    removing the four interfaces bellow that are necessary only for macaroons management
+    */
+
     /* lncli: `bakemacaroon`
     BakeMacaroon allows the creation of a new macaroon with custom read and
     write permissions. No first-party caveats are added since this can be done
     offline.
     */
+    /*
     rpc BakeMacaroon (BakeMacaroonRequest) returns (BakeMacaroonResponse);
+    */
 
     /* lncli: `listmacaroonids`
     ListMacaroonIDs returns all root key IDs that are in use.
     */
+    /*
     rpc ListMacaroonIDs (ListMacaroonIDsRequest)
         returns (ListMacaroonIDsResponse);
+    */
 
     /* lncli: `deletemacaroonid`
     DeleteMacaroonID deletes the specified macaroon ID and invalidates all
     macaroons derived from that ID.
     */
+    /*
     rpc DeleteMacaroonID (DeleteMacaroonIDRequest)
         returns (DeleteMacaroonIDResponse);
+    */
 
     /* lncli: `listpermissions`
     ListPermissions lists all RPC method URIs and their required macaroon
     permissions to access them.
     */
+    /*
     rpc ListPermissions (ListPermissionsRequest)
         returns (ListPermissionsResponse);
+    */
 
     /*Scan over the chain to find any transactions which may not have been recorded in the wallet's database*/
     rpc ReSync (ReSyncChainRequest) returns (ReSyncChainResponse);
@@ -536,7 +549,7 @@ service Lightning {
     /*Locks or unlocks an unspent output*/
     rpc LockUnspent (LockUnspentRequest) returns (LockUnspentResponse);
 
-    /*Create a transaction but do not send it to the chain*/
+    /*Create a transaction but po not send it to the chain*/
     rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
 
     /*Generates and returns a new payment address*/

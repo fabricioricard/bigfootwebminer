@@ -1,5 +1,11 @@
 package itest
 
+/*
+	we want to disable the use of macaroons just for the users so,
+    removing the four commands bellow that are necessary only for macaroons management
+*/
+
+/*
 import (
 	"bytes"
 	"context"
@@ -18,7 +24,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/macaroon.v2"
 )
+*/
 
+/*
 // testMacaroonAuthentication makes sure that if macaroon authentication is
 // enabled on the gRPC interface, no requests with missing or invalid
 // macaroons are allowed. Further, the specific access rights (read/write,
@@ -611,3 +619,4 @@ func macaroonClient(t *testing.T, testNode *lntest.HarnessNode,
 	}
 	return cleanup, lnrpc.NewLightningClient(conn)
 }
+*/

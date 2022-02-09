@@ -96,10 +96,10 @@ func actionDecorator(f func(*cli.Context) er.R) func(*cli.Context) er.R {
 			// exclude getinfo in order to work even when wallet is locked
 			if ok && s.Code() == codes.Unimplemented && c.Command.Name != "getinfo" {
 				return er.Errorf("Wallet is encrypted. " +
-					"Please unlock using 'lncli unlock', " +
-					"or set password using 'lncli create'" +
+					"Please unlock using 'pldctl unlock', " +
+					"or set password using 'pldctl create'" +
 					" if this is the first time starting " +
-					"lnd.")
+					"pld.")
 			}
 			return err
 		}
@@ -518,7 +518,7 @@ func sendMany(ctx *cli.Context) er.R {
 var connectCommand = cli.Command{
 	Name:      "connect",
 	Category:  "Peers",
-	Usage:     "Connect to a remote lnd peer.",
+	Usage:     "Connect to a remote pld peer.",
 	ArgsUsage: "<pubkey>@host",
 	Description: `
 	Connect to a peer using its <pubkey> and host.
@@ -580,7 +580,7 @@ func connectPeer(ctx *cli.Context) er.R {
 var disconnectCommand = cli.Command{
 	Name:      "disconnect",
 	Category:  "Peers",
-	Usage:     "Disconnect a remote lnd peer identified by public key.",
+	Usage:     "Disconnect a remote pld peer identified by public key.",
 	ArgsUsage: "<pubkey>",
 	Flags: []cli.Flag{
 		cli.StringFlag{
@@ -1022,9 +1022,9 @@ var abandonChannelCommand = cli.Command{
 	Description: `
 	Removes all channel state from the database except for a close
 	summary. This method can be used to get rid of permanently unusable
-	channels due to bugs fixed in newer versions of lnd.
+	channels due to bugs fixed in newer versions of pld.
 
-	Only available when lnd is built in debug mode.
+	Only available when pld is built in debug mode.
 
 	To view which funding_txids/output_indexes can be used for this command,
 	see the channel_point values within the listchannels command output.
@@ -2366,7 +2366,7 @@ var exportChanBackupCommand = cli.Command{
 			if specified, then rather than printing a JSON output
 			of the static channel backup, a serialized version of
 			the backup (either Single or Multi) will be written to
-			the target file, this is the same format used by lnd in
+			the target file, this is the same format used by pld in
 			its channels.backup file `,
 		},
 	},
@@ -2496,7 +2496,7 @@ var verifyChanBackupCommand = cli.Command{
 	 static channel backups in single blob.
 
        * A file path which points to a packed multi-channel backup within a
-	 file, using the same format that lnd does in its channels.backup
+	 file, using the same format that pld does in its channels.backup
 	 file.
     `,
 	Flags: []cli.Flag{
@@ -2562,7 +2562,7 @@ var restoreChanBackupCommand = cli.Command{
 	ArgsUsage: "[--single_backup] [--multi_backup] [--multi_file=",
 	Description: `
 	Allows a user to restore a Static Channel Backup (SCB) that was
-	obtained either via the exportchanbackup command, or from lnd's
+	obtained either via the exportchanbackup command, or from pld's
 	automatically manged channels.backup file. This command should be used
 	if a user is attempting to restore a channel due to data loss on a
 	running node restored with the same seed as the node that created the
@@ -2578,7 +2578,7 @@ var restoreChanBackupCommand = cli.Command{
 	     static channel backups in single blob.
 
 	   * A file path which points to a packed multi-channel backup within a
-	     file, using the same format that lnd does in its channels.backup
+	     file, using the same format that pld does in its channels.backup
 	     file.
 	`,
 	Flags: []cli.Flag{

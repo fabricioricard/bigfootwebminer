@@ -40,6 +40,7 @@ import (
 	"github.com/pkt-cash/pktd/lnd/keychain"
 	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/verrpc"
 	"github.com/pkt-cash/pktd/lnd/lnwallet"
 	"github.com/pkt-cash/pktd/lnd/macaroons"
 	"github.com/pkt-cash/pktd/lnd/metaservice"
@@ -825,6 +826,9 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		defer tower.Stop()
 	}
 
+	//	force the initialization the verRPC
+	_ = new(verrpc.Server)
+
 	// Wait for shutdown signal from either a graceful server stop or from
 	// the interrupt handler.
 	<-shutdownChan
@@ -1109,9 +1113,9 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	wg.Wait()
 
 	// Wait for user to provide the password.
-	log.Infof("Waiting for wallet (" + walletFilename + ") encryption password. Use `lncli " +
-		"create` to create a wallet, `lncli unlock` to unlock an " +
-		"existing wallet, or `lncli changepassword` to change the " +
+	log.Infof("Waiting for wallet (" + walletFilename + ") encryption password. Use `pldctl " +
+		"create` to create a wallet, `pldctl unlock` to unlock an " +
+		"existing wallet, or `pldctl changepassword` to change the " +
 		"password of an existing wallet and unlock it.")
 
 	// We currently don't distinguish between getting a password to be used
@@ -1173,7 +1177,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 			log.Warnf("Dropping all transaction history from " +
 				"on-chain wallet. Remember to disable " +
 				"reset-wallet-transactions flag for next " +
-				"start of lnd")
+				"start of pld")
 
 			err := wallet.DropTransactionHistory(
 				unlockMsg.Wallet.Database(), true,

@@ -13,7 +13,7 @@
   "paths": {
     "/v2/versioner/version": {
       "get": {
-        "summary": "lncli: `version`\nGetVersion returns the current version and build information of the running\ndaemon.",
+        "summary": "pldctl: `version`\nGetVersion returns the current version and build information of the running\ndaemon.",
         "operationId": "Versioner_GetVersion",
         "responses": {
           "200": {

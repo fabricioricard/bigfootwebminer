@@ -183,9 +183,9 @@ type Config struct {
 	LndDir       string `long:"lnddir" description:"The base directory that contains lnd's data, logs, configuration file, etc."`
 	PktDir       string `long:"pktdir" description:"The base directory that contains pktwallet's data etc."`
 	ConfigFile   string `short:"C" long:"configfile" description:"Path to configuration file"`
-	DataDir      string `short:"b" long:"datadir" description:"The directory to store lnd's data within"`
+	DataDir      string `short:"b" long:"datadir" description:"The directory to store pld's data within"`
 	WalletFile   string `long:"wallet" description:"Wallet file name or path, if a simple word such as 'personal' then pktwallet will look for wallet_personal.db, if prefixed with a / then pktwallet will consider it an absolute path. (default: wallet.db)"`
-	SyncFreelist bool   `long:"sync-freelist" description:"Whether the databases used within lnd should sync their freelist to disk. This is disabled by default resulting in improved memory performance during operation, but with an increase in startup time."`
+	SyncFreelist bool   `long:"sync-freelist" description:"Whether the databases used within pld should sync their freelist to disk. This is disabled by default resulting in improved memory performance during operation, but with an increase in startup time."`
 
 	//	we want to disable the use of macaroons just for the users so,
 	//	no more CLI options, config ini options or help for the following Config fields
@@ -200,7 +200,7 @@ type Config struct {
 	AcceptorTimeout time.Duration `long:"acceptortimeout" description:"Time after which an RPCAcceptor will time out and return false if it hasn't yet received a response"`
 
 	LetsEncryptDir    string `long:"letsencryptdir" description:"The directory to store Let's Encrypt certificates within"`
-	LetsEncryptListen string `long:"letsencryptlisten" description:"The IP:port on which lnd will listen for Let's Encrypt challenges. Let's Encrypt will always try to contact on port 80. Often non-root processes are not allowed to bind to ports lower than 1024. This configuration option allows a different port to be used, but must be used in combination with port forwarding from port 80. This configuration can also be used to specify another IP address to listen on, for example an IPv6 address."`
+	LetsEncryptListen string `long:"letsencryptlisten" description:"The IP:port on which pld will listen for Let's Encrypt challenges. Let's Encrypt will always try to contact on port 80. Often non-root processes are not allowed to bind to ports lower than 1024. This configuration option allows a different port to be used, but must be used in combination with port forwarding from port 80. This configuration can also be used to specify another IP address to listen on, for example an IPv6 address."`
 	LetsEncryptDomain string `long:"letsencryptdomain" description:"Request a Let's Encrypt certificate for this domain. Note that the certicate is only requested and stored when the first rpc connection comes in."`
 
 	// We'll parse these 'raw' string arguments into real net.Addrs in the
@@ -260,7 +260,7 @@ type Config struct {
 
 	NoSeedBackup bool `long:"noseedbackup" description:"If true, NO SEED WILL BE EXPOSED -- EVER, AND THE WALLET WILL BE ENCRYPTED USING THE DEFAULT PASSPHRASE. THIS FLAG IS ONLY FOR TESTING AND SHOULD NEVER BE USED ON MAINNET."`
 
-	ResetWalletTransactions bool `long:"reset-wallet-transactions" description:"Removes all transaction history from the on-chain wallet on startup, forcing a full chain rescan starting at the wallet's birthday. Implements the same functionality as btcwallet's dropwtxmgr command. Should be set to false after successful execution to avoid rescanning on every restart of lnd."`
+	ResetWalletTransactions bool `long:"reset-wallet-transactions" description:"Removes all transaction history from the on-chain wallet on startup, forcing a full chain rescan starting at the wallet's birthday. Implements the same functionality as btcwallet's dropwtxmgr command. Should be set to false after successful execution to avoid rescanning on every restart of pld."`
 
 	PaymentsExpirationGracePeriod time.Duration `long:"payments-expiration-grace-period" description:"A period to wait before force closing channels with outgoing htlcs that have timed-out and are a result of this node initiated payments."`
 	TrickleDelay                  int           `long:"trickledelay" description:"Time in milliseconds between each release of announcements to the network"`
@@ -280,9 +280,9 @@ type Config struct {
 
 	IgnoreHistoricalGossipFilters bool `long:"ignore-historical-gossip-filters" description:"If true, will not reply with historical data that matches the range specified by a remote peer's gossip_timestamp_filter. Doing so will result in lower memory and bandwidth requirements."`
 
-	RejectPush bool `long:"rejectpush" description:"If true, lnd will not accept channel opening requests with non-zero push amounts. This should prevent accidental pushes to merchant nodes."`
+	RejectPush bool `long:"rejectpush" description:"If true, pld will not accept channel opening requests with non-zero push amounts. This should prevent accidental pushes to merchant nodes."`
 
-	RejectHTLC bool `long:"rejecthtlc" description:"If true, lnd will not forward any HTLCs that are meant as onward payments. This option will still allow lnd to send HTLCs and receive HTLCs but lnd won't be used as a hop."`
+	RejectHTLC bool `long:"rejecthtlc" description:"If true, pld will not forward any HTLCs that are meant as onward payments. This option will still allow pld to send HTLCs and receive HTLCs but pld won't be used as a hop."`
 
 	StaggerInitialReconnect bool `long:"stagger-initial-reconnect" description:"If true, will apply a randomized staggering between 0s and 30s when reconnecting to persistent peers on startup. The first 10 reconnections will be attempted instantly, regardless of the flag's value"`
 
@@ -290,7 +290,7 @@ type Config struct {
 
 	MaxChannelFeeAllocation float64 `long:"max-channel-fee-allocation" description:"The maximum percentage of total funds that can be allocated to a channel's commitment fee. This only applies for the initiator of the channel. Valid values are within [0.1, 1]."`
 
-	DryRunMigration bool `long:"dry-run-migration" description:"If true, lnd will abort committing a migration if it would otherwise have been successful. This leaves the database unmodified, and still compatible with the previously active version of lnd."`
+	DryRunMigration bool `long:"dry-run-migration" description:"If true, pld will abort committing a migration if it would otherwise have been successful. This leaves the database unmodified, and still compatible with the previously active version of pld."`
 
 	net tor.Net
 
@@ -602,7 +602,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, er.R) {
 				err = er.E(errr)
 			}
 
-			str := "%s: Failed to create lnd directory: %v"
+			str := "%s: Failed to create pld directory: %v"
 			err = er.Errorf(str, funcName, err)
 			_, _ = fmt.Fprintln(os.Stderr, err)
 			return err

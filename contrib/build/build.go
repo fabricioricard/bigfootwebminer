@@ -9,8 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strings"
 	"runtime"
+	"strings"
 )
 
 // generic stuff

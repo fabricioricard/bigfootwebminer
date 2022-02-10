@@ -42,7 +42,7 @@ var (
 )
 
 func fatal(err er.R) {
-	fmt.Fprintf(os.Stderr, "[lncli] %v\n", err)
+	fmt.Fprintf(os.Stderr, "[pldctl] %v\n", err)
 	os.Exit(1)
 }
 
@@ -91,72 +91,6 @@ func getClientConn(ctx *cli.Context, skipMacaroons bool) *grpc.ClientConn {
 
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure())
-
-	// Only process macaroon credentials if --no-macaroons isn't set and
-	// if we're not skipping macaroon processing.
-
-	//	we want to disable the use of macaroons so, no need to manage them anymore
-	/*
-		if !profile.NoMacaroons && !skipMacaroons {
-			// Find out which macaroon to load.
-			macName := profile.Macaroons.Default
-			if ctx.GlobalIsSet("macfromjar") {
-				macName = ctx.GlobalString("macfromjar")
-			}
-			var macEntry *macaroonEntry
-			for _, entry := range profile.Macaroons.Jar {
-				if entry.Name == macName {
-					macEntry = entry
-					break
-				}
-			}
-			if macEntry == nil {
-				fatal(er.Errorf("macaroon with name '%s' not found "+
-					"in profile", macName))
-			}
-
-			// Get and possibly decrypt the specified macaroon.
-			//
-			// TODO(guggero): Make it possible to cache the password so we
-			// don't need to ask for it every time.
-			mac, err := macEntry.loadMacaroon(readPassword)
-			if err != nil {
-				fatal(er.Errorf("could not load macaroon: %v", err))
-			}
-
-			macConstraints := []macaroons.Constraint{
-				// We add a time-based constraint to prevent replay of the
-				// macaroon. It's good for 60 seconds by default to make up for
-				// any discrepancy between client and server clocks, but leaking
-				// the macaroon before it becomes invalid makes it possible for
-				// an attacker to reuse the macaroon. In addition, the validity
-				// time of the macaroon is extended by the time the server clock
-				// is behind the client clock, or shortened by the time the
-				// server clock is ahead of the client clock (or invalid
-				// altogether if, in the latter case, this time is more than 60
-				// seconds).
-				// TODO(aakselrod): add better anti-replay protection.
-				macaroons.TimeoutConstraint(profile.Macaroons.Timeout),
-
-				// Lock macaroon down to a specific IP address.
-				macaroons.IPLockConstraint(profile.Macaroons.IP),
-
-				// ... Add more constraints if needed.
-			}
-
-			// Apply constraints to the macaroon.
-			constrainedMac, err := macaroons.AddConstraints(
-				mac, macConstraints...,
-			)
-			if err != nil {
-				fatal(err)
-			}
-
-			// Now we append the macaroon credentials to the dial options.
-			cred := macaroons.NewMacaroonCredential(constrainedMac)
-			opts = append(opts, grpc.WithPerRPCCredentials(cred))
-		}
-	*/
 
 	// We need to use a custom dialer so we can also connect to unix sockets
 	// and not just TCP addresses.
@@ -235,9 +169,9 @@ func extractPathArgs(ctx *cli.Context) (string, string, string, er.R) {
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "lncli"
+	app.Name = "pldctl"
 	app.Version = version.Version()
-	app.Usage = "control plane for your Lightning Network Daemon (lnd)"
+	app.Usage = "control plane for your Lightning Network Daemon (pld)"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "rpcserver",
@@ -274,26 +208,6 @@ func main() {
 				"testnet, etc.",
 			Value: "mainnet",
 		},
-		//	we want to disable the use of macaroons so, no more CLI flags for them
-		/*
-			cli.BoolFlag{
-				Name: "no-macaroons",
-				Usage: "Disable macaroon authentication.",
-			},
-			cli.StringFlag{
-				Name:  "macaroonpath",
-				Usage: "The path to macaroon file.",
-			},
-			cli.Int64Flag{
-				Name:  "macaroontimeout",
-				Value: 60,
-				Usage: "Anti-replay macaroon validity time in seconds.",
-			},
-			cli.StringFlag{
-				Name:  "macaroonip",
-				Usage: "If set, lock macaroon to specific IP address.",
-			},
-		*/
 		cli.StringFlag{
 			Name: "profile, p",
 			Usage: "Instead of reading settings from command " +
@@ -303,15 +217,6 @@ func main() {
 				"set to an empty string to disable reading " +
 				"values from the profiles file.",
 		},
-		//	we want to disable the use of macaroons so, no more CLI flags for them
-		/*
-			cli.StringFlag{
-				Name: "macfromjar",
-				Usage: "Use this macaroon from the profile's " +
-					"macaroon jar instead of the default one. " +
-					"Can only be used if profiles are defined.",
-			},
-		*/
 	}
 	app.Commands = []cli.Command{
 		createCommand,
@@ -361,14 +266,6 @@ func main() {
 		exportChanBackupCommand,
 		verifyChanBackupCommand,
 		restoreChanBackupCommand,
-		//	we want to disable the use of macaroons so, no more macaroon commands
-		/*
-			bakeMacaroonCommand,
-			listMacaroonIDsCommand,
-			deleteMacaroonIDCommand,
-			listPermissionsCommand,
-			printMacaroonCommand,
-		*/
 		trackPaymentCommand,
 		versionCommand,
 		profileSubCommand,

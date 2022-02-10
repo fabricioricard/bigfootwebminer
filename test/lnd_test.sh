@@ -81,21 +81,42 @@ executeCommand() {
 echo ">>>>> Testing pld and pldctl"
 echo
 
-#   clean things up by removing previous wallet
-rm -rf ~/.lncli ~/.pki ~/.pktd ~/.pktwallet
-rm -rf ${PLD_OUTPUT_FILE}
-rm -rf ${PLDCTL_ERRORS_FILE}
+#   parse CLI arguments
+CREATE_WALLET="false"
 
-#   start pld deamon
+while [ true ]
+do
+    ARG=${1}
+
+    if [ -z "${ARG}" ]
+    then
+        break
+    fi
+
+    if [ "${ARG}" == "--createWallet" ]
+    then
+        CREATE_WALLET="true"
+    fi
+
+    shift
+done
+
+#   create wallet when requested
+if [ "${PROTOC}" == "true" ]
+then
+    #   clean things up by removing previous wallet
+    rm -rf ~/.lncli ~/.pki ~/.pktd ~/.pktwallet
+    rm -rf ${PLD_OUTPUT_FILE}
+    rm -rf ${PLDCTL_ERRORS_FILE}
+
+    #   start pld deamon, create a wallet and stop the deamon, because first test is unlock wallet
+    startPldDeamon
+    createWallet
+    stopPldDeamon
+fi
+
+#   star pld daemon and test the command to unlock the wallet
 startPldDeamon
-
-#   create a wallet
-createWallet
-
-#   stop/star pld daemon so we can test the command to unlock the wallet
-stopPldDeamon
-startPldDeamon
-
 unlockWallet
 
 #   test commands to get info about the running pld daemon
@@ -113,8 +134,19 @@ executeCommand 'profile' 'remove pld_test'
 #   remove profile file created by profile commands
 rm ~/.lncli/profiles.json
 
-#   test commands to deal with wallet
+#   test commands to manage channels
+executeCommand 'listchannels'
+executeCommand 'getnetworkinfo'
+executeCommand 'feereport'
+
+#   test commands to deal with the wallet
 executeCommand 'newaddress' 'p2wkh'
+executeCommand 'walletbalance'
+executeCommand 'resync'
+executeCommand 'getaddressbalances'
+executeCommand 'getwalletseed'
+executeCommand 'getsecret'
+executeCommand 'getnewaddress'
 
 #   show any eventual error during command execution
 if [ -f "${PLDCTL_ERRORS_FILE}" -a $( stat --format='%s' "${PLDCTL_ERRORS_FILE}" ) -gt 0 ]

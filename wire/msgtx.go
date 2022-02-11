@@ -988,9 +988,13 @@ func NewMsgTx(version int32) *MsgTx {
 
 // readOutPoint reads the next sequence of bytes from r as an OutPoint.
 func readOutPoint(r io.Reader, pver uint32, version int32, op *OutPoint) (err er.R) {
-	_, errr := io.ReadFull(r, op.Hash[:])
+	expected := len(op.Hash[:])
+	n, errr := io.ReadFull(r, op.Hash[:])
 	if errr != nil {
 		return er.E(errr)
+	}
+	if n != expected {
+		return er.ErrUnexpectedEOF.Default()
 	}
 
 	op.Index, err = binarySerializer.Uint32(r, littleEndian)

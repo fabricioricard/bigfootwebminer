@@ -1,7 +1,7 @@
 #!  /usr/bin/bash
 
 ################################################################################
-#   requires the installation of jq
+#   smoke test for pld / pldctl commands
 ################################################################################
 
 export  PKT_HOME="$( pwd )"
@@ -12,6 +12,7 @@ export  PLD_PID=
 export  PLDCTL="${PKT_HOME}/bin/pldctl"
 export  PLDCTL_OPTIONS=""
 export  PLDCTL_ERRORS_FILE="./pldctl.err"
+export  JSON_OUTPUT=""
 
 #   start pld deamon in background
 startPldDeamon() {
@@ -22,7 +23,7 @@ startPldDeamon() {
 
     echo ">>> ${PLD} daemon up and running: PID: ${PLD_PID}"
 
-    sleep 5s
+    sleep 10s
 }
 
 #   stop pld deamon
@@ -38,7 +39,7 @@ stopPldDeamon() {
 #   send a command to create a wallet
 createWallet() {
 
-    OUTPUT=$( perl -w ./test/createWallet.pl )
+    local OUTPUT=$( perl -w ./test/createWallet.pl )
 
     if [ -z "$( echo ${OUTPUT} | grep 'pld successfully initialized!' )" ]
     then
@@ -52,7 +53,7 @@ createWallet() {
 #   send a command to unlock the wallet
 unlockWallet() {
 
-    OUTPUT=$( perl -w ./test/unlockWallet.pl )
+    local OUTPUT=$( perl -w ./test/unlockWallet.pl )
 
     if [ -z "$( echo ${OUTPUT} | grep 'lnd successfully unlocked!' )" ]
     then
@@ -68,18 +69,27 @@ executeCommand() {
     local COMMAND="${1}"
     local ARGUMENTS="${2}"
 
-    OUTPUT=$( ${PLDCTL} ${PLDCTL_OPTIONS} ${COMMAND} ${ARGUMENTS} 2>> ${PLDCTL_ERRORS_FILE} )
-    if [ $? == 0 ]
+    JSON_OUTPUT=$( ${PLDCTL} ${PLDCTL_OPTIONS} ${COMMAND} ${ARGUMENTS} 2>> ${PLDCTL_ERRORS_FILE} )
+    if [ $? -eq 0 ]
     then
         echo ">>> ${COMMAND} ${ARGUMENTS}: command successfully executed"
     else
         echo "error: fail attempting to run command \"${COMMAND} ${ARGUMENTS}\": $?"
+        return 1
     fi
 }
 
 #   splash screen
 echo ">>>>> Testing pld and pldctl"
 echo
+
+#   check if jq is available
+
+output=$( which jq 2> /dev/null )
+if [ $? -ne 0 ]
+then
+    exit "error: 'jq' is required to run this script"
+fi
 
 #   parse CLI arguments
 CREATE_WALLET="false"
@@ -102,7 +112,7 @@ do
 done
 
 #   create wallet when requested
-if [ "${PROTOC}" == "true" ]
+if [ "${CREATE_WALLET}" == "true" ]
 then
     #   clean things up by removing previous wallet
     rm -rf ~/.lncli ~/.pki ~/.pktd ~/.pktwallet
@@ -121,9 +131,98 @@ unlockWallet
 
 #   test commands to get info about the running pld daemon
 executeCommand 'getinfo'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#neutrino peers: $( echo ${JSON_OUTPUT} | jq '.neutrino.peers | length' )"
+fi
+
 executeCommand 'getrecoveryinfo'
-#   not working command !
-#executeCommand 'version'
+if [ $? -eq 0 ]
+then
+    echo -e "\trecovery mode: $( echo ${JSON_OUTPUT} | jq '.recovery_mode' )"
+fi
+
+executeCommand 'debuglevel' '--level info --show'
+
+executeCommand 'version'
+if [ $? -eq 0 ]
+then
+    echo -e "\tpld version: $( echo ${JSON_OUTPUT} | jq '.pld | .version' )"
+    echo -e "\tpldctl version: $( echo ${JSON_OUTPUT} | jq '.pldctl | .version' )"
+fi
+
+#   test commands to manage channels
+#executeCommand 'openchannel'
+#executeCommand 'closechannel'
+#executeCommand 'closeallchannels'
+#executeCommand 'abandonchannel'
+
+executeCommand 'channelbalance'
+if [ $? -eq 0 ]
+then
+    echo -e "\tchannel balance: $( echo ${JSON_OUTPUT} | jq '.balance' )"
+fi
+
+executeCommand 'pendingchannels'
+if [ $? -eq 0 ]
+then
+    echo -e "\tlimbo balance: $( echo ${JSON_OUTPUT} | jq '.total_limbo_balance' )"
+fi
+
+executeCommand 'listchannels'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#open channels: $( echo ${JSON_OUTPUT} | jq '.channels | length' )"
+fi
+
+executeCommand 'closedchannels'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#closed channels: $( echo ${JSON_OUTPUT} | jq '.channels | length' )"
+fi
+
+executeCommand 'getnetworkinfo'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#nodes: $( echo ${JSON_OUTPUT} | jq '.num_nodes' )"
+    echo -e "\t#channels: $( echo ${JSON_OUTPUT} | jq '.num_channels' )"
+fi
+
+executeCommand 'feereport'
+if [ $? -eq 0 ]
+then
+    echo -e "\tweek fee sum: $( echo ${JSON_OUTPUT} | jq '.week_fee_sum' )"
+fi
+
+#executeCommand 'updatechanpolicy' '10 10 20'
+
+executeCommand 'exportchanbackup' '--all'
+if [ $? -eq 0 ]
+then
+    MULTI_BACKUP=$( echo ${JSON_OUTPUT} | jq '.multi_chan_backup.multi_chan_backup' | tr --delete '"' )
+    echo -e "\tmulti backup: ${MULTI_BACKUP}"
+fi
+
+executeCommand 'verifychanbackup' "--multi_backup=${MULTI_BACKUP}"
+executeCommand 'restorechanbackup'
+
+#   test commands to get graph info
+executeCommand 'describegraph'
+#executeCommand 'getnodemetrics'
+#executeCommand 'getchaninfo'
+executeCommand 'getnodeinfo'
+
+#   test commands to manage invoices
+executeCommand 'addinvoice'
+#executeCommand 'lookupinvoice'
+executeCommand 'listinvoices'
+#executeCommand 'decodepayreq'
+
+#   test commands to manage on-chain transactions
+#executeCommand 'estimatefee'
+#executeCommand 'sendmany'
+#executeCommand 'sendcoins'
+executeCommand 'listunspent'
 
 #   test commands to deal with profile
 executeCommand 'profile' 'add pld_test'
@@ -133,11 +232,6 @@ executeCommand 'profile' 'remove pld_test'
 
 #   remove profile file created by profile commands
 rm ~/.lncli/profiles.json
-
-#   test commands to manage channels
-executeCommand 'listchannels'
-executeCommand 'getnetworkinfo'
-executeCommand 'feereport'
 
 #   test commands to deal with the wallet
 executeCommand 'newaddress' 'p2wkh'

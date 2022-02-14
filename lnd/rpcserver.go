@@ -446,22 +446,24 @@ func MainRPCServerPermissions() map[string][]bakery.Op {
 			Entity: "offchain",
 			Action: "write",
 		}},
-		"/lnrpc.Lightning/BakeMacaroon": {{
-			Entity: "macaroon",
-			Action: "generate",
-		}},
-		"/lnrpc.Lightning/ListMacaroonIDs": {{
-			Entity: "macaroon",
-			Action: "read",
-		}},
-		"/lnrpc.Lightning/DeleteMacaroonID": {{
-			Entity: "macaroon",
-			Action: "write",
-		}},
-		"/lnrpc.Lightning/ListPermissions": {{
-			Entity: "info",
-			Action: "read",
-		}},
+		/*
+			"/lnrpc.Lightning/BakeMacaroon": {{
+				Entity: "macaroon",
+				Action: "generate",
+			}},
+			"/lnrpc.Lightning/ListMacaroonIDs": {{
+				Entity: "macaroon",
+				Action: "read",
+			}},
+			"/lnrpc.Lightning/DeleteMacaroonID": {{
+				Entity: "macaroon",
+				Action: "write",
+			}},
+			"/lnrpc.Lightning/ListPermissions": {{
+				Entity: "info",
+				Action: "read",
+			}},
+		*/
 		"/lnrpc.Lightning/SubscribePeerEvents": {{
 			Entity: "peers",
 			Action: "read",
@@ -946,18 +948,6 @@ func (r *rpcServer) Start() er.R {
 	// With our custom REST proxy mux created, register our main RPC and
 	// give all subservers a chance to register as well.
 
-	//	after generating stubs with new grpc version the following comment was given:
-	//	"RegisterMetaServiceHandlerFromEndpoint is same as RegisterMetaServiceHandler but
-	// 	automatically dials to "endpoint" and closes the connection when "ctx" gets done.""
-
-	/*
-		errr := lnrpc.RegisterLightningHandlerFromEndpoint(
-			restCtx, restMux, r.restProxyDest, r.restDialOpts,
-		)
-		if errr != nil {
-			return er.E(errr)
-		}
-	*/
 	//Launching REST for MetaService, for getinfo2 and changepassword
 	//it is also launched on waitforwalletpassword, and on unlock closes
 	errrr := lnrpc.RegisterMetaServiceHandlerFromEndpoint(
@@ -1212,11 +1202,16 @@ func (r *rpcServer) ListUnspent(ctx context.Context,
 func (r *rpcServer) EstimateFee(ctx context.Context,
 	in *lnrpc.EstimateFeeRequest) (*lnrpc.EstimateFeeResponse, error) {
 
+	for addr, amnt := range in.AddrToAmount {
+		log.Debugf("[0] EstimateFee(): address: %s ; amount: %d", addr, amnt)
+	}
+
 	// Create the list of outputs we are spending to.
 	outputs, err := addrPairsToOutputs(in.AddrToAmount, r.cfg.ActiveNetParams.Params)
 	if err != nil {
 		return nil, er.Native(err)
 	}
+	log.Debugf("[1] EstimateFee(): #outputs: %d", len(outputs))
 
 	// Query the fee estimator for the fee rate for the given confirmation
 	// target.
@@ -1229,6 +1224,7 @@ func (r *rpcServer) EstimateFee(ctx context.Context,
 	if err != nil {
 		return nil, er.Native(err)
 	}
+	log.Debugf("[2] EstimateFee(): feePerKw: %d", feePerKw)
 
 	// We will ask the wallet to create a tx using this fee rate. We set
 	// dryRun=true to avoid inflating the change addresses in the db.
@@ -1241,6 +1237,7 @@ func (r *rpcServer) EstimateFee(ctx context.Context,
 	if err != nil {
 		return nil, er.Native(err)
 	}
+	log.Debugf("[3] EstimateFee()")
 
 	// Use the created tx to calculate the total fee.
 	totalOutput := int64(0)
@@ -1253,6 +1250,7 @@ func (r *rpcServer) EstimateFee(ctx context.Context,
 		FeeSat:            totalFee,
 		FeerateSatPerByte: int64(feePerKw.FeePerKVByte() / 1000),
 	}
+	log.Debugf("[4] EstimateFee()")
 
 	log.Debugf("[estimatefee] fee estimate for conf target %d: %v",
 		target, resp)
@@ -7345,14 +7343,25 @@ func (r *rpcServer) SetNetworkStewardVote(ctx context.Context, req *lnrpc.SetNet
 }
 
 func (r *rpcServer) BcastTransaction(ctx context.Context, req *lnrpc.BcastTransactionRequest) (*lnrpc.BcastTransactionResponse, error) {
+	log.Debugf("[0] BcastTransaction(): req.tx(%d): %s", len(req.Tx), string(req.Tx))
 	dst := make([]byte, hex.DecodedLen(len(req.Tx)))
 	_, err := hex.Decode(dst, req.Tx)
 	if err != nil {
 		return nil, err
 	}
+
 	var msgTx wire.MsgTx
-	msgTx.Deserialize(bytes.NewReader(dst))
+
+	errr := msgTx.Deserialize(bytes.NewReader(dst))
+	if errr != nil {
+		return nil, er.Native(errr)
+	}
+
 	txidhash, errr := r.wallet.ReliablyPublishTransaction(&msgTx, "")
+	if errr != nil {
+		return nil, er.Native(errr)
+	}
+
 	return &lnrpc.BcastTransactionResponse{
 		TxnHash: txidhash.String(),
 	}, er.Native(errr)

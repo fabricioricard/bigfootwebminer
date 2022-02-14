@@ -9,6 +9,7 @@ import (
 	"math"
 	"net"
 	"net/http"
+	"os"
 	"runtime"
 	"sort"
 	"strconv"
@@ -64,7 +65,6 @@ import (
 	"github.com/pkt-cash/pktd/lnd/record"
 	"github.com/pkt-cash/pktd/lnd/routing"
 	"github.com/pkt-cash/pktd/lnd/routing/route"
-	"github.com/pkt-cash/pktd/lnd/signal"
 	"github.com/pkt-cash/pktd/lnd/sweep"
 	"github.com/pkt-cash/pktd/lnd/watchtower"
 	"github.com/pkt-cash/pktd/lnd/zpay32"
@@ -5565,7 +5565,8 @@ func (r *rpcServer) GetNetworkInfo0(ctx context.Context,
 func (r *rpcServer) StopDaemon(ctx context.Context,
 	_ *lnrpc.StopRequest) (*lnrpc.StopResponse, error) {
 
-	signal.RequestShutdown()
+	os.Exit(0)
+
 	return &lnrpc.StopResponse{}, nil
 }
 

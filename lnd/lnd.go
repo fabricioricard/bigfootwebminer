@@ -40,6 +40,7 @@ import (
 	"github.com/pkt-cash/pktd/lnd/keychain"
 	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc"
 	"github.com/pkt-cash/pktd/lnd/lnwallet"
 	"github.com/pkt-cash/pktd/lnd/macaroons"
 	"github.com/pkt-cash/pktd/lnd/metaservice"
@@ -208,6 +209,25 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		network,
 	)
 
+	// Bring up the REST handler immediately
+	restContext := restrpc.RpcContext{}
+	restHandler := restrpc.RestHandlers(&restContext)
+	for _, restEndpoint := range cfg.RESTListeners {
+		lis, err := lncfg.ListenOnAddress(restEndpoint)
+		if err != nil {
+			log.Errorf("REST unable to listen on %s", restEndpoint)
+			return err
+		}
+		go func() {
+			log.Infof("REST started at %s", lis.Addr())
+			corsHandler := allowCORS(restHandler, cfg.RestCORS)
+			err := http.Serve(lis, corsHandler)
+			if err != nil && !lnrpc.IsClosedConnError(err) {
+				log.Error(err)
+			}
+		}()
+	}
+
 	// Enable http profiling server if requested.
 	if cfg.Profile != "" {
 		go func() {
@@ -290,6 +310,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		}
 		defer neutrinoCleanUp()
 		neutrinoCS = neutrinoBackend
+		restContext.MaybeNeutrino = neutrinoCS
 	}
 
 	var (
@@ -375,6 +396,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		params, shutdown, err := waitForWalletPassword(
 			cfg, cfg.RESTListeners, serverOpts, restDialOpts,
 			restProxyDest, restListen, walletUnlockerListeners, metaService,
+			&restContext,
 		)
 		if err != nil {
 			err := er.Errorf("unable to set up wallet password "+
@@ -389,6 +411,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		publicWalletPw = walletInitParams.Password
 		//Pass wallet to metaservice for getinfo2
 		metaService.SetWallet(walletInitParams.Wallet)
+		restContext.MaybeWallet = walletInitParams.Wallet
 		defer func() {
 			if err := walletInitParams.UnloadWallet(); err != nil {
 				log.Errorf("Could not unload wallet: %v", err)
@@ -529,6 +552,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		log.Error(err)
 		return err
 	}
+	restContext.MaybeCC = activeChainControl
 
 	// Finally before we start the server, we'll register the "holy
 	// trinity" of interface for our current "home chain" with the active
@@ -734,6 +758,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 		log.Error(err)
 		return err
 	}
+	restContext.MaybeRpcServer = rpcServer
 	if err := rpcServer.Start(); err != nil {
 		err := er.Errorf("unable to start RPC server: %v", err)
 		log.Error(err)
@@ -973,7 +998,8 @@ type WalletUnlockParams struct {
 func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	serverOpts []grpc.ServerOption, restDialOpts []grpc.DialOption,
 	restProxyDest string, restListen func(net.Addr) (net.Listener, er.R),
-	getListeners rpcListeners, metaService *metaservice.MetaService) (*WalletUnlockParams, func(), er.R) {
+	getListeners rpcListeners, metaService *metaservice.MetaService,
+	restContext *restrpc.RpcContext) (*WalletUnlockParams, func(), er.R) {
 
 	chainConfig := cfg.Bitcoin
 	if cfg.registeredChains.PrimaryChain() == chainreg.LitecoinChain {
@@ -1007,6 +1033,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		chainConfig.ChainDir, cfg.ActiveNetParams.Params,
 		!cfg.SyncFreelist, macaroonFiles, walletPath, walletFilename,
 	)
+	restContext.MaybeWalletUnlocker = pwService
 
 	// Set up a new PasswordService, which will listen for passwords
 	// provided over RPC.
@@ -1073,32 +1100,6 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	errrr := lnrpc.RegisterMetaServiceHandlerFromEndpoint(ctx, mux, restProxyDest, restDialOpts)
 	if errrr != nil {
 		return nil, shutdown, er.E(errrr)
-	}
-
-	srv := &http.Server{Handler: allowCORS(mux, cfg.RestCORS)}
-
-	for _, restEndpoint := range restEndpoints {
-		lis, err := restListen(restEndpoint)
-		if err != nil {
-			log.Errorf("Password gRPC proxy unable to listen "+
-				"on %s", restEndpoint)
-			return nil, shutdown, err
-		}
-		shutdownFuncs = append(shutdownFuncs, func() {
-			err := lis.Close()
-			if err != nil {
-				log.Errorf("Error closing listener: %v",
-					err)
-			}
-		})
-
-		wg.Add(1)
-		go func() {
-			log.Infof("Password gRPC proxy started at %s",
-				lis.Addr())
-			wg.Done()
-			_ = srv.Serve(lis)
-		}()
 	}
 
 	// Wait for gRPC and REST servers to be up running.

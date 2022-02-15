@@ -558,6 +558,11 @@ service Lightning {
     rpc SendFrom (SendFromRequest) returns (SendFromResponse);
 }
 
+message RestError {
+	string message = 2;
+	repeated string stack = 3;
+}
+
 message Utxo {
     // The type of address
     AddressType address_type = 1;

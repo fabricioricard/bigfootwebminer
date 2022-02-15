@@ -1,7 +1,7 @@
 #!  /usr/bin/bash
 
 ################################################################################
-#   smoke test for pld / pldctl commands
+#   smoke tests for pld / pldctl commands
 ################################################################################
 
 export  PKT_HOME="$( pwd )"
@@ -13,6 +13,7 @@ export  PLDCTL="${PKT_HOME}/bin/pldctl"
 export  PLDCTL_OPTIONS=""
 export  PLDCTL_ERRORS_FILE="./pldctl.err"
 export  JSON_OUTPUT=""
+export  TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
 
 #   start pld deamon in background
 startPldDeamon() {
@@ -219,10 +220,92 @@ executeCommand 'listinvoices'
 #executeCommand 'decodepayreq'
 
 #   test commands to manage on-chain transactions
-#executeCommand 'estimatefee'
-#executeCommand 'sendmany'
-#executeCommand 'sendcoins'
+executeCommand 'estimatefee' "{ \"${TARGET_WALLET}\": 10000000 }"
+if [ $? -eq 0 ]
+then
+    echo -e "\tfee sat: $( echo ${JSON_OUTPUT} | jq '.fee_sat' )"
+fi
+
+executeCommand 'sendmany' "{ \"${TARGET_WALLET}\": 10000000 }"
+if [ $? -eq 0 ]
+then
+    echo -e "\ttransaction Id: $( echo ${JSON_OUTPUT} | jq '.txid' )"
+fi
+
+executeCommand 'sendcoins' "{ \"${TARGET_WALLET}\": 10000000 }"
+if [ $? -eq 0 ]
+then
+    echo -e "\ttransaction Id: $( echo ${JSON_OUTPUT} | jq '.txid' )"
+fi
+
 executeCommand 'listunspent'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#utxos: $( echo ${JSON_OUTPUT} | jq '.utxos | length' )"
+fi
+
+executeCommand 'listchaintrns'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#transactions: $( echo ${JSON_OUTPUT} | jq '.transactions | length' )"
+fi
+
+executeCommand 'setnetworkstewardvote' "" ""
+
+executeCommand 'getnetworkstewardvote'
+if [ $? -eq 0 ]
+then
+    echo -e "\tvote against: $( echo ${JSON_OUTPUT} | jq '.vote_against' )"
+    echo -e "\tvote for: $( echo ${JSON_OUTPUT} | jq '.vote_for' )"
+fi
+
+executeCommand 'bcasttransaction'
+if [ $? -eq 0 ]
+then
+    echo -e "\ttransaction hash: $( echo ${JSON_OUTPUT} | jq '.txn_hash' )"
+fi
+
+#   test commands to manage payments
+#executeCommand 'sendpayment' '02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e 100000 1cc616cdeb96016bf278bfea15d55541d31823986b33c0dab38024cb8eff3791'
+#executeCommand 'payinvoice' 'lnpkt100u1p3q4r85pp5kecz6ckl97wwe2nnqn6lq5lju30z9sc8uaeacamudxv52kykgdnqdqqcqzpgsp5fa0tpf3j3ecppn3tvmc50n6w7pl6dcs7zvus82splfjs2qevwkxq9qy9qsq4sfdxwzrku87zaphgh6wa3rtc2a8g7rmg6a2dp4myk3qa8c7409sv205xxfsc2n0mzmemcg92ukg7x6q7xlkp5ca9gdwvsqmtpuazccpw25hg9'
+#executeCommand 'sendtoroute' ''
+
+executeCommand 'listpayments' ''
+if [ $? -eq 0 ]
+then
+    echo -e "\t#payments: $( echo ${JSON_OUTPUT} | jq '.payments | length' )"
+fi
+
+#executeCommand 'setnetworkstewardvote'
+#executeCommand 'queryroutes' '02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e 1'
+
+executeCommand 'fwdinghistory'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#forwarding events: $( echo ${JSON_OUTPUT} | jq '.forwarding_events | length' )"
+fi
+
+executeCommand 'trackpayment' '1cc616cdeb96016bf278bfea15d55541d31823986b33c0dab38024cb8eff3791'
+
+executeCommand 'querymc' ''
+if [ $? -eq 0 ]
+then
+    echo -e "\t#pairs: $( echo ${JSON_OUTPUT} | jq '.pairs | length' )"
+fi
+
+#executeCommand 'queryprob' ''
+executeCommand 'resetmc' ''
+#executeCommand 'buildroute' ''
+
+#   test commands to manage peers
+#executeCommand 'connect' ''
+#executeCommand 'disconnect' ''
+
+executeCommand 'listpeers' ''
+if [ $? -eq 0 ]
+then
+    echo -e "\t#peers: $( echo ${JSON_OUTPUT} | jq '.peers | length' )"
+fi
 
 #   test commands to deal with profile
 executeCommand 'profile' 'add pld_test'
@@ -233,14 +316,92 @@ executeCommand 'profile' 'remove pld_test'
 #   remove profile file created by profile commands
 rm ~/.lncli/profiles.json
 
-#   test commands to deal with the wallet
+#   test commands to manage the wallet
 executeCommand 'newaddress' 'p2wkh'
+if [ $? -eq 0 ]
+then
+    echo -e "\taddress: $( echo ${JSON_OUTPUT} | jq '.address' )"
+fi
+
 executeCommand 'walletbalance'
-executeCommand 'resync'
+if [ $? -eq 0 ]
+then
+    echo -e "\ttotal balance: $( echo ${JSON_OUTPUT} | jq '.total_balance' )"
+fi
+
 executeCommand 'getaddressbalances'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#addresses: $( echo ${JSON_OUTPUT} | jq '.addrs | length' )"
+fi
+
+executeCommand 'signmessage' 'pkt1q0tgwuwcg4tmwegmevdfz3g6tw838upqcq8xt8u message'
+if [ $? -eq 0 ]
+then
+    echo -e "\tsignature: $( echo ${JSON_OUTPUT} | jq '.signature' )"
+fi
+
+executeCommand 'resync'
+executeCommand 'stopresync'
+if [ $? -eq 0 ]
+then
+    echo -e "\tstop sync: $( echo ${JSON_OUTPUT} | jq '.value' )"
+fi
+
 executeCommand 'getwalletseed'
+if [ $? -eq 0 ]
+then
+    echo -e "\twallet seed: $( echo ${JSON_OUTPUT} | jq '.seed' )"
+fi
+
 executeCommand 'getsecret'
+if [ $? -eq 0 ]
+then
+    echo -e "\tsecret: $( echo ${JSON_OUTPUT} | jq '.secret' )"
+fi
+
+executeCommand 'importprivkey' 'cVgcgWwQpwzViWmG7dGyvf545ra6AdT4tV29UtQfE8okvPuznFZi'
+if [ $? -eq 0 ]
+then
+    echo -e "\taddress: $( echo ${JSON_OUTPUT} | jq '.address' )"
+fi
+
+executeCommand 'listlockunspent'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#lock unspent: $( echo ${JSON_OUTPUT} | jq '.locked_unspent | length' )"
+fi
+
+#executeCommand 'lockunspent' ''
+executeCommand 'createtransaction' 'pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz'
+if [ $? -eq 0 ]
+then
+    echo -e "\ttransaction: $( echo ${JSON_OUTPUT} | jq '.transaction' )"
+fi
+
+executeCommand 'dumpprivkey' 'pkt1q0tgwuwcg4tmwegmevdfz3g6tw838upqcq8xt8u'
+if [ $? -eq 0 ]
+then
+    echo -e "\tprivate key: $( echo ${JSON_OUTPUT} | jq '.private_key' )"
+fi
+
 executeCommand 'getnewaddress'
+if [ $? -eq 0 ]
+then
+    echo -e "\taddress: $( echo ${JSON_OUTPUT} | jq '.address' )"
+fi
+
+executeCommand 'gettransaction' '934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f'
+if [ $? -eq 0 ]
+then
+    echo -e "\tamount: $( echo ${JSON_OUTPUT} | jq '.transaction.amount' )"
+    echo -e "\tfee: $( echo ${JSON_OUTPUT} | jq '.transaction.fee' )"
+fi
+
+#executeCommand 'sendfrom' ''
+
+#   test commands to manage watch tower
+#executeCommand 'wtclient' 'towers'
 
 #   show any eventual error during command execution
 if [ -f "${PLDCTL_ERRORS_FILE}" -a $( stat --format='%s' "${PLDCTL_ERRORS_FILE}" ) -gt 0 ]

@@ -201,11 +201,9 @@ func (s *Server) Start() er.R {
 //
 // NOTE: This is part of the lnrpc.SubServer interface.
 func (s *Server) Stop() er.R {
-	if atomic.AddInt32(&s.shutdown, 1) != 1 {
-		return nil
-	}
 
-	close(s.quit)
+	os.Exit(0)
+
 	return nil
 }
 

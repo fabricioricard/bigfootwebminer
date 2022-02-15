@@ -946,7 +946,8 @@ func (r *rpcServer) Start() er.R {
 	// With our custom REST proxy mux created, register our main RPC and
 	// give all subservers a chance to register as well.
 	errr := lnrpc.RegisterLightningHandlerFromEndpoint(
-		restCtx, restMux, r.restProxyDest, r.restDialOpts,
+		restCtx, restMux, r.restProxyDest,
+		r.server.cc.Wallet, r.wallet,
 	)
 	if errr != nil {
 		return er.E(errr)

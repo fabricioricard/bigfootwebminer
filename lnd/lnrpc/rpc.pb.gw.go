@@ -9,16 +9,21 @@ It translates gRPC into RESTful JSON APIs.
 package lnrpc
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
+	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/pkt-cash/pktd/lnd/lnwallet"
+	"github.com/pkt-cash/pktd/lnd/lnwallet/btcwallet"
+	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
+	"github.com/pkt-cash/pktd/pktwallet/wallet"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/status"
 )
 
@@ -28,54 +33,12 @@ var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 
-func request_Lightning_WalletBalance_0(ctx context.Context, marshaler runtime.Marshaler, client LightningClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq WalletBalanceRequest
-	var metadata runtime.ServerMetadata
-
-	msg, err := client.WalletBalance(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-
-}
-
-var (
-	filter_Lightning_GetAddressBalances_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
-func request_Lightning_GetAddressBalances_0(ctx context.Context, marshaler runtime.Marshaler, client LightningClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetAddressBalancesRequest
-	var metadata runtime.ServerMetadata
-
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Lightning_GetAddressBalances_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
-	msg, err := client.GetAddressBalances(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-
-}
 
 func request_Lightning_ChannelBalance_0(ctx context.Context, marshaler runtime.Marshaler, client LightningClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ChannelBalanceRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.ChannelBalance(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-
-}
-
-func request_Lightning_GetTransactions_0(ctx context.Context, marshaler runtime.Marshaler, client LightningClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetTransactionsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
-	msg, err := client.GetTransactions(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
@@ -1380,33 +1343,14 @@ func request_Lightning_SendFrom_0(ctx context.Context, marshaler runtime.Marshal
 
 // RegisterLightningHandlerFromEndpoint is same as RegisterLightningHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterLightningHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.Dial(endpoint, opts...)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
-			}
-			return
-		}
-		go func() {
-			<-ctx.Done()
-			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
-			}
-		}()
-	}()
-
-	return RegisterLightningHandler(ctx, mux, conn)
+func RegisterLightningHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, lnwallet *lnwallet.LightningWallet, wallet *wallet.Wallet) (err error) {
+	return RegisterLightningHandler(ctx, mux, lnwallet, wallet)
 }
 
 // RegisterLightningHandler registers the http handlers for service Lightning to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterLightningHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterLightningHandlerClient(ctx, mux, NewLightningClient(conn))
+func RegisterLightningHandler(ctx context.Context, mux *runtime.ServeMux, lnwallet *lnwallet.LightningWallet, wallet *wallet.Wallet) error {
+	return RegisterLightningHandlerClient(ctx, mux, lnwallet, wallet)
 }
 
 // RegisterLightningHandlerClient registers the http handlers for service Lightning
@@ -1414,24 +1358,32 @@ func RegisterLightningHandler(ctx context.Context, mux *runtime.ServeMux, conn *
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "LightningClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "LightningClient" to call the correct interceptors.
-func RegisterLightningHandlerClient(ctx context.Context, mux *runtime.ServeMux, client LightningClient) error {
-
+func RegisterLightningHandlerClient(ctx context.Context, mux *runtime.ServeMux, lnwallet *lnwallet.LightningWallet, wallet *wallet.Wallet) error {
+	var client LightningClient
+	
 	mux.Handle("GET", pattern_Lightning_WalletBalance_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+
+		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		// Get total balance, from txs that have >= 0 confirmations.
+		totalBal, err := lnwallet.ConfirmedBalance(0)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_Lightning_WalletBalance_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, er.Native(err))
 		}
 
+		confirmedBal, err := lnwallet.ConfirmedBalance(1)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, er.Native(err))
+		}
+
+		// Get unconfirmed balance, from txs with 0 confirmations.
+		unconfirmedBal := totalBal - confirmedBal
+		resp := &WalletBalanceResponse{
+			TotalBalance:       int64(totalBal),
+			ConfirmedBalance:   int64(confirmedBal),
+			UnconfirmedBalance: int64(unconfirmedBal),
+		}
 		forward_Lightning_WalletBalance_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
@@ -1439,23 +1391,95 @@ func RegisterLightningHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 	mux.Handle("GET", pattern_Lightning_GetAddressBalances_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
+		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		if be, ok := lnwallet.WalletController.(*btcwallet.BtcWallet); !ok {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, er.Native(er.New("GetAddressBalances only possible with BtcWallet")))
+		//} else if adb, err := be.InternalWallet().CalculateAddressBalances(in.Minconf, in.Showzerobalance); err != nil {
+		} else if adb, err := be.InternalWallet().CalculateAddressBalances(0, false); err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, er.Native(err))
+		} else {
+			addrs := make([]*GetAddressBalancesResponseAddr, 0, len(adb))
+			for k, v := range adb {
+				addrs = append(addrs, &GetAddressBalancesResponseAddr{
+					Address:         k.EncodeAddress(),
+					Total:           v.Total.ToBTC(),
+					Stotal:          int64(v.Total),
+					Spendable:       v.Spendable.ToBTC(),
+					Sspendable:      int64(v.Spendable),
+					Immaturereward:  v.ImmatureReward.ToBTC(),
+					Simmaturereward: int64(v.ImmatureReward),
+					Unconfirmed:     v.Unconfirmed.ToBTC(),
+					Sunconfirmed:    int64(v.Unconfirmed),
+					Outputcount:     v.OutputCount,
+				})
+			}
+			resp := &GetAddressBalancesResponse{Addrs: addrs}
+			forward_Lightning_GetAddressBalances_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 		}
-		resp, md, err := request_Lightning_GetAddressBalances_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
+	})
 
-		forward_Lightning_GetAddressBalances_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	mux.Handle("POST", pattern_Lightning_GetTransactions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		type transactionRequest struct {
+			StartHeight, EndHeight, Limit, Skip, Coinbase int32
+		}
+		//Set invalid values to check for defaults
+		jReq := &transactionRequest{
+			StartHeight: -1,
+			EndHeight:   -1,
+			Limit:       -1,
+			Skip:        -1,
+			Coinbase:    -1,
+		}
+		json.NewDecoder(req.Body).Decode(&jReq)
+		var endHeight = btcwallet.UnconfirmedHeight
+		if jReq.EndHeight > -1 {
+			endHeight = jReq.EndHeight
+		}
+		startHeight := int32(0)
+		if jReq.StartHeight > -1 {
+			startHeight = jReq.StartHeight
+		}
+		limit := int32(0)
+		if jReq.Limit > -1 {
+			limit = jReq.Limit
+		}
+		skip := int32(0)
+		if jReq.Skip > -1 {
+			skip = jReq.Skip
+		}
+		coinbase := int32(0)
+		if jReq.Coinbase > -1 {
+			coinbase = jReq.Coinbase
+		}
+		transactions, _ := lnwallet.ListTransactionDetails(startHeight, endHeight, skip, limit, coinbase)
+		resp := RPCTransactionDetails(transactions)
+
+		forward_Lightning_GetTransactions_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
+	mux.Handle("POST", pattern_Lightning_GetNewAddress_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		scope := waddrmgr.KeyScopeBIP0084
+		//TODO: check for legacy
+		// if req.Legacy {
+		// 	scope = waddrmgr.KeyScopeBIP0044
+		// }
+		if addr, err := wallet.NewAddress(waddrmgr.DefaultAccountNum, scope); err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, er.Native(err))
+			return
+		} else {
+			resp := &GetNewAddressResponse{Address: addr.EncodeAddress()}
+			forward_Lightning_GetNewAddress_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		}
+	})
+
+	//TODO: Disable gRPC for the rest of the commands
 	mux.Handle("GET", pattern_Lightning_ChannelBalance_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1473,26 +1497,6 @@ func RegisterLightningHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		}
 
 		forward_Lightning_ChannelBalance_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
-	})
-
-	mux.Handle("POST", pattern_Lightning_GetTransactions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_Lightning_GetTransactions_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-
-		forward_Lightning_GetTransactions_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -2693,26 +2697,6 @@ func RegisterLightningHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		}
 
 		forward_Lightning_CreateTransaction_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
-	})
-
-	mux.Handle("POST", pattern_Lightning_GetNewAddress_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_Lightning_GetNewAddress_0(rctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-
-		forward_Lightning_GetNewAddress_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 

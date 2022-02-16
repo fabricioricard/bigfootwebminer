@@ -27,7 +27,6 @@ import (
 	"github.com/pkt-cash/pktd/btcutil/hdkeychain"
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/genesis"
 	"github.com/pkt-cash/pktd/pktwallet/chain"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
@@ -1897,6 +1896,7 @@ func (w *Wallet) DumpWIFPrivateKey(addr btcutil.Address) (string, er.R) {
 func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 	bs *waddrmgr.BlockStamp, rescan bool) (string, er.R) {
 
+	log.Debug("ImportPrivateKey() [1]")
 	if rescan {
 		w.rescanJLock.Lock()
 		defer w.rescanJLock.Unlock()
@@ -1915,10 +1915,28 @@ func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 	// The starting block for the key is the genesis block unless otherwise
 	// specified.
 	if bs == nil {
+		log.Debug("ImportPrivateKey() [2] setting rescan to start from second Block")
+
+		const secondBlockIndex = int64(1)
+
+		secondBlockHash, err := w.chainClient.GetBlockHash(secondBlockIndex)
+		if err != nil {
+			return "", err
+		}
+		secondBlockHeader, err := w.chainClient.GetBlockHeader(secondBlockHash)
+		if err != nil {
+			return "", err
+		}
+		secondBlockTimestamp := secondBlockHeader.Timestamp
+
+		log.Debugf("ImportPrivateKey() [3] second block height: %v", secondBlockIndex)
+		log.Debugf("ImportPrivateKey() [3] second block hash: %v", secondBlockHash)
+		log.Debugf("ImportPrivateKey() [3] second block timestamp: %v", secondBlockTimestamp)
+
 		bs = &waddrmgr.BlockStamp{
-			Hash:      *w.chainParams.GenesisHash,
-			Height:    0,
-			Timestamp: genesis.Block(w.chainParams.GenesisHash).Header.Timestamp,
+			Hash:      *secondBlockHash,
+			Height:    int32(secondBlockIndex),
+			Timestamp: secondBlockTimestamp,
 		}
 	} else if bs.Timestamp.IsZero() {
 		// Only update the new birthday time from default value if we
@@ -1960,6 +1978,7 @@ func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 			stopHeight: -1,
 			watch:      &watch,
 		}
+		log.Debugf("ImportPrivateKey() [4] rescan job created: %s", name)
 	}
 	w.watch.WatchAddr(addr)
 

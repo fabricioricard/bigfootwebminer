@@ -411,7 +411,7 @@ then
     cat ${PLDCTL_ERRORS_FILE}
 fi
 
-rm -rf ${PLDCTL_ERRORS_FILE}
-
 #   stop pld daemon
 stopPldDeamon
+
+rm -rf ${PLDCTL_ERRORS_FILE}

@@ -18,7 +18,6 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	proxy "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkt-cash/pktd/blockchain"
 	"github.com/pkt-cash/pktd/btcec"
 	"github.com/pkt-cash/pktd/btcjson"
@@ -920,108 +919,6 @@ func (r *rpcServer) Start() er.R {
 			return err
 		}
 	}
-
-	// The default JSON marshaler of the REST proxy only sets OrigName to
-	// true, which instructs it to use the same field names as specified in
-	// the proto file and not switch to camel case. What we also want is
-	// that the marshaler prints all values, even if they are falsey.
-	customMarshalerOption := proxy.WithMarshalerOption(
-		proxy.MIMEWildcard, &proxy.JSONPb{
-			OrigName:     true,
-			EmitDefaults: true,
-		},
-	)
-
-	// Now start the REST proxy for our gRPC server above. We'll ensure
-	// we direct LND to connect to its loopback address rather than a
-	// wildcard to prevent certificate issues when accessing the proxy
-	// externally.
-	restMux := proxy.NewServeMux(customMarshalerOption)
-	restCtx, restCancel := context.WithCancel(context.Background())
-	r.listenerCleanUp = append(r.listenerCleanUp, restCancel)
-
-	// Wrap the default grpc-gateway handler with the WebSocket handler.
-	restHandler := lnrpc.NewWebSocketProxy(restMux)
-
-	// With our custom REST proxy mux created, register our main RPC and
-	// give all subservers a chance to register as well.
-
-	//	after generating stubs with new grpc version the following comment was given:
-	//	"RegisterMetaServiceHandlerFromEndpoint is same as RegisterMetaServiceHandler but
-	// 	automatically dials to "endpoint" and closes the connection when "ctx" gets done.""
-
-	/*
-		errr := lnrpc.RegisterLightningHandlerFromEndpoint(
-			restCtx, restMux, r.restProxyDest, r.restDialOpts,
-		)
-		if errr != nil {
-			return er.E(errr)
-		}
-	*/
-	//Launching REST for MetaService, for getinfo2 and changepassword
-	//it is also launched on waitforwalletpassword, and on unlock closes
-	errrr := lnrpc.RegisterMetaServiceHandlerFromEndpoint(
-		restCtx, restMux, r.restProxyDest, r.restDialOpts,
-	)
-	if errrr != nil {
-		return er.E(errrr)
-	}
-
-	for _, subServer := range r.subServers {
-		err := subServer.RegisterWithRestServer(
-			restCtx, restMux, r.restProxyDest, r.restDialOpts,
-		)
-		if err != nil {
-			return er.Errorf("unable to register REST sub-server "+
-				"%v with root: %v", subServer.Name(), err)
-		}
-	}
-
-	// Before listening on any of the interfaces, we also want to give the
-	// external subservers a chance to register their own REST proxy stub
-	// with our mux instance.
-	for _, lis := range r.listeners {
-		if lis.ExternalRestRegistrar != nil {
-			err := lis.ExternalRestRegistrar.RegisterRestSubserver(
-				restCtx, restMux, r.restProxyDest,
-				r.restDialOpts,
-			)
-			if err != nil {
-				log.Errorf("error registering "+
-					"external REST subserver: %v", err)
-			}
-		}
-	}
-
-	// Now spin up a network listener for each requested port and start a
-	// goroutine that serves REST with the created mux there.
-	for _, restEndpoint := range r.cfg.RESTListeners {
-		lis, err := r.restListen(restEndpoint)
-		if err != nil {
-			log.Errorf("gRPC proxy unable to listen on %s",
-				restEndpoint)
-			return err
-		}
-
-		r.listenerCleanUp = append(r.listenerCleanUp, func() {
-			_ = lis.Close()
-		})
-
-		go func() {
-			log.Infof("gRPC proxy started at %s", lis.Addr())
-
-			// Create our proxy chain now. A request will pass
-			// through the following chain:
-			// req ---> CORS handler --> WS proxy --->
-			//   REST proxy --> gRPC endpoint
-			corsHandler := allowCORS(restHandler, r.cfg.RestCORS)
-			err := http.Serve(lis, corsHandler)
-			if err != nil && !lnrpc.IsClosedConnError(err) {
-				log.Error(err)
-			}
-		}()
-	}
-
 	return nil
 }
 

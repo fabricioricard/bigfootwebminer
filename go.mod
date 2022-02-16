@@ -9,6 +9,7 @@ replace github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.5
 replace google.golang.org/grpc v1.29.1 => google.golang.org/grpc v1.44.0
 
 require (
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/NebulousLabs/fastrand v0.0.0-20181203155948-6fb6489aac4e // indirect
 	github.com/NebulousLabs/go-upnp v0.0.0-20180202185039-29b680b06c82
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da

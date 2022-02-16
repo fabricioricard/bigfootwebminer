@@ -30,10 +30,7 @@ type profileEntry struct {
 	PktDir    string `json:"pktdir"`
 	Chain     string `json:"chain"`
 	Network   string `json:"network"`
-	//	we want to disable the use of macaroons so, no more macaroon options on profiles
-	//	NoMacaroons bool         `json:"no-macaroons,omitempty"`
-	TLSCert string `json:"tlscert"`
-	//Macaroons   *macaroonJar `json:"macaroons"`
+	TLSCert   string `json:"tlscert"`
 }
 
 // cert returns the profile's TLS certificate as a x509 certificate pool.
@@ -149,9 +146,7 @@ func profileFromContext(ctx *cli.Context, store, skipMacaroons bool) (
 		PktDir:    pktDir,
 		Chain:     ctx.GlobalString("chain"),
 		Network:   ctx.GlobalString("network"),
-		//	we want to disable the use of macaroons so, no more macaroon options on profiles
-		//	NoMacaroons: ctx.GlobalBool("no-macaroons"),
-		TLSCert: string(tlsCert),
+		TLSCert:   string(tlsCert),
 	}
 
 	// If we aren't using macaroons in general (flag --no-macaroons) or
@@ -197,19 +192,6 @@ func profileFromContext(ctx *cli.Context, store, skipMacaroons bool) (
 	if path.Ext(macEntry.Name) == "macaroon" {
 		macEntry.Name = strings.TrimSuffix(macEntry.Name, ".macaroon")
 	}
-
-	// Now that we have the macaroon jar as well, let's return the entry
-	// with all the values populated.
-
-	//	we want to disable the use of macaroons so, no more macaroon options on profiles
-	/*
-		entry.Macaroons = &macaroonJar{
-			Default: macEntry.Name,
-			Timeout: ctx.GlobalInt64("macaroontimeout"),
-			IP:      ctx.GlobalString("macaroonip"),
-			Jar:     []*macaroonEntry{macEntry},
-		}
-	*/
 
 	return entry, nil
 }

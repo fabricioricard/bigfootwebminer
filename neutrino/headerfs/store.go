@@ -111,40 +111,18 @@ func (h *NeutrinoDBStore) HeightFromHash(hash *chainhash.Hash) (uint32, er.R) {
 	})
 }
 
-// RollbackLastBlock rollsback both the index, and on-disk header file by a
-// _single_ header. This method is meant to be used in the case of re-org which
-// disconnects the latest block header from the end of the main chain. The
-// information about the new header tip after truncation is returned.
-//
-// NOTE: Part of the BlockHeaderStore interface.
 func (h *NeutrinoDBStore) RollbackLastBlock(tx walletdb.ReadWriteTx) (*RollbackHeader, er.R) {
-	result := RollbackHeader{
-		BlockHeader: &waddrmgr.BlockStamp{},
-	}
-	//Get the height before we truncate to check against the FilterChainTip
-	ct, err := h.chainTip(tx, bucketNameBlockTip)
+	result := RollbackHeader{}
+	prev, err := h.truncateBlockIndex(tx)
 	if err != nil {
-		return &RollbackHeader{nil, nil}, err
+		result.BlockHeader = nil
+		result.FilterHeader = nil
+		return &result, err
+	} else {
+		result.BlockHeader.Hash = prev.Header.blockHeader.BlockHash()
+		result.BlockHeader.Height = int32(prev.Height)
+		result.FilterHeader = prev.Header.filterHeader
 	}
-
-	_, regHeight, err := h.FilterChainTip1(tx)
-	if err != nil {
-		return &RollbackHeader{nil, nil}, err
-	}
-
-	if ct.Height <= regHeight {
-		prev, err := h.truncateBlockIndex(tx)
-		if err != nil {
-			result.BlockHeader = nil
-			result.FilterHeader = nil
-			return &result, err
-		} else {
-			result.BlockHeader.Hash = prev.Header.blockHeader.BlockHash()
-			result.BlockHeader.Height = int32(prev.Height)
-			result.FilterHeader = prev.Header.filterHeader
-		}
-	}
-
 	return &result, nil
 }
 

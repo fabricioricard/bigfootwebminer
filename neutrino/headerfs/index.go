@@ -515,7 +515,7 @@ func (h *NeutrinoDBStore) chainTip(tx walletdb.ReadTx, chainTipType []byte) (*he
 		return nil, er.Errorf("no chain tip found in %s", chainTipType)
 	}
 	if len(tipHeightBytes) < 4 {
-		tipHeightBytes = []byte{0x00,0x00,0x00,0x00}
+		tipHeightBytes = []byte{0x00, 0x00, 0x00, 0x00}
 	}
 	tipHeight := binHeight(tipHeightBytes)
 	he, err := h.readHeader(tx, tipHeight)
@@ -541,10 +541,6 @@ func (h *NeutrinoDBStore) BlockChainTip1(tx walletdb.ReadTx) (*wire.BlockHeader,
 	}
 }
 
-// truncateIndex truncates the index for a particluar header type by a single
-// header entry. The passed newTip pointer should point to the hash of the new
-// chain tip. Optionally, if the entry is to be deleted as well, deleteFlag
-// should be set to true.
 func (h *NeutrinoDBStore) truncateBlockIndex(tx walletdb.ReadWriteTx) (*headerEntryWithHeight, er.R) {
 	rootBucket, err := h.rwBucket(tx)
 	if err != nil {
@@ -557,6 +553,7 @@ func (h *NeutrinoDBStore) truncateBlockIndex(tx walletdb.ReadWriteTx) (*headerEn
 	} else if err := rootBucket.Put(bucketNameBlockTip, heightBin(ct.Height-1)); err != nil {
 		return nil, err
 	} else {
+		log.Warnf("ROLLBACK in neutrino removes [%s @ %d]", ct.Header.blockHeader.BlockHash(), ct.Height)
 		// In case the filter tip is equal to the block tip, we must roll that one back as well
 		filterTipBytes := rootBucket.Get(bucketNameFilterTip)
 		if filterTipBytes != nil && binHeight(filterTipBytes) >= ct.Height {

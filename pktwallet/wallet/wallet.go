@@ -830,6 +830,10 @@ out:
 // be locked if the passphrase is incorrect or any other error occurs during the
 // unlock.
 func (w *Wallet) Unlock(passphrase []byte, lock <-chan time.Time) er.R {
+	log.Infof("Unlock() [1]")
+	err_ := er.Errorf("Forged error to get the stack trace")
+	log.Infof("Unlock() [1] stack trace: %v", err_)
+
 	err := make(chan er.R, 1)
 	w.unlockRequests <- unlockRequest{
 		passphrase: passphrase,

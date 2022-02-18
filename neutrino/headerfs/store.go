@@ -119,6 +119,9 @@ func (h *NeutrinoDBStore) RollbackLastBlock(tx walletdb.ReadWriteTx) (*RollbackH
 		result.FilterHeader = nil
 		return &result, err
 	} else {
+		result.BlockHeader = &waddrmgr.BlockStamp{}
+		result.FilterHeader = &chainhash.Hash{}
+
 		result.BlockHeader.Hash = prev.Header.blockHeader.BlockHash()
 		result.BlockHeader.Height = int32(prev.Height)
 		result.FilterHeader = prev.Header.filterHeader

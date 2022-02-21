@@ -27,7 +27,6 @@ import (
 	"github.com/pkt-cash/pktd/btcutil/hdkeychain"
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/genesis"
 	"github.com/pkt-cash/pktd/pktwallet/chain"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
@@ -1915,10 +1914,24 @@ func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 	// The starting block for the key is the genesis block unless otherwise
 	// specified.
 	if bs == nil {
+		const secondBlockIndex = int64(1)
+
+		secondBlockHash, err := w.chainClient.GetBlockHash(secondBlockIndex)
+		if err != nil {
+			return "", err
+		}
+		secondBlockHeader, err := w.chainClient.GetBlockHeader(secondBlockHash)
+		if err != nil {
+			return "", err
+		}
+		secondBlockTimestamp := secondBlockHeader.Timestamp
+
+		log.Debugf("ImportPrivateKey() [1] second block -> height: %v; hash: %v; timestamp: %v", secondBlockIndex, secondBlockHash, secondBlockTimestamp)
+
 		bs = &waddrmgr.BlockStamp{
-			Hash:      *w.chainParams.GenesisHash,
-			Height:    0,
-			Timestamp: genesis.Block(w.chainParams.GenesisHash).Header.Timestamp,
+			Hash:      *secondBlockHash,
+			Height:    int32(secondBlockIndex),
+			Timestamp: secondBlockTimestamp,
 		}
 	} else if bs.Timestamp.IsZero() {
 		// Only update the new birthday time from default value if we
@@ -2621,6 +2634,15 @@ func (w *Wallet) StopResync() (string, er.R) {
 		return "", er.Errorf("No stoppable resync currently in progress")
 	}
 	w.rescanJ = nil
+
+	w.UpdateStats(func(ws *btcjson.WalletStats) {
+		ws.MaintenanceInProgress = false
+		ws.MaintenanceName = ""
+		ws.MaintenanceCycles = 0
+		ws.MaintenanceLastBlockVisited = 0
+	})
+	log.Info("Resync job stopped !")
+
 	return gj.name, nil
 }
 
@@ -2671,10 +2693,20 @@ func (w *Wallet) ResyncChain(fromHeight, toHeight int32, addresses []string, dro
 		}
 	}
 
+	//	same as for ImportPrivKey(), resync must starts from block 1 and not from genesis
+	effectiveFromHeight := fromHeight
+
+	if fromHeight == 0 {
+		const secondBlockIndex = int64(1)
+
+		effectiveFromHeight = int32(secondBlockIndex)
+		log.Debugf("ResyncChain() effectively starting from block %d", effectiveFromHeight)
+	}
+
 	w.rescanJ = &rescanJob{
 		name: fmt.Sprintf("resync_%d_to_%d_at_%d",
 			fromHeight, toHeight, time.Now().Unix()),
-		height:     fromHeight,
+		height:     effectiveFromHeight,
 		stopHeight: toHeight,
 		watch:      watch,
 		dropDb:     dropDb,
@@ -3153,9 +3185,13 @@ func (w *Wallet) rescan() {
 		limit = rj.stopHeight
 	}
 	if rj.height >= limit {
+		log.Info("Resync job reached the chain tip! 👍")
+
 		w.UpdateStats(func(ws *btcjson.WalletStats) {
 			ws.MaintenanceInProgress = false
-			ws.MaintenanceName = rj.name
+			ws.MaintenanceName = ""
+			ws.MaintenanceCycles = 0
+			ws.MaintenanceLastBlockVisited = 0
 		})
 		return
 	}

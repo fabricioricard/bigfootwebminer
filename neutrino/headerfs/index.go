@@ -602,7 +602,7 @@ func (h *NeutrinoDBStore) addBlockHeaders(tx walletdb.ReadWriteTx, batch headerW
 	for _, header := range batch {
 		if !isGenesis && header.Height != tip.Height+1 {
 			log.Warnf("Unable to add block header at height %v because tip is %v", header.Height, tip.Height)
-			break
+			return er.Errorf("Unable to add block header at height %v because tip is %v", header.Height, tip.Height)
 		}
 		he := headerEntry{blockHeader: header.Header.blockHeader, filterHeader: nil}
 		value := he.Bytes()

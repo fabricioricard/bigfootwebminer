@@ -149,40 +149,32 @@ func TestBlockHeaderStoreOperations(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unable to rollback chain: %v", err)
 		}
-		//if secondToLastHeader.Height != uint32(blockStamp.Height) {
-		//	t.Fatalf("chain tip doesn't match: expected %v, got %v",
-		//	secondToLastHeader.Height, blockStamp.Height)
-		//}
-		//	TODO: the four tests below were commented because I belive they are based on a false
-		//		assumption the method bhs.RollbackLastBlock() delete blocks in the same order
-		//		that they were add (and not necessarily inserted keeping the same order)
+
 		if secondToLastHeader.Height != uint32(blockStamp.BlockHeader.Height) {
-			//			t.Fatalf("chain tip doesn't match: expected %v, got %v",
-			//				secondToLastHeader.Height, blockStamp.BlockHeader.Height)
+			t.Fatalf("chain tip doesn't match: expected %v, got %v",
+				secondToLastHeader.Height, blockStamp.BlockHeader.Height)
 		}
+
 		headerHash := secondToLastHeader.BlockHash()
-		//if !bytes.Equal(headerHash[:], blockStamp.Hash[:]) {
-		//	t.Fatalf("header hashes don't match: expected %v, got %v",
-		//		headerHash, blockStamp.Hash)
-		//}
 		if !bytes.Equal(headerHash[:], blockStamp.BlockHeader.Hash[:]) {
-			//			t.Fatalf("header hashes don't match: expected %v, got %v",
-			//				headerHash, blockStamp.BlockHeader.Hash)
+			t.Fatalf("header hashes don't match: expected %v, got %v",
+				headerHash, blockStamp.BlockHeader.Hash)
 		}
-		//tipHeader, tipHeight, err = bhs.ChainTip1(tx)
+
 		tipHeader, tipHeight, err = bhs.BlockChainTip1(tx)
 		if err != nil {
 			t.Fatalf("unable to fetch chain tip")
 		}
 		if !reflect.DeepEqual(secondToLastHeader.BlockHeader, tipHeader) {
-			//			t.Fatalf("tip height headers don't match up: "+
-			//				"expected %v, got %v", spew.Sdump(secondToLastHeader),
-			//				spew.Sdump(tipHeader))
+			t.Fatalf("tip height headers don't match up: "+
+				"expected %v, got %v", spew.Sdump(secondToLastHeader),
+				spew.Sdump(tipHeader))
 		}
 		if tipHeight != secondToLastHeader.Height {
-			//			t.Fatalf("chain tip doesn't match: expected %v, got %v",
-			//				secondToLastHeader.Height, tipHeight)
+			t.Fatalf("chain tip doesn't match: expected %v, got %v",
+				secondToLastHeader.Height, tipHeight)
 		}
+
 		return nil
 	})
 }

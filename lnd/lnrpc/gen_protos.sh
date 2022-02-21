@@ -39,13 +39,9 @@ for file in $PROTOS; do
   fi
 
   # Generate the REST reverse proxy.
-  if [ "$file" = "rpc.proto" ]; then
-    echo "Not generating reverse proxy for rpc.proto"
-  else
-    protoc -I/usr/local/include -I. \
-      --grpc-gateway_out=logtostderr=true,paths=source_relative,grpc_api_configuration=rest-annotations.yaml:. \
-      "${file}"
-  fi
+  protoc -I/usr/local/include -I. \
+    --grpc-gateway_out=logtostderr=true,paths=source_relative,grpc_api_configuration=rest-annotations.yaml:. \
+    "${file}"
 
   # Finally, generate the swagger file which describes the REST API in detail.
   protoc -I/usr/local/include -I. \

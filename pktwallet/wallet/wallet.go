@@ -830,10 +830,6 @@ out:
 // be locked if the passphrase is incorrect or any other error occurs during the
 // unlock.
 func (w *Wallet) Unlock(passphrase []byte, lock <-chan time.Time) er.R {
-	log.Infof("Unlock() [1]")
-	err_ := er.Errorf("Forged error to get the stack trace")
-	log.Infof("Unlock() [1] stack trace: %v", err_)
-
 	err := make(chan er.R, 1)
 	w.unlockRequests <- unlockRequest{
 		passphrase: passphrase,
@@ -1900,7 +1896,6 @@ func (w *Wallet) DumpWIFPrivateKey(addr btcutil.Address) (string, er.R) {
 func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 	bs *waddrmgr.BlockStamp, rescan bool) (string, er.R) {
 
-	log.Debug("ImportPrivateKey() [1]")
 	if rescan {
 		w.rescanJLock.Lock()
 		defer w.rescanJLock.Unlock()
@@ -1919,8 +1914,6 @@ func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 	// The starting block for the key is the genesis block unless otherwise
 	// specified.
 	if bs == nil {
-		log.Debug("ImportPrivateKey() [2] setting rescan to start from second Block")
-
 		const secondBlockIndex = int64(1)
 
 		secondBlockHash, err := w.chainClient.GetBlockHash(secondBlockIndex)
@@ -1933,9 +1926,7 @@ func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 		}
 		secondBlockTimestamp := secondBlockHeader.Timestamp
 
-		log.Debugf("ImportPrivateKey() [3] second block height: %v", secondBlockIndex)
-		log.Debugf("ImportPrivateKey() [3] second block hash: %v", secondBlockHash)
-		log.Debugf("ImportPrivateKey() [3] second block timestamp: %v", secondBlockTimestamp)
+		log.Debugf("ImportPrivateKey() [1] second block -> height: %v; hash: %v; timestamp: %v", secondBlockIndex, secondBlockHash, secondBlockTimestamp)
 
 		bs = &waddrmgr.BlockStamp{
 			Hash:      *secondBlockHash,
@@ -1982,7 +1973,6 @@ func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 			stopHeight: -1,
 			watch:      &watch,
 		}
-		log.Debugf("ImportPrivateKey() [4] rescan job created: %s", name)
 	}
 	w.watch.WatchAddr(addr)
 
@@ -2644,6 +2634,15 @@ func (w *Wallet) StopResync() (string, er.R) {
 		return "", er.Errorf("No stoppable resync currently in progress")
 	}
 	w.rescanJ = nil
+
+	w.UpdateStats(func(ws *btcjson.WalletStats) {
+		ws.MaintenanceInProgress = false
+		ws.MaintenanceName = ""
+		ws.MaintenanceCycles = 0
+		ws.MaintenanceLastBlockVisited = 0
+	})
+	log.Info("Resync job stopped !")
+
 	return gj.name, nil
 }
 
@@ -2694,10 +2693,20 @@ func (w *Wallet) ResyncChain(fromHeight, toHeight int32, addresses []string, dro
 		}
 	}
 
+	//	same as for ImportPrivKey(), resync must starts from block 1 and not from genesis
+	effectiveFromHeight := fromHeight
+
+	if fromHeight == 0 {
+		const secondBlockIndex = int64(1)
+
+		effectiveFromHeight = int32(secondBlockIndex)
+		log.Debugf("ResyncChain() effectively starting from block %d", effectiveFromHeight)
+	}
+
 	w.rescanJ = &rescanJob{
 		name: fmt.Sprintf("resync_%d_to_%d_at_%d",
 			fromHeight, toHeight, time.Now().Unix()),
-		height:     fromHeight,
+		height:     effectiveFromHeight,
 		stopHeight: toHeight,
 		watch:      watch,
 		dropDb:     dropDb,
@@ -3176,9 +3185,13 @@ func (w *Wallet) rescan() {
 		limit = rj.stopHeight
 	}
 	if rj.height >= limit {
+		log.Info("Resync job reached the chain tip! 👍")
+
 		w.UpdateStats(func(ws *btcjson.WalletStats) {
 			ws.MaintenanceInProgress = false
-			ws.MaintenanceName = rj.name
+			ws.MaintenanceName = ""
+			ws.MaintenanceCycles = 0
+			ws.MaintenanceLastBlockVisited = 0
 		})
 		return
 	}

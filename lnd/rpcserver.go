@@ -12,7 +12,6 @@ import (
 	"os"
 	"runtime"
 	"sort"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -6467,102 +6466,6 @@ func (r *rpcServer) ChannelAcceptor(stream lnrpc.Lightning_ChannelAcceptorServer
 	// blocks, and will exit if the rpcserver receives the instruction to
 	// shutdown, or the client cancels.
 	return er.Native(rpcAcceptor.Run())
-}
-
-func (r *rpcServer) ListMacaroonIDs(ctx context.Context, req *lnrpc.ListMacaroonIDsRequest) (
-	*lnrpc.ListMacaroonIDsResponse, error,
-) {
-	res, err := r.ListMacaroonIDs0(ctx, req)
-	return res, er.Native(err)
-}
-
-// ListMacaroonIDs returns a list of macaroon root key IDs in use.
-func (r *rpcServer) ListMacaroonIDs0(ctx context.Context,
-	req *lnrpc.ListMacaroonIDsRequest) (
-	*lnrpc.ListMacaroonIDsResponse, er.R) {
-
-	log.Debugf("[listmacaroonids]")
-
-	// If the --no-macaroons flag is used to start lnd, the macaroon service
-	// is not initialized. Therefore we can't show any IDs.
-	if r.macService == nil {
-		return nil, errMacaroonDisabled.Default()
-	}
-
-	rootKeyIDByteSlice, err := r.macService.ListMacaroonIDs(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var rootKeyIDs []uint64
-	for _, value := range rootKeyIDByteSlice {
-		// Convert bytes into uint64.
-		id, err := strconv.ParseUint(string(value), 10, 64)
-		if err != nil {
-			return nil, er.E(err)
-		}
-
-		rootKeyIDs = append(rootKeyIDs, id)
-	}
-
-	return &lnrpc.ListMacaroonIDsResponse{RootKeyIds: rootKeyIDs}, nil
-}
-
-// DeleteMacaroonID removes a specific macaroon ID.
-func (r *rpcServer) DeleteMacaroonID(ctx context.Context,
-	req *lnrpc.DeleteMacaroonIDRequest) (
-	*lnrpc.DeleteMacaroonIDResponse, error) {
-
-	log.Debugf("[deletemacaroonid]")
-
-	// If the --no-macaroons flag is used to start lnd, the macaroon service
-	// is not initialized. Therefore we can't delete any IDs.
-	if r.macService == nil {
-		return nil, er.Native(errMacaroonDisabled.Default())
-	}
-
-	// Convert root key id from uint64 to bytes. Because the
-	// DefaultRootKeyID is a digit 0 expressed in a byte slice of a string
-	// "0", we will keep the IDs in the same format - all must be digit, and
-	// must be a byte slice of string value of the digit.
-	rootKeyID := []byte(strconv.FormatUint(req.RootKeyId, 10))
-	deletedIDBytes, err := r.macService.DeleteMacaroonID(ctx, rootKeyID)
-	if err != nil {
-		return nil, er.Native(err)
-	}
-
-	return &lnrpc.DeleteMacaroonIDResponse{
-		// If the root key ID doesn't exist, it won't be deleted. We
-		// will return a response with deleted = false, otherwise true.
-		Deleted: deletedIDBytes != nil,
-	}, nil
-}
-
-// ListPermissions lists all RPC method URIs and their required macaroon
-// permissions to access them.
-func (r *rpcServer) ListPermissions(_ context.Context,
-	_ *lnrpc.ListPermissionsRequest) (*lnrpc.ListPermissionsResponse,
-	error) {
-
-	log.Debugf("[listpermissions]")
-
-	permissionMap := make(map[string]*lnrpc.MacaroonPermissionList)
-	for uri, perms := range r.allPermissions {
-		rpcPerms := make([]*lnrpc.MacaroonPermission, len(perms))
-		for idx, perm := range perms {
-			rpcPerms[idx] = &lnrpc.MacaroonPermission{
-				Entity: perm.Entity,
-				Action: perm.Action,
-			}
-		}
-		permissionMap[uri] = &lnrpc.MacaroonPermissionList{
-			Permissions: rpcPerms,
-		}
-	}
-
-	return &lnrpc.ListPermissionsResponse{
-		MethodPermissions: permissionMap,
-	}, nil
 }
 
 func (r *rpcServer) FundingStateStep(ctx context.Context,

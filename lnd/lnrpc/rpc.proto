@@ -3537,56 +3537,6 @@ message ChannelBackupSubscription {
 message VerifyChanBackupResponse {
 }
 
-message MacaroonPermission {
-    // The entity a permission grants access to.
-    string entity = 1;
-
-    // The action that is granted.
-    string action = 2;
-}
-message BakeMacaroonRequest {
-    // The list of permissions the new macaroon should grant.
-    repeated MacaroonPermission permissions = 1;
-
-    // The root key ID used to create the macaroon, must be a positive integer.
-    uint64 root_key_id = 2;
-}
-message BakeMacaroonResponse {
-    // The hex encoded macaroon, serialized in binary format.
-    bytes macaroon = 1;
-}
-
-message ListMacaroonIDsRequest {
-}
-message ListMacaroonIDsResponse {
-    // The list of root key IDs that are in use.
-    repeated uint64 root_key_ids = 1;
-}
-
-message DeleteMacaroonIDRequest {
-    // The root key ID to be removed.
-    uint64 root_key_id = 1;
-}
-message DeleteMacaroonIDResponse {
-    // A boolean indicates that the deletion is successful.
-    bool deleted = 1;
-}
-
-message MacaroonPermissionList {
-    // A list of macaroon permissions.
-    repeated MacaroonPermission permissions = 1;
-}
-
-message ListPermissionsRequest {
-}
-message ListPermissionsResponse {
-    /*
-    A map between all RPC method URIs and their required macaroon permissions to
-    access them.
-    */
-    map<string, MacaroonPermissionList> method_permissions = 1;
-}
-
 message Failure {
     enum FailureCode {
         /*
@@ -3748,12 +3698,6 @@ message ChannelUpdate {
     network in a forwards compatible manner.
     */
     bytes extra_opaque_data = 12;
-}
-
-message MacaroonId {
-    bytes nonce = 1;
-    bytes storageId = 2;
-    repeated Op ops = 3;
 }
 
 message Op {

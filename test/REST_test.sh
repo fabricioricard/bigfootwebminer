@@ -57,27 +57,17 @@ fi
 executeCommand 'getinfo' 'GET' 'http://localhost:8080/api/v1/meta/getinfo'
 if [ $? -eq 0 ]
 then
-    echo -e "${JSON_OUTPUT}"
     echo -e "\t#neutrino peers: $( echo ${JSON_OUTPUT} | jq '.neutrino.peers | length' )"
 fi
 
 executeCommand 'getrecoveryinfo' 'GET' 'http://localhost:8080/api/v1/meta/getrecoveryinfo'
 if [ $? -eq 0 ]
 then
-    echo -e "${JSON_OUTPUT}"
-    echo -e "\trecovery mode: $( echo ${JSON_OUTPUT} | jq '.recovery_mode' )"
+    echo -e "\trecovery mode: $( echo ${JSON_OUTPUT} | jq '.recoveryMode' )"
 fi
 
 executeCommand 'debuglevel' 'POST' 'http://localhost:8080/api/v1/debuglevel' '{ "show": true, "level_spec": "debug" }'
-if [ $? -eq 0 ]
-then
-    echo -e "${JSON_OUTPUT}"
-fi
 
 executeCommand 'stop' 'GET' 'http://localhost:8080/api/v1/stop'
-if [ $? -eq 0 ]
-then
-    echo -e "${JSON_OUTPUT}"
-fi
 
 rm -rf ${REST_ERRORS_FILE}

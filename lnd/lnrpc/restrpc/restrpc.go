@@ -24,10 +24,6 @@ import (
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
 )
 
-const (
-	REST_context = "/api"
-)
-
 type RpcFunc struct {
 	path string
 	req  proto.Message
@@ -412,31 +408,101 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	meta service get recovery info
 	{
-		path: REST_context + "/v1/meta/getrecoveryinfo",
+		path: "/api/v1/meta/getrecoveryinfo",
 		req:  nil,
 		res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
-		f:    getRecoveryInfo,
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get Lightning recovery info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var recoveryInfoRsp *lnrpc.GetRecoveryInfoResponse
+
+				recoveryInfoRsp, err := cc.GetRecoveryInfo(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return recoveryInfoRsp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
 	},
 	//	service debug level
 	{
-		path: REST_context + "/v1/debuglevel",
+		path: "/api/v1/debuglevel",
 		req:  (*lnrpc.DebugLevelRequest)(nil),
 		res:  (*lnrpc.DebugLevelResponse)(nil),
-		f:    debugLevel,
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			debugLevelReq, ok := m.(*lnrpc.DebugLevelRequest)
+			if !ok {
+				return nil, er.New("Argument is not a DebugLevelRequest")
+			}
+
+			//	set Lightning debug level
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var debugLevelRsp *lnrpc.DebugLevelResponse
+
+				debugLevelRsp, err := cc.DebugLevel(context.TODO(), debugLevelReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return debugLevelRsp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
 	},
-	//	service stop daemon
+	//	service to stop the pld daemon
 	{
-		path: REST_context + "/v1/stop",
+		path: "/api/v1/stop",
 		req:  nil,
 		res:  (*lnrpc.StopResponse)(nil),
-		f:    stopDaemon,
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	invoke Lightning stop daemon
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var stopResponse *lnrpc.StopResponse
+
+				stopResponse, err := cc.StopDaemon(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return stopResponse, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
 	},
 	//	service daemon version
 	{
-		path: REST_context + "/v1/version",
+		path: "/api/v1/version",
 		req:  nil,
 		res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
-		f:    daemonVersion,
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get Lightning recovery info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var recoveryInfo *lnrpc.GetRecoveryInfoResponse
+
+				recoveryInfo, err := cc.GetRecoveryInfo(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return recoveryInfo, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
 	},
 }
 
@@ -588,86 +654,4 @@ func RestHandlers(c *RpcContext) *mux.Router {
 		r.Handle(rf.path, &SimpleHandler{c: c, rf: rf})
 	}
 	return r
-}
-
-//	getRecoveryInfo command handler
-func getRecoveryInfo(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-
-	//	get Lightning recovery info
-	cc, errr := c.withRpcServer()
-	if cc != nil {
-		var recoveryInfoRsp *lnrpc.GetRecoveryInfoResponse
-
-		recoveryInfoRsp, err := cc.GetRecoveryInfo(context.TODO(), nil)
-		if err != nil {
-			return nil, er.E(err)
-		} else {
-			return recoveryInfoRsp, nil
-		}
-	} else {
-		return nil, errr
-	}
-}
-
-//	debugLevel command handler
-func debugLevel(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-
-	//	get the request payload
-	debugLevelReq, ok := m.(*lnrpc.DebugLevelRequest)
-	if !ok {
-		return nil, er.New("Argument is not a DebugLevelRequest")
-	}
-
-	//	set Lightning debug level
-	cc, errr := c.withRpcServer()
-	if cc != nil {
-		var debugLevelRsp *lnrpc.DebugLevelResponse
-
-		debugLevelRsp, err := cc.DebugLevel(context.TODO(), debugLevelReq)
-		if err != nil {
-			return nil, er.E(err)
-		} else {
-			return debugLevelRsp, nil
-		}
-	} else {
-		return nil, errr
-	}
-}
-
-//	stop daemon command handler
-func stopDaemon(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-
-	//	invoke Lightning stop daemon
-	cc, errr := c.withRpcServer()
-	if cc != nil {
-		var stopResponse *lnrpc.StopResponse
-
-		stopResponse, err := cc.StopDaemon(context.TODO(), nil)
-		if err != nil {
-			return nil, er.E(err)
-		} else {
-			return stopResponse, nil
-		}
-	} else {
-		return nil, errr
-	}
-}
-
-//	daemon version command handler
-func daemonVersion(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-
-	//	get Lightning recovery info
-	cc, errr := c.withRpcServer()
-	if cc != nil {
-		var recoveryInfo *lnrpc.GetRecoveryInfoResponse
-
-		recoveryInfo, err := cc.GetRecoveryInfo(context.TODO(), nil)
-		if err != nil {
-			return nil, er.E(err)
-		} else {
-			return recoveryInfo, nil
-		}
-	} else {
-		return nil, errr
-	}
 }

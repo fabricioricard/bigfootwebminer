@@ -17,6 +17,7 @@ import (
 	"github.com/pkt-cash/pktd/connmgr/banmgr"
 	"github.com/pkt-cash/pktd/lnd/chainreg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/verrpc"
 	"github.com/pkt-cash/pktd/lnd/walletunlocker"
 	"github.com/pkt-cash/pktd/neutrino"
 	"github.com/pkt-cash/pktd/pktlog/log"
@@ -416,13 +417,13 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			//	get Lightning recovery info
 			cc, errr := c.withRpcServer()
 			if cc != nil {
-				var recoveryInfoRsp *lnrpc.GetRecoveryInfoResponse
+				var recoveryInfoResp *lnrpc.GetRecoveryInfoResponse
 
-				recoveryInfoRsp, err := cc.GetRecoveryInfo(context.TODO(), nil)
+				recoveryInfoResp, err := cc.GetRecoveryInfo(context.TODO(), nil)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return recoveryInfoRsp, nil
+					return recoveryInfoResp, nil
 				}
 			} else {
 				return nil, errr
@@ -445,13 +446,13 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			//	set Lightning debug level
 			cc, errr := c.withRpcServer()
 			if cc != nil {
-				var debugLevelRsp *lnrpc.DebugLevelResponse
+				var debugLevelResp *lnrpc.DebugLevelResponse
 
-				debugLevelRsp, err := cc.DebugLevel(context.TODO(), debugLevelReq)
+				debugLevelResp, err := cc.DebugLevel(context.TODO(), debugLevelReq)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return debugLevelRsp, nil
+					return debugLevelResp, nil
 				}
 			} else {
 				return nil, errr
@@ -468,36 +469,254 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			//	invoke Lightning stop daemon
 			cc, errr := c.withRpcServer()
 			if cc != nil {
-				var stopResponse *lnrpc.StopResponse
+				var stopResp *lnrpc.StopResponse
 
-				stopResponse, err := cc.StopDaemon(context.TODO(), nil)
+				stopResp, err := cc.StopDaemon(context.TODO(), nil)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return stopResponse, nil
+					return stopResp, nil
 				}
 			} else {
 				return nil, errr
 			}
 		},
 	},
-	//	service daemon version
+	//	TODO: service daemon version
 	{
-		path: "/api/v1/version",
+		path: "/api/v2/versioner/version",
 		req:  nil,
-		res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
+		res:  (*verrpc.Version)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get Lightning recovery info
-			cc, errr := c.withRpcServer()
+			cc, errr := c.withVerRPCServer()
 			if cc != nil {
-				var recoveryInfo *lnrpc.GetRecoveryInfoResponse
+				var versionResp *verrpc.Version
 
-				recoveryInfo, err := cc.GetRecoveryInfo(context.TODO(), nil)
+				versionResp, err := cc.GetVersion(context.TODO(), nil)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return recoveryInfo, nil
+					return versionResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	TODO: service openchannel
+	//	does it make sense in REST, since lnrpc.lightningOpenChannelServer is not exported ?
+	/*
+		{
+			path: "/api/v1/channels/stream",
+			req:  (*lnrpc.OpenChannelRequest)(nil),
+			res:  nil,
+			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+				//	get the request payload
+				openChannelReq, ok := m.(*lnrpc.OpenChannelRequest)
+				if !ok {
+					return nil, er.New("Argument is not a OpenChannelRequest")
+				}
+
+				//	open a channel
+				cc, errr := c.withRpcServer()
+				if cc != nil {
+					err := cc.OpenChannel(openChannelReq, &lnrpc.lightningOpenChannelServer{stream})
+					if err != nil {
+						return nil, er.E(err)
+					} else {
+						return nil, nil
+					}
+				} else {
+					return nil, errr
+				}
+			},
+		},
+	*/
+	//	TODO: service closechannel
+	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
+	{
+		path: "/api//v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}",
+		req:  (*lnrpc.CloseChannelRequest)(nil),
+		res:  nil,
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			closeChannelReq, ok := m.(*lnrpc.CloseChannelRequest)
+			if !ok {
+				return nil, er.New("Argument is not a CloseChannelRequest")
+			}
+
+			//	close a channel
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				err := cc.CloseChannel(closeChannelReq, nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return nil, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	TODO: service closeallchannels
+	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This means the Payload for this REST command needs to be created !
+	/*
+		{
+			path: "/api/v1/channels",
+			req:  nil,
+			res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
+			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+				//	close all channels
+				cc, errr := c.withRpcServer()
+				if cc != nil {
+					var recoveryInfo *lnrpc.GetRecoveryInfoResponse
+
+					recoveryInfo, err := cc.GetRecoveryInfo(context.TODO(), nil)
+					if err != nil {
+						return nil, er.E(err)
+					} else {
+						return recoveryInfo, nil
+					}
+				} else {
+					return nil, errr
+				}
+			},
+		},
+	*/
+	//	TODO: service abandonchannel
+	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
+	{
+		path: "/api/v1/channels/abandon/{channel_point.funding_txid_str}/{channel_point.output_index}",
+		req:  (*lnrpc.AbandonChannelRequest)(nil),
+		res:  (*lnrpc.AbandonChannelResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			abandonChannelReq, ok := m.(*lnrpc.AbandonChannelRequest)
+			if !ok {
+				return nil, er.New("Argument is not a AbandonChannelRequest")
+			}
+
+			//	abandon a channel
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var abandonChannelResp *lnrpc.AbandonChannelResponse
+
+				abandonChannelResp, err := cc.AbandonChannel(context.TODO(), abandonChannelReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return abandonChannelResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	TODO: service channelbalance
+	{
+		path: "/api/v1/channelbalance",
+		req:  nil,
+		res:  (*lnrpc.ChannelBalanceResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	returns the channel balance
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var channelBalanceResp *lnrpc.ChannelBalanceResponse
+
+				channelBalanceResp, err := cc.ChannelBalance(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return channelBalanceResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	TODO: service pendingchannels
+	{
+		path: "/api/v1/pendingchannels",
+		req:  nil,
+		res:  (*lnrpc.PendingChannelsResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	returns pending channels info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var pendingChannelsResp *lnrpc.PendingChannelsResponse
+
+				pendingChannelsResp, err := cc.PendingChannels(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return pendingChannelsResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	TODO: service listchannels
+	{
+		path: "/api/v1/channels",
+		req:  (*lnrpc.ListChannelsRequest)(nil),
+		res:  (*lnrpc.ListChannelsResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			listChannelsReq, ok := m.(*lnrpc.ListChannelsRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ListChannelsRequest")
+			}
+
+			//	returns a list of channels
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var listChannelsResp *lnrpc.ListChannelsResponse
+
+				listChannelsResp, err := cc.ListChannels(context.TODO(), listChannelsReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return listChannelsResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	TODO: service closedchannels
+	{
+		path: "/api/v1/channels/closed",
+		req:  (*lnrpc.ClosedChannelsRequest)(nil),
+		res:  (*lnrpc.ClosedChannelsResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			closeChannelReq, ok := m.(*lnrpc.ClosedChannelsRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ClosedChannelRequest")
+			}
+
+			//	returns a list of all closed channels
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var closedChannelsResp *lnrpc.ClosedChannelsResponse
+
+				closedChannelsResp, err := cc.ClosedChannels(context.TODO(), closeChannelReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return closedChannelsResp, nil
 				}
 			} else {
 				return nil, errr
@@ -513,6 +732,7 @@ type RpcContext struct {
 	MaybeRpcServer      lnrpc.LightningServer
 	MaybeWalletUnlocker *walletunlocker.UnlockerService
 	MaybeMetaService    lnrpc.MetaServiceServer
+	MaybeVerRPCServer   verrpc.VersionerServer
 }
 
 func with(thing interface{}, name string) er.R {
@@ -538,6 +758,9 @@ func (c *RpcContext) withUnlocker() (*walletunlocker.UnlockerService, er.R) {
 }
 func (c *RpcContext) withMetaServer() (lnrpc.MetaServiceServer, er.R) {
 	return c.MaybeMetaService, with(c.MaybeMetaService, "MetaServiceService")
+}
+func (c *RpcContext) withVerRPCServer() (verrpc.VersionerServer, er.R) {
+	return c.MaybeVerRPCServer, with(c.MaybeVerRPCServer, "VersionerService")
 }
 
 type SimpleHandler struct {
@@ -624,6 +847,7 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 	}
 	return nil
 }
+
 func (s *SimpleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ct := strings.ToLower(r.Header.Get("Content-Type"))
 	isJson := strings.Contains(ct, "application/json")

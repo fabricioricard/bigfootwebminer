@@ -4,6 +4,7 @@
 #   smoke tests for pld REST endpoints
 ################################################################################
 
+export  PLD_REST_SERVER='http://localhost:8080'
 export  REST_ERRORS_FILE="./rest.err"
 export  JSON_OUTPUT=""
 export  TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
@@ -17,10 +18,10 @@ executeCommand() {
 
     if [ "${HTTP_METHOD}" == "GET" ]
     then
-        JSON_OUTPUT=$( curl ${URI} 2>> ${REST_ERRORS_FILE} )
+        JSON_OUTPUT=$( curl "${PLD_REST_SERVER}${URI}" 2>> ${REST_ERRORS_FILE} )
     elif [ "${HTTP_METHOD}" == "POST" ]
     then
-        JSON_OUTPUT=$( curl -H "Content-Type: application/json" -X POST -d "${PAYLOAD}" ${URI} 2>> ${REST_ERRORS_FILE} )
+        JSON_OUTPUT=$( curl -H "Content-Type: application/json" -X POST -d "${PAYLOAD}" "${PLD_REST_SERVER}${URI}" 2>> ${REST_ERRORS_FILE} )
     else
         echo "error: invalid HTTP method \"${HTTP_METHOD}\""
         return 1
@@ -54,20 +55,65 @@ then
 fi
 
 #   test commands to get info about the running pld daemon
-executeCommand 'getinfo' 'GET' 'http://localhost:8080/api/v1/meta/getinfo'
+executeCommand 'getinfo' 'GET' '/api/v1/meta/getinfo'
 if [ $? -eq 0 ]
 then
     echo -e "\t#neutrino peers: $( echo ${JSON_OUTPUT} | jq '.neutrino.peers | length' )"
 fi
 
-executeCommand 'getrecoveryinfo' 'GET' 'http://localhost:8080/api/v1/meta/getrecoveryinfo'
+executeCommand 'getrecoveryinfo' 'GET' '/api/v1/meta/getrecoveryinfo'
 if [ $? -eq 0 ]
 then
     echo -e "\trecovery mode: $( echo ${JSON_OUTPUT} | jq '.recoveryMode' )"
 fi
 
-executeCommand 'debuglevel' 'POST' 'http://localhost:8080/api/v1/debuglevel' '{ "show": true, "level_spec": "debug" }'
+executeCommand 'debuglevel' 'POST' '/api/v1/debuglevel' '{ "show": true, "level_spec": "debug" }'
 
-executeCommand 'stop' 'GET' 'http://localhost:8080/api/v1/stop'
+executeCommand 'version' 'GET' '/api/v2/versioner/version'
+if [ $? -eq 0 ]
+then
+    echo -e "${JSON_OUTPUT}"
+fi
+
+#   test commands to manage channels
+#executeCommand 'openchannel'
+#executeCommand 'closechannel'
+#executeCommand 'closeallchannels'
+
+FUNDING_TXID="12345678900"
+OUTPUT_INDEX="123"
+
+executeCommand 'abandonchannel' 'POST' "/api/v1/channels/abandon/{$FUNDING_TXID}/{$OUTPUT_INDEX}" '{  }'
+if [ $? -eq 0 ]
+then
+    echo -e "${JSON_OUTPUT}"
+fi
+
+executeCommand 'channelbalance' 'GET' '/api/v1/channelbalance'
+if [ $? -eq 0 ]
+then
+    echo -e "\tchannel balance: $( echo ${JSON_OUTPUT} | jq '.balance' )"
+fi
+
+executeCommand 'pendingchannels' 'GET' '/api/v1/pendingchannels'
+if [ $? -eq 0 ]
+then
+    echo -e "\tlimbo balance: $( echo ${JSON_OUTPUT} | jq '.totalLimboBalance' )"
+fi
+
+executeCommand 'listchannels' 'POST' '/api/v1/channels' '{  }'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#open channels: $( echo ${JSON_OUTPUT} | jq '.channels | length' )"
+fi
+
+executeCommand 'closedchannels' 'POST' '/api/v1/channels/closed' '{  }'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#closed channels: $( echo ${JSON_OUTPUT} | jq '.channels | length' )"
+fi
+
+#   test commands to stop pld daemon
+executeCommand 'stop' 'GET' '/api/v1/stop'
 
 rm -rf ${REST_ERRORS_FILE}

@@ -406,6 +406,104 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
+	//	meta service get recovery info
+	{
+		path: "/api/v1/meta/getrecoveryinfo",
+		req:  nil,
+		res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get Lightning recovery info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var recoveryInfoRsp *lnrpc.GetRecoveryInfoResponse
+
+				recoveryInfoRsp, err := cc.GetRecoveryInfo(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return recoveryInfoRsp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service debug level
+	{
+		path: "/api/v1/debuglevel",
+		req:  (*lnrpc.DebugLevelRequest)(nil),
+		res:  (*lnrpc.DebugLevelResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			debugLevelReq, ok := m.(*lnrpc.DebugLevelRequest)
+			if !ok {
+				return nil, er.New("Argument is not a DebugLevelRequest")
+			}
+
+			//	set Lightning debug level
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var debugLevelRsp *lnrpc.DebugLevelResponse
+
+				debugLevelRsp, err := cc.DebugLevel(context.TODO(), debugLevelReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return debugLevelRsp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service to stop the pld daemon
+	{
+		path: "/api/v1/stop",
+		req:  nil,
+		res:  (*lnrpc.StopResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	invoke Lightning stop daemon
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var stopResponse *lnrpc.StopResponse
+
+				stopResponse, err := cc.StopDaemon(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return stopResponse, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service daemon version
+	{
+		path: "/api/v1/version",
+		req:  nil,
+		res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get Lightning recovery info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var recoveryInfo *lnrpc.GetRecoveryInfoResponse
+
+				recoveryInfo, err := cc.GetRecoveryInfo(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return recoveryInfo, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
 }
 
 type RpcContext struct {

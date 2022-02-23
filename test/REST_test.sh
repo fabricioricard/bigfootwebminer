@@ -113,6 +113,45 @@ then
     echo -e "\t#closed channels: $( echo ${JSON_OUTPUT} | jq '.channels | length' )"
 fi
 
+executeCommand 'getnetworkinfo' 'GET' '/api/v1/graph/info'
+if [ $? -eq 0 ]
+then
+    echo -e "\t#nodes: $( echo ${JSON_OUTPUT} | jq '.numNodes' )"
+    echo -e "\t#channels: $( echo ${JSON_OUTPUT} | jq '.numChannels' )"
+fi
+
+executeCommand 'feereport' 'GET' '/api/v1/fees'
+if [ $? -eq 0 ]
+then
+    echo -e "\tweek fee sum: $( echo ${JSON_OUTPUT} | jq '.weekFeeSum' )"
+fi
+
+executeCommand 'updatechanpolicy' 'POST' '/api/v1/chanpolicy' '{ "baseFeeMsat": 10, "feeRate": 10, "timeLockDelta": 20, "maxHtlcMsat": 30, "minHtlcMsat": 1, "minHtlcMsatSpecified": false }'
+if [ $? -eq 0 ]
+then
+    echo -e "${JSON_OUTPUT}"
+fi
+
+executeCommand 'exportchanbackup' 'POST' "/api/v1/channels/backup/{$FUNDING_TXID}/{$OUTPUT_INDEX}" "{ \"chanPoint\": { \"outputIndex\": \"{$OUTPUT_INDEX}\" } }"
+if [ $? -eq 0 ]
+then
+    echo -e "${JSON_OUTPUT}"
+    MULTI_BACKUP=$( echo ${JSON_OUTPUT} | jq '.multi_chan_backup.multi_chan_backup' | tr --delete '"' )
+    echo -e "\tmulti backup: ${MULTI_BACKUP}"
+fi
+
+executeCommand 'verifychanbackup' 'POST' '/api/v1/channels/backup/verify' "{ \"multiChanBackup\": {  } }"
+if [ $? -eq 0 ]
+then
+    echo -e "${JSON_OUTPUT}"
+fi
+
+executeCommand 'restorechanbackup' 'POST' '/api/v1/channels/backup/restore' '{ "backup": true }'
+if [ $? -eq 0 ]
+then
+    echo -e "${JSON_OUTPUT}"
+fi
+
 #   test commands to stop pld daemon
 executeCommand 'stop' 'GET' '/api/v1/stop'
 

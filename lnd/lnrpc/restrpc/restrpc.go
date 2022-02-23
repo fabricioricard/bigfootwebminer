@@ -619,7 +619,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
-	//	TODO: service channelbalance
+	//	service channelbalance
 	{
 		path: "/api/v1/channelbalance",
 		req:  nil,
@@ -642,7 +642,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
-	//	TODO: service pendingchannels
+	//	service pendingchannels
 	{
 		path: "/api/v1/pendingchannels",
 		req:  nil,
@@ -665,7 +665,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
-	//	TODO: service listchannels
+	//	service listchannels
 	{
 		path: "/api/v1/channels",
 		req:  (*lnrpc.ListChannelsRequest)(nil),
@@ -694,7 +694,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
-	//	TODO: service closedchannels
+	//	service closedchannels
 	{
 		path: "/api/v1/channels/closed",
 		req:  (*lnrpc.ClosedChannelsRequest)(nil),
@@ -717,6 +717,169 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 					return nil, er.E(err)
 				} else {
 					return closedChannelsResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service getnetworkinfo
+	{
+		path: "/api/v1/graph/info",
+		req:  nil,
+		res:  (*lnrpc.NetworkInfo)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	returns network info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var networkInfoResp *lnrpc.NetworkInfo
+
+				networkInfoResp, err := cc.GetNetworkInfo(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return networkInfoResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service feereport
+	{
+		path: "/api/v1/fees",
+		req:  nil,
+		res:  (*lnrpc.FeeReportResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	returns a fee report
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var feeReportResp *lnrpc.FeeReportResponse
+
+				feeReportResp, err := cc.FeeReport(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return feeReportResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service updatechanpolicy
+	{
+		path: "/api/v1/chanpolicy",
+		req:  (*lnrpc.PolicyUpdateRequest)(nil),
+		res:  (*lnrpc.PolicyUpdateResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			policyUpdateReq, ok := m.(*lnrpc.PolicyUpdateRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ClosedChannelRequest")
+			}
+
+			//	returns a list of all closed channels
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var policyUpdateResp *lnrpc.PolicyUpdateResponse
+
+				policyUpdateResp, err := cc.UpdateChannelPolicy(context.TODO(), policyUpdateReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return policyUpdateResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	TODO: service exportchanbackup
+	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
+	{
+		path: "/api/v1/channels/backup/{chan_point.funding_txid_str}/{chan_point.output_index}",
+		req:  (*lnrpc.ExportChannelBackupRequest)(nil),
+		res:  (*lnrpc.ChannelBackup)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			exportChannelBackupReq, ok := m.(*lnrpc.ExportChannelBackupRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ExportChannelBackupRequest")
+			}
+
+			//	returns a list of all closed channels
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var channelBackupResp *lnrpc.ChannelBackup
+
+				channelBackupResp, err := cc.ExportChannelBackup(context.TODO(), exportChannelBackupReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return channelBackupResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service verifychanbackup
+	{
+		path: "/api/v1/channels/backup/verify",
+		req:  (*lnrpc.ChanBackupSnapshot)(nil),
+		res:  (*lnrpc.VerifyChanBackupResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			chanBackupSnapshotReq, ok := m.(*lnrpc.ChanBackupSnapshot)
+			if !ok {
+				return nil, er.New("Argument is not a ChanBackupSnapshot")
+			}
+
+			//	returns a list of all closed channels
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var verifyChanBackupResp *lnrpc.VerifyChanBackupResponse
+
+				verifyChanBackupResp, err := cc.VerifyChanBackup(context.TODO(), chanBackupSnapshotReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return verifyChanBackupResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service restorechanbackup
+	{
+		path: "/api/v1/channels/backup/restore",
+		req:  (*lnrpc.RestoreChanBackupRequest)(nil),
+		res:  (*lnrpc.RestoreBackupResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			restoreChanBackupReq, ok := m.(*lnrpc.RestoreChanBackupRequest)
+			if !ok {
+				return nil, er.New("Argument is not a RestoreChanBackupRequest")
+			}
+
+			//	returns a list of all closed channels
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var restoreBackupResp *lnrpc.RestoreBackupResponse
+
+				restoreBackupResp, err := cc.RestoreChannelBackups(context.TODO(), restoreChanBackupReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return restoreBackupResp, nil
 				}
 			} else {
 				return nil, errr

@@ -1118,6 +1118,232 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
+	//	service estimatefee
+	{
+		path: "/api/v2/router/route/estimatefee",
+		req:  (*lnrpc.EstimateFeeRequest)(nil),
+		res:  (*lnrpc.EstimateFeeResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			estimateFeeReq, ok := m.(*lnrpc.EstimateFeeRequest)
+			if !ok {
+				return nil, er.New("Argument is not a EstimateFeeRequest")
+			}
+
+			//	get estimate fee info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var estimateFeeResp *lnrpc.EstimateFeeResponse
+
+				estimateFeeResp, err := cc.EstimateFee(context.TODO(), estimateFeeReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return estimateFeeResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service sendmany
+	{
+		path: "/api/v1/transactions/many",
+		req:  (*lnrpc.SendManyRequest)(nil),
+		res:  (*lnrpc.SendManyResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			sendManyReq, ok := m.(*lnrpc.SendManyRequest)
+			if !ok {
+				return nil, er.New("Argument is not a SendManyRequest")
+			}
+
+			//	send coins to many addresses
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var sendManyResp *lnrpc.SendManyResponse
+
+				sendManyResp, err := cc.SendMany(context.TODO(), sendManyReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return sendManyResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service sendcoins
+	{
+		path: "/api/v1/transactions",
+		req:  (*lnrpc.SendCoinsRequest)(nil),
+		res:  (*lnrpc.SendCoinsResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			sendCoinsReq, ok := m.(*lnrpc.SendCoinsRequest)
+			if !ok {
+				return nil, er.New("Argument is not a SendCoinsRequest")
+			}
+
+			//	send coins to one addresses
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var sendCoinsResp *lnrpc.SendCoinsResponse
+
+				sendCoinsResp, err := cc.SendCoins(context.TODO(), sendCoinsReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return sendCoinsResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service listunspent
+	{
+		path: "/api/v1/utxos",
+		req:  (*lnrpc.ListUnspentRequest)(nil),
+		res:  (*lnrpc.ListUnspentResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			listUnspentReq, ok := m.(*lnrpc.ListUnspentRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ListUnspentRequest")
+			}
+
+			//	get a list of available utxos
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var listUnspentResp *lnrpc.ListUnspentResponse
+
+				listUnspentResp, err := cc.ListUnspent(context.TODO(), listUnspentReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return listUnspentResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service listchaintrns
+	{
+		path: "/api/v1/transactions",
+		req:  (*lnrpc.GetTransactionsRequest)(nil),
+		res:  (*lnrpc.TransactionDetails)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			getTransactionsReq, ok := m.(*lnrpc.GetTransactionsRequest)
+			if !ok {
+				return nil, er.New("Argument is not a GetTransactionsRequest")
+			}
+
+			//	get a list of transactions from wallet
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var transactionDetailsResp *lnrpc.TransactionDetails
+
+				transactionDetailsResp, err := cc.GetTransactions(context.TODO(), getTransactionsReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return transactionDetailsResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service setnetworkstewardvote
+	{
+		path: "/api/v1/setnetworkstewardvote",
+		req:  (*lnrpc.SetNetworkStewardVoteRequest)(nil),
+		res:  (*lnrpc.SetNetworkStewardVoteResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			setNetworkStewardVoteReq, ok := m.(*lnrpc.SetNetworkStewardVoteRequest)
+			if !ok {
+				return nil, er.New("Argument is not a SetNetworkStewardVoteRequest")
+			}
+
+			//	set network steward vote
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var setNetworkStewardVoteResp *lnrpc.SetNetworkStewardVoteResponse
+
+				setNetworkStewardVoteResp, err := cc.SetNetworkStewardVote(context.TODO(), setNetworkStewardVoteReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return setNetworkStewardVoteResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service getnetworkstewardvote
+	{
+		path: "/api/v1/getnetworkstewardvote",
+		req:  nil,
+		res:  (*lnrpc.GetNetworkStewardVoteResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get network steward vote
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var getNetworkStewardVoteResp *lnrpc.GetNetworkStewardVoteResponse
+
+				getNetworkStewardVoteResp, err := cc.GetNetworkStewardVote(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return getNetworkStewardVoteResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service bcasttransaction
+	{
+		path: "/api/v1/BcastTransaction",
+		req:  (*lnrpc.BcastTransactionRequest)(nil),
+		res:  (*lnrpc.BcastTransactionResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			bcastTransactionReq, ok := m.(*lnrpc.BcastTransactionRequest)
+			if !ok {
+				return nil, er.New("Argument is not a BcastTransactionRequest")
+			}
+
+			//	invoke Lightning broadcast transaction in chain command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var bcastTransactionResp *lnrpc.BcastTransactionResponse
+
+				bcastTransactionResp, err := cc.BcastTransaction(context.TODO(), bcastTransactionReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return bcastTransactionResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
 }
 
 type RpcContext struct {

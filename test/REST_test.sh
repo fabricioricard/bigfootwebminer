@@ -193,6 +193,41 @@ showCommandResult 'result' ''
 executeCommand 'decodepayreq' 'POST' "/api/v1/payreq/${PAYREQ}" "{ \"payReq\": \"${PAYREQ}\" }"
 showCommandResult 'result' ''
 
+#   test commands to manage on-chain transactions
+export  TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
+
+executeCommand 'estimatefee' 'POST' '/api/v2/router/route/estimatefee' "{ \"AddrToAmount\": [ \"${TARGET_WALLET}\": 100000 ] }"
+showCommandResult 'result' ''
+#    echo -e "\tfee sat: $( echo ${JSON_OUTPUT} | jq '.fee_sat' )"
+
+executeCommand 'sendmany' 'POST' '/api/v1/transactions/many' "{ \"AddrToAmount\": [ \"${TARGET_WALLET}\": 100000 ] }"
+showCommandResult 'result' ''
+#    echo -e "\ttransaction Id: $( echo ${JSON_OUTPUT} | jq '.txid' )"
+
+executeCommand 'sendcoins' 'POST' '/api/v1/transactions' "{ \"addr\": \"${TARGET_WALLET}\", \"amount\": 10000000 }"
+showCommandResult 'result' ''
+#    echo -e "\ttransaction Id: $( echo ${JSON_OUTPUT} | jq '.txid' )"
+
+executeCommand 'listunspent' 'POST' '/api/v1/utxos' '{ "minConfs": 1, "maxConfs": 100 }'
+showCommandResult 'result' ''
+#    echo -e "\t#utxos: $( echo ${JSON_OUTPUT} | jq '.utxos | length' )"
+
+executeCommand 'listchaintrns' 'POST' '/api/v1/transactions' '{ "startHeight": 1000000, "endHeight": 1300000 }'
+showCommandResult 'result' ''
+#    echo -e "\t#transactions: $( echo ${JSON_OUTPUT} | jq '.transactions | length' )"
+
+executeCommand 'setnetworkstewardvote' 'POST' '/api/v1/setnetworkstewardvote' '{ "voteAgainst": 0, "voteFor": 1 }'
+showCommandResult 'result' ''
+
+executeCommand 'getnetworkstewardvote' 'GET' '/api/v1/getnetworkstewardvote'
+showCommandResult 'result' ''
+#    echo -e "\tvote against: $( echo ${JSON_OUTPUT} | jq '.vote_against' )"
+#    echo -e "\tvote for: $( echo ${JSON_OUTPUT} | jq '.vote_for' )"
+
+executeCommand 'bcasttransaction'
+showCommandResult 'result' 'POST' '/api/v1/BcastTransaction' '{ "tx": "01020304050607080910" }'
+#    echo -e "\ttransaction hash: $( echo ${JSON_OUTPUT} | jq '.txn_hash' )"
+
 #   test commands to stop pld daemon
 executeCommand 'stop' 'GET' '/api/v1/stop'
 

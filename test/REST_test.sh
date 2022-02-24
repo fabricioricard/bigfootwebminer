@@ -5,9 +5,9 @@
 ################################################################################
 
 export  PLD_REST_SERVER='http://localhost:8080'
-export  REST_ERRORS_FILE="./rest.err"
-export  JSON_OUTPUT=""
-export  TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
+export  REST_ERRORS_FILE='./rest.err'
+export  JSON_OUTPUT=''
+export  VERBOSE='true'
 
 #   use curl to execute a command
 executeCommand() {
@@ -16,15 +16,26 @@ executeCommand() {
     local URI="${3}"
     local PAYLOAD="${4}"
 
-    GREEN='\033[0;32m'
     RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    LIGHTGRAY='\033[0;37m'
     NOCOLOR='\033[0m'
 
     if [ "${HTTP_METHOD}" == "GET" ]
     then
+        if [ "${VERBOSE}" == 'true' ]
+        then
+            echo -e "[trace] ${LIGHTGRAY}curl \"${PLD_REST_SERVER}${URI}\"${NOCOLOR}"
+        fi
+
         JSON_OUTPUT=$( curl "${PLD_REST_SERVER}${URI}" 2>> ${REST_ERRORS_FILE} )
     elif [ "${HTTP_METHOD}" == "POST" ]
     then
+        if [ "${VERBOSE}" == 'true' ]
+        then
+            echo -e "[trace] ${LIGHTGRAY}curl -H \"Content-Type: application/json\" -X POST -d '${PAYLOAD}' \"${PLD_REST_SERVER}${URI}\"${NOCOLOR}"
+        fi
+
         JSON_OUTPUT=$( curl -H "Content-Type: application/json" -X POST -d "${PAYLOAD}" "${PLD_REST_SERVER}${URI}" 2>> ${REST_ERRORS_FILE} )
     else
         echo -e "${RED}error: invalid HTTP method \"${HTTP_METHOD}\"${NOCOLOR}"
@@ -55,6 +66,19 @@ showCommandResult() {
             RESULT=$( echo "${JSON_OUTPUT}" | jq "${FILTER}" )
         fi
         echo -e "\t#${TITLE}: ${RESULT}"
+    fi
+}
+
+#   use jq to filter results of previously executed command
+getCommandResult() {
+    local FILTER="${1}"
+
+    if [ ! -z "${JSON_OUTPUT}" ]
+    then
+        if [ ! -z "${FILTER}" ]
+        then
+            echo -e "$( echo "${JSON_OUTPUT}" | jq "${FILTER}" )"
+        fi
     fi
 }
 
@@ -96,7 +120,7 @@ showCommandResult 'result' ''
 FUNDING_TXID="12345678900"
 OUTPUT_INDEX="123"
 
-executeCommand 'abandonchannel' 'POST' "/api/v1/channels/abandon/{$FUNDING_TXID}/{$OUTPUT_INDEX}" '{  }'
+executeCommand 'abandonchannel' 'POST' "/api/v1/channels/abandon/${FUNDING_TXID}/${OUTPUT_INDEX}" '{  }'
 showCommandResult 'result' ''
 
 executeCommand 'channelbalance' 'GET' '/api/v1/channelbalance'
@@ -121,7 +145,7 @@ showCommandResult 'week fee sum' '.weekFeeSum'
 executeCommand 'updatechanpolicy' 'POST' '/api/v1/chanpolicy' '{ "baseFeeMsat": 10, "feeRate": 10, "timeLockDelta": 20, "maxHtlcMsat": 30, "minHtlcMsat": 1, "minHtlcMsatSpecified": false }'
 showCommandResult 'result' ''
 
-executeCommand 'exportchanbackup' 'POST' "/api/v1/channels/backup/{$FUNDING_TXID}/{$OUTPUT_INDEX}" "{ \"chanPoint\": { \"outputIndex\": \"{$OUTPUT_INDEX}\" } }"
+executeCommand 'exportchanbackup' 'POST' "/api/v1/channels/backup/${FUNDING_TXID}/${OUTPUT_INDEX}" "{ \"chanPoint\": { \"outputIndex\": \"${OUTPUT_INDEX}\" } }"
 if [ $? -eq 0 ]
 then
     echo -e "${JSON_OUTPUT}"
@@ -138,16 +162,35 @@ showCommandResult 'result' ''
 #   test commands to get graph info
 executeCommand 'describegraph' 'POST' '/api/v1/graph' '{ "includeUnannounced": true }'
 showCommandResult 'last update' '.nodes | .[0] | .lastUpdate '
+PUBLIC_KEY="$( getCommandResult '.nodes | .[0] | .pubKey ' | tr -d '\"' )"
 
 executeCommand 'getnodemetrics' 'POST' '/api/v1/graph/nodemetrics' '{ "types": [ 0, 1 ] }'
 showCommandResult 'betweenness centrality' '.betweennessCentrality'
 
 CHAN_ID="123"
-executeCommand 'getchaninfo' 'POST' "/api/v1/graph/edge/{$CHAN_ID}" "{ \"chanId\": {$CHAN_ID} }"
+executeCommand 'getchaninfo' 'POST' "/api/v1/graph/edge/${CHAN_ID}" "{ \"chanId\": ${CHAN_ID} }"
 showCommandResult 'result' ''
 
-PUBLIC_KEY="02c9d02352f3cfb06ad2d296d08098aaa2f0146e087c7cda0edc444a1b6c27905b"
-executeCommand 'getnodeinfo' 'POST' '/api/v1/graph/node/{$PUBLIC_KEY}' "{ \"pubKey\": \"{$PUBLIC_KEY}\", \"includeChannels\": true }"
+executeCommand 'getnodeinfo' 'POST' "/api/v1/graph/node/${PUBLIC_KEY}" "{ \"pubKey\": \"${PUBLIC_KEY}\", \"includeChannels\": true }"
+showCommandResult 'last update' '.lastUpdate'
+
+#   test commands to manage invoices
+executeCommand 'addinvoice' 'POST' '/api/v1/invoices' '{ "memo": "xpto", "value": 10, "expiry": 3600 }'
+showCommandResult 'rHash' '.rHash'
+showCommandResult 'payment request' '.paymentRequest'
+RHASH="$( getCommandResult '.rHash' | tr -d '\"' )"
+PAYREQ="$( getCommandResult '.paymentRequest' | tr -d '\"' )"
+
+executeCommand 'lookupinvoice' 'POST' "/api/v1/invoice/${RHASH}" "{ \"rHash\": \"${RHASH}\" }"
+showCommandResult 'last update' '.lastUpdate'
+showCommandResult 'index' '.addIndex'
+showCommandResult 'state' '.state'
+
+#executeCommand 'listinvoices' 'POST' '/api/v1/invoices' '{ "pendingOnly": false, "indexOffset": 1, "numMaxInvoices": 10, "reversed": false }'
+executeCommand 'listinvoices' 'POST' '/api/v1/invoices' '{ "indexOffset": 1, "numMaxInvoices": 10 }'
+showCommandResult 'result' ''
+
+executeCommand 'decodepayreq' 'POST' "/api/v1/payreq/${PAYREQ}" "{ \"payReq\": \"${PAYREQ}\" }"
 showCommandResult 'result' ''
 
 #   test commands to stop pld daemon

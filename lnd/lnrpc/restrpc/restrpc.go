@@ -1002,6 +1002,122 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
+	//	service addinvoice
+	{
+		path: "/api/v1/invoices",
+		req:  (*lnrpc.Invoice)(nil),
+		res:  (*lnrpc.AddInvoiceResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			invoiceReq, ok := m.(*lnrpc.Invoice)
+			if !ok {
+				return nil, er.New("Argument is not a Invoice")
+			}
+
+			//	add an invoice
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var addInvoiceResp *lnrpc.AddInvoiceResponse
+
+				addInvoiceResp, err := cc.AddInvoice(context.TODO(), invoiceReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return addInvoiceResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service lookupinvoice
+	{
+		path: "/api/v1/invoice/{r_hash_str}",
+		req:  (*lnrpc.PaymentHash)(nil),
+		res:  (*lnrpc.Invoice)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			paymentHashReq, ok := m.(*lnrpc.PaymentHash)
+			if !ok {
+				return nil, er.New("Argument is not a PaymentHash")
+			}
+
+			//	lookup an invoice
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var InvoiceResp *lnrpc.Invoice
+
+				InvoiceResp, err := cc.LookupInvoice(context.TODO(), paymentHashReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return InvoiceResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service listinvoices
+	{
+		path: "/api/v1/invoices",
+		req:  (*lnrpc.ListInvoiceRequest)(nil),
+		res:  (*lnrpc.ListInvoiceResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			listInvoiceReq, ok := m.(*lnrpc.ListInvoiceRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ListInvoiceRequest")
+			}
+
+			//	list all invoices
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var listInvoiceResp *lnrpc.ListInvoiceResponse
+
+				listInvoiceResp, err := cc.ListInvoices(context.TODO(), listInvoiceReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return listInvoiceResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service decodepayreq
+	{
+		path: "/api/v1/payreq/{pay_req}",
+		req:  (*lnrpc.PayReqString)(nil),
+		res:  (*lnrpc.PayReq)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			payReqStringReq, ok := m.(*lnrpc.PayReqString)
+			if !ok {
+				return nil, er.New("Argument is not a PayReqString")
+			}
+
+			//	decode payment request
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var payReqResp *lnrpc.PayReq
+
+				payReqResp, err := cc.DecodePayReq(context.TODO(), payReqStringReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return payReqResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
 }
 
 type RpcContext struct {

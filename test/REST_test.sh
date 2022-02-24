@@ -16,6 +16,10 @@ executeCommand() {
     local URI="${3}"
     local PAYLOAD="${4}"
 
+    GREEN='\033[0;32m'
+    RED='\033[0;31m'
+    NOCOLOR='\033[0m'
+
     if [ "${HTTP_METHOD}" == "GET" ]
     then
         JSON_OUTPUT=$( curl "${PLD_REST_SERVER}${URI}" 2>> ${REST_ERRORS_FILE} )
@@ -23,16 +27,34 @@ executeCommand() {
     then
         JSON_OUTPUT=$( curl -H "Content-Type: application/json" -X POST -d "${PAYLOAD}" "${PLD_REST_SERVER}${URI}" 2>> ${REST_ERRORS_FILE} )
     else
-        echo "error: invalid HTTP method \"${HTTP_METHOD}\""
+        echo -e "${RED}error: invalid HTTP method \"${HTTP_METHOD}\"${NOCOLOR}"
         return 1
     fi
 
     if [ $? -eq 0 ]
     then
-        echo ">>> ${COMMAND} ${ARGUMENTS}: command successfully executed"
+        echo -e ">>> ${COMMAND}: ${GREEN}command successfully executed${NOCOLOR}"
     else
-        echo "error: fail attempting to run command \"${COMMAND} ${ARGUMENTS}\": $?"
+        echo -e "${RED}error: fail attempting to run command \"${COMMAND} ${ARGUMENTS}\": $?${NOCOLOR}"
+        JSON_OUTPUT=''
         return 1
+    fi
+}
+
+#   use jq to filter results of previously executed command
+showCommandResult() {
+    local TITLE="${1}"
+    local FILTER="${2}"
+
+    if [ ! -z "${JSON_OUTPUT}" ]
+    then
+        if [ -z "${FILTER}" ]
+        then
+            RESULT="${JSON_OUTPUT}"
+        else
+            RESULT=$( echo "${JSON_OUTPUT}" | jq "${FILTER}" )
+        fi
+        echo -e "\t#${TITLE}: ${RESULT}"
     fi
 }
 
@@ -41,14 +63,14 @@ echo ">>>>> Testing pld REST endpoints"
 echo
 
 #   check if curl is available
-output=$( which curl 2> /dev/null )
+OUTPUT=$( which curl 2> /dev/null )
 if [ $? -ne 0 ]
 then
     exit "error: 'curl' is required to run this script"
 fi
 
 #   check if jq is available
-output=$( which jq 2> /dev/null )
+OUTPUT=$( which jq 2> /dev/null )
 if [ $? -ne 0 ]
 then
     exit "error: 'jq' is required to run this script"
@@ -56,24 +78,15 @@ fi
 
 #   test commands to get info about the running pld daemon
 executeCommand 'getinfo' 'GET' '/api/v1/meta/getinfo'
-if [ $? -eq 0 ]
-then
-    echo -e "\t#neutrino peers: $( echo ${JSON_OUTPUT} | jq '.neutrino.peers | length' )"
-fi
+showCommandResult 'neutrino peers' '.neutrino.peers | length'
 
 executeCommand 'getrecoveryinfo' 'GET' '/api/v1/meta/getrecoveryinfo'
-if [ $? -eq 0 ]
-then
-    echo -e "\trecovery mode: $( echo ${JSON_OUTPUT} | jq '.recoveryMode' )"
-fi
+showCommandResult 'recovery mode' '.recoveryMode'
 
 executeCommand 'debuglevel' 'POST' '/api/v1/debuglevel' '{ "show": true, "level_spec": "debug" }'
 
 executeCommand 'version' 'GET' '/api/v2/versioner/version'
-if [ $? -eq 0 ]
-then
-    echo -e "${JSON_OUTPUT}"
-fi
+showCommandResult 'result' ''
 
 #   test commands to manage channels
 #executeCommand 'openchannel'
@@ -84,53 +97,29 @@ FUNDING_TXID="12345678900"
 OUTPUT_INDEX="123"
 
 executeCommand 'abandonchannel' 'POST' "/api/v1/channels/abandon/{$FUNDING_TXID}/{$OUTPUT_INDEX}" '{  }'
-if [ $? -eq 0 ]
-then
-    echo -e "${JSON_OUTPUT}"
-fi
+showCommandResult 'result' ''
 
 executeCommand 'channelbalance' 'GET' '/api/v1/channelbalance'
-if [ $? -eq 0 ]
-then
-    echo -e "\tchannel balance: $( echo ${JSON_OUTPUT} | jq '.balance' )"
-fi
+showCommandResult 'channel balance' '.balance'
 
 executeCommand 'pendingchannels' 'GET' '/api/v1/pendingchannels'
-if [ $? -eq 0 ]
-then
-    echo -e "\tlimbo balance: $( echo ${JSON_OUTPUT} | jq '.totalLimboBalance' )"
-fi
+showCommandResult 'limbo balance' '.totalLimboBalance'
 
 executeCommand 'listchannels' 'POST' '/api/v1/channels' '{  }'
-if [ $? -eq 0 ]
-then
-    echo -e "\t#open channels: $( echo ${JSON_OUTPUT} | jq '.channels | length' )"
-fi
+showCommandResult 'open channels' '.channels | length'
 
 executeCommand 'closedchannels' 'POST' '/api/v1/channels/closed' '{  }'
-if [ $? -eq 0 ]
-then
-    echo -e "\t#closed channels: $( echo ${JSON_OUTPUT} | jq '.channels | length' )"
-fi
+showCommandResult 'closed channels' '.channels | length'
 
 executeCommand 'getnetworkinfo' 'GET' '/api/v1/graph/info'
-if [ $? -eq 0 ]
-then
-    echo -e "\t#nodes: $( echo ${JSON_OUTPUT} | jq '.numNodes' )"
-    echo -e "\t#channels: $( echo ${JSON_OUTPUT} | jq '.numChannels' )"
-fi
+showCommandResult 'nodes' '.numNodes'
+showCommandResult 'channels' '.numChannels'
 
 executeCommand 'feereport' 'GET' '/api/v1/fees'
-if [ $? -eq 0 ]
-then
-    echo -e "\tweek fee sum: $( echo ${JSON_OUTPUT} | jq '.weekFeeSum' )"
-fi
+showCommandResult 'week fee sum' '.weekFeeSum'
 
 executeCommand 'updatechanpolicy' 'POST' '/api/v1/chanpolicy' '{ "baseFeeMsat": 10, "feeRate": 10, "timeLockDelta": 20, "maxHtlcMsat": 30, "minHtlcMsat": 1, "minHtlcMsatSpecified": false }'
-if [ $? -eq 0 ]
-then
-    echo -e "${JSON_OUTPUT}"
-fi
+showCommandResult 'result' ''
 
 executeCommand 'exportchanbackup' 'POST' "/api/v1/channels/backup/{$FUNDING_TXID}/{$OUTPUT_INDEX}" "{ \"chanPoint\": { \"outputIndex\": \"{$OUTPUT_INDEX}\" } }"
 if [ $? -eq 0 ]
@@ -141,16 +130,25 @@ then
 fi
 
 executeCommand 'verifychanbackup' 'POST' '/api/v1/channels/backup/verify' "{ \"multiChanBackup\": {  } }"
-if [ $? -eq 0 ]
-then
-    echo -e "${JSON_OUTPUT}"
-fi
+showCommandResult 'result' ''
 
 executeCommand 'restorechanbackup' 'POST' '/api/v1/channels/backup/restore' '{ "backup": true }'
-if [ $? -eq 0 ]
-then
-    echo -e "${JSON_OUTPUT}"
-fi
+showCommandResult 'result' ''
+
+#   test commands to get graph info
+executeCommand 'describegraph' 'POST' '/api/v1/graph' '{ "includeUnannounced": true }'
+showCommandResult 'last update' '.nodes | .[0] | .lastUpdate '
+
+executeCommand 'getnodemetrics' 'POST' '/api/v1/graph/nodemetrics' '{ "types": [ 0, 1 ] }'
+showCommandResult 'betweenness centrality' '.betweennessCentrality'
+
+CHAN_ID="123"
+executeCommand 'getchaninfo' 'POST' "/api/v1/graph/edge/{$CHAN_ID}" "{ \"chanId\": {$CHAN_ID} }"
+showCommandResult 'result' ''
+
+PUBLIC_KEY="02c9d02352f3cfb06ad2d296d08098aaa2f0146e087c7cda0edc444a1b6c27905b"
+executeCommand 'getnodeinfo' 'POST' '/api/v1/graph/node/{$PUBLIC_KEY}' "{ \"pubKey\": \"{$PUBLIC_KEY}\", \"includeChannels\": true }"
+showCommandResult 'result' ''
 
 #   test commands to stop pld daemon
 executeCommand 'stop' 'GET' '/api/v1/stop'

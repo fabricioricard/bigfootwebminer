@@ -466,7 +466,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		res:  (*lnrpc.StopResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			//	invoke Lightning stop daemon
+			//	invoke Lightning stop daemon command
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var stopResp *lnrpc.StopResponse
@@ -489,7 +489,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		res:  (*verrpc.Version)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			//	get Lightning recovery info
+			//	get daemon version
 			cc, errr := c.withVerRPCServer()
 			if cc != nil {
 				var versionResp *verrpc.Version
@@ -626,7 +626,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		res:  (*lnrpc.ChannelBalanceResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			//	returns the channel balance
+			//	get the channel balance
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var channelBalanceResp *lnrpc.ChannelBalanceResponse
@@ -649,7 +649,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		res:  (*lnrpc.PendingChannelsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			//	returns pending channels info
+			//	get pending channels info
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var pendingChannelsResp *lnrpc.PendingChannelsResponse
@@ -678,7 +678,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, er.New("Argument is not a ListChannelsRequest")
 			}
 
-			//	returns a list of channels
+			//	get a list of channels
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var listChannelsResp *lnrpc.ListChannelsResponse
@@ -707,7 +707,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, er.New("Argument is not a ClosedChannelRequest")
 			}
 
-			//	returns a list of all closed channels
+			//	get a list of all closed channels
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var closedChannelsResp *lnrpc.ClosedChannelsResponse
@@ -730,7 +730,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		res:  (*lnrpc.NetworkInfo)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			//	returns network info
+			//	get network info
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var networkInfoResp *lnrpc.NetworkInfo
@@ -753,7 +753,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		res:  (*lnrpc.FeeReportResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			//	returns a fee report
+			//	get fee report
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var feeReportResp *lnrpc.FeeReportResponse
@@ -782,7 +782,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, er.New("Argument is not a ClosedChannelRequest")
 			}
 
-			//	returns a list of all closed channels
+			//	invoke Lightning update chan policy command
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var policyUpdateResp *lnrpc.PolicyUpdateResponse
@@ -812,7 +812,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, er.New("Argument is not a ExportChannelBackupRequest")
 			}
 
-			//	returns a list of all closed channels
+			//	invoke Lightning export chan backup command
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var channelBackupResp *lnrpc.ChannelBackup
@@ -841,7 +841,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, er.New("Argument is not a ChanBackupSnapshot")
 			}
 
-			//	returns a list of all closed channels
+			//	invoke Lightning verify chan backup command
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var verifyChanBackupResp *lnrpc.VerifyChanBackupResponse
@@ -870,7 +870,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, er.New("Argument is not a RestoreChanBackupRequest")
 			}
 
-			//	returns a list of all closed channels
+			//	invoke Lightning restore chan backup command
 			cc, errr := c.withRpcServer()
 			if cc != nil {
 				var restoreBackupResp *lnrpc.RestoreBackupResponse
@@ -880,6 +880,122 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 					return nil, er.E(err)
 				} else {
 					return restoreBackupResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service describegraph
+	{
+		path: "/api/v1/graph",
+		req:  (*lnrpc.ChannelGraphRequest)(nil),
+		res:  (*lnrpc.ChannelGraph)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			channelGraphReq, ok := m.(*lnrpc.ChannelGraphRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ChannelGraphRequest")
+			}
+
+			//	get graph description info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var channelGraphResp *lnrpc.ChannelGraph
+
+				channelGraphResp, err := cc.DescribeGraph(context.TODO(), channelGraphReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return channelGraphResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service getnodemetrics
+	{
+		path: "/api/v1/graph/nodemetrics",
+		req:  (*lnrpc.NodeMetricsRequest)(nil),
+		res:  (*lnrpc.NodeMetricsResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			nodeMetricsReq, ok := m.(*lnrpc.NodeMetricsRequest)
+			if !ok {
+				return nil, er.New("Argument is not a NodeMetricsRequest")
+			}
+
+			//	get node metrics info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var nodeMetricsResp *lnrpc.NodeMetricsResponse
+
+				nodeMetricsResp, err := cc.GetNodeMetrics(context.TODO(), nodeMetricsReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return nodeMetricsResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service getchaninfo
+	{
+		path: "/api/v1/graph/edge/{chan_id}",
+		req:  (*lnrpc.ChanInfoRequest)(nil),
+		res:  (*lnrpc.ChannelEdge)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			chanInfoReq, ok := m.(*lnrpc.ChanInfoRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ChanInfoRequest")
+			}
+
+			//	get chan info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var channelEdgeResp *lnrpc.ChannelEdge
+
+				channelEdgeResp, err := cc.GetChanInfo(context.TODO(), chanInfoReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return channelEdgeResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service getnodeinfo
+	{
+		path: "/api/v1/graph/node/{pub_key}",
+		req:  (*lnrpc.NodeInfoRequest)(nil),
+		res:  (*lnrpc.NodeInfo)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			nodeInfoReq, ok := m.(*lnrpc.NodeInfoRequest)
+			if !ok {
+				return nil, er.New("Argument is not a NodeInfoRequest")
+			}
+
+			//	get node info
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var nodeInfoResp *lnrpc.NodeInfo
+
+				nodeInfoResp, err := cc.GetNodeInfo(context.TODO(), nodeInfoReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return nodeInfoResp, nil
 				}
 			} else {
 				return nil, errr

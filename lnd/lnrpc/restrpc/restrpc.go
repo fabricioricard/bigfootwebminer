@@ -1665,6 +1665,91 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
+	//	service connect
+	{
+		path: "/api/v1/peers",
+		req:  (*lnrpc.ConnectPeerRequest)(nil),
+		res:  (*lnrpc.ConnectPeerResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			connectPeerReq, ok := m.(*lnrpc.ConnectPeerRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ConnectPeerRequest")
+			}
+
+			//	invoke Lightning connect peer command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var connectPeerResp *lnrpc.ConnectPeerResponse
+
+				connectPeerResp, err := cc.ConnectPeer(context.TODO(), connectPeerReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return connectPeerResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service disconnect
+	{
+		path: "/api/v1/peers/disconnect/{pub_key}",
+		req:  (*lnrpc.DisconnectPeerRequest)(nil),
+		res:  (*lnrpc.DisconnectPeerResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			disconnectPeerReq, ok := m.(*lnrpc.DisconnectPeerRequest)
+			if !ok {
+				return nil, er.New("Argument is not a DisconnectPeerRequest")
+			}
+
+			//	invoke Lightning disconnect peer command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var disconnectPeerResp *lnrpc.DisconnectPeerResponse
+
+				disconnectPeerResp, err := cc.DisconnectPeer(context.TODO(), disconnectPeerReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return disconnectPeerResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service listpeers
+	{
+		path: "/api/v1/listpeers",
+		req:  nil,
+		res:  (*lnrpc.ListPeersResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			listPeersReq := &lnrpc.ListPeersRequest{
+				LatestError: true,
+			}
+
+			//	invoke Lightning list peers command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var listPeersResp *lnrpc.ListPeersResponse
+
+				listPeersResp, err := cc.ListPeers(context.TODO(), listPeersReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return listPeersResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
 }
 
 type RpcContext struct {

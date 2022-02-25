@@ -270,11 +270,15 @@ executeCommand 'buildroute' 'POST' '/api/v2/router/route' '{ "amtMsat": 0, "hopP
 showCommandResult 'result' ''
 
 #   test commands to manage peers
-#executeCommand 'connect' ''
-#executeCommand 'disconnect' ''
+executeCommand 'connect' 'POST' '/api/v1/peers' '{ "addr": { "pubkey": "272648127365482", "host": "192.168.40.1:8080" } }'
+showCommandResult 'result' ''
 
-executeCommand 'listpeers' ''
-    echo -e "\t#peers: $( echo ${JSON_OUTPUT} | jq '.peers | length' )"
+executeCommand 'disconnect' 'POST' '/api/v1/peers/disconnect/{pub_key}' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'listpeers' 'GET' '/api/v1/listpeers'
+showCommandResult 'result' ''
+showCommandResult '#peers' '.peers | length'
 
 #   test commands to stop pld daemon
 executeCommand 'stop' 'GET' '/api/v1/stop'

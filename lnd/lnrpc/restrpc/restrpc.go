@@ -17,6 +17,7 @@ import (
 	"github.com/pkt-cash/pktd/connmgr/banmgr"
 	"github.com/pkt-cash/pktd/lnd/chainreg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
 	"github.com/pkt-cash/pktd/lnd/lnrpc/verrpc"
 	"github.com/pkt-cash/pktd/lnd/walletunlocker"
 	"github.com/pkt-cash/pktd/neutrino"
@@ -506,7 +507,6 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		},
 	},
 	//	TODO: service openchannel
-	//	does it make sense in REST, since lnrpc.lightningOpenChannelServer is not exported ?
 	/*
 		{
 			path: "/api/v1/channels/stream",
@@ -523,7 +523,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				//	open a channel
 				cc, errr := c.withRpcServer()
 				if cc != nil {
-					err := cc.OpenChannel(openChannelReq, &lnrpc.lightningOpenChannelServer{stream})
+					err := cc.OpenChannel(openChannelReq, lightningOpenChannelServer{stream})
 					if err != nil {
 						return nil, er.E(err)
 					} else {
@@ -1317,7 +1317,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service bcasttransaction
 	{
-		path: "/api/v1/BcastTransaction",
+		path: "/api/v1/bcasttransaction",
 		req:  (*lnrpc.BcastTransactionRequest)(nil),
 		res:  (*lnrpc.BcastTransactionResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1344,6 +1344,327 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
+	//	service sendpayment
+	{
+		path: "/api/v1/channels/transactions",
+		req:  (*lnrpc.SendRequest)(nil),
+		res:  (*lnrpc.SendResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			sendReq, ok := m.(*lnrpc.SendRequest)
+			if !ok {
+				return nil, er.New("Argument is not a SendRequest")
+			}
+
+			//	invoke Lightning send payment command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var sendResp *lnrpc.SendResponse
+
+				sendResp, err := cc.SendPaymentSync(context.TODO(), sendReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return sendResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	TODO: service payinvoice
+	/*
+		check payInvoice incm_pay.go source file
+		{
+			path: "/v1/channels/transactions",
+			req:  (*routerrpc.SendPaymentRequest)(nil),
+			res:  nil,
+			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+				//	get the request payload
+				sendPaymentReq, ok := m.(*routerrpc.SendPaymentRequest)
+				if !ok {
+					return nil, er.New("Argument is not a SendPaymentRequest")
+				}
+
+				//	query the mission control status
+				cc, errr := c.withRouterServer()
+				if cc != nil {
+					err := cc.SendPaymentV2(sendPaymentReq, )
+					if err != nil {
+						return nil, er.E(err)
+					} else {
+						return nil, nil
+					}
+				} else {
+					return nil, errr
+				}
+			},
+		},
+	*/
+	//	service sendtoroute
+	{
+		path: "/api/v1/channels/transactions/route",
+		req:  (*lnrpc.SendToRouteRequest)(nil),
+		res:  (*lnrpc.SendResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			sendToRouteReq, ok := m.(*lnrpc.SendToRouteRequest)
+			if !ok {
+				return nil, er.New("Argument is not a SendToRouteRequest")
+			}
+
+			//	invoke Lightning send to route command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var sendResp *lnrpc.SendResponse
+
+				sendResp, err := cc.SendToRouteSync(context.TODO(), sendToRouteReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return sendResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service listpayments
+	//	TODO: the rest-annotations.yaml says its a GET but, the query have a lot of parameteres
+	{
+		path: "/api/v1/payments",
+		//req:  (*lnrpc.ListPaymentsRequest)(nil),
+		req: nil,
+		res: (*lnrpc.ListPaymentsResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			/*
+				listPaymentsReq, ok := m.(*lnrpc.ListPaymentsRequest)
+				if !ok {
+					return nil, er.New("Argument is not a ListPaymentsRequest")
+				}
+			*/
+			listPaymentsReq := &lnrpc.ListPaymentsRequest{
+				IncludeIncomplete: true,
+				IndexOffset:       0,
+				MaxPayments:       25,
+				Reversed:          false,
+			}
+
+			//	invoke Lightning list payments command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var listPaymentsResp *lnrpc.ListPaymentsResponse
+
+				listPaymentsResp, err := cc.ListPayments(context.TODO(), listPaymentsReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return listPaymentsResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service queryroutes
+	{
+		path: "/api/v1/graph/routes/{pub_key}/{amt}",
+		req:  (*lnrpc.QueryRoutesRequest)(nil),
+		res:  (*lnrpc.QueryRoutesResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			queryRoutesReq, ok := m.(*lnrpc.QueryRoutesRequest)
+			if !ok {
+				return nil, er.New("Argument is not a QueryRoutesRequest")
+			}
+
+			//	invoke Lightning query routes command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var queryRoutesResp *lnrpc.QueryRoutesResponse
+
+				queryRoutesResp, err := cc.QueryRoutes(context.TODO(), queryRoutesReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return queryRoutesResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service fwdinghistory
+	{
+		path: "/v1/channels/transactions",
+		req:  (*lnrpc.ForwardingHistoryRequest)(nil),
+		res:  (*lnrpc.ForwardingHistoryResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			forwardingHistoryReq, ok := m.(*lnrpc.ForwardingHistoryRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ForwardingHistoryRequest")
+			}
+
+			//	invoke Lightning forwarding history command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var forwardingHistoryResp *lnrpc.ForwardingHistoryResponse
+
+				forwardingHistoryResp, err := cc.ForwardingHistory(context.TODO(), forwardingHistoryReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return forwardingHistoryResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service trackpayment
+	//	DEPRECATED: no endpoint for this command
+	/*
+		{
+			path: "/v1/channels/transactions",
+			req:  (*lnrpc.SendRequest)(nil),
+			res:  (*lnrpc.BcastTransactionResponse)(nil),
+			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+				//	get the request payload
+				sendReq, ok := m.(*lnrpc.SendRequest)
+				if !ok {
+					return nil, er.New("Argument is not a SendRequest")
+				}
+
+				//	invoke Lightning send payment command
+				cc, errr := c.withRpcServer()
+				if cc != nil {
+					var sendResp *lnrpc.SendResponse
+
+					sendResp, err := cc.trackPayment(context.TODO(), sendReq)
+					if err != nil {
+						return nil, er.E(err)
+					} else {
+						return sendResp, nil
+					}
+				} else {
+					return nil, errr
+				}
+			},
+		},
+	*/
+	//	service querymc
+	{
+		path: "/api/v2/router/mc",
+		req:  nil,
+		res:  (*routerrpc.QueryMissionControlResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	query the mission control status
+			cc, errr := c.withRouterServer()
+			if cc != nil {
+				var queryMissionControlResp *routerrpc.QueryMissionControlResponse
+
+				queryMissionControlResp, err := cc.QueryMissionControl(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return queryMissionControlResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service queryprob
+	{
+		path: "/api/v2/router/mc/probability/{from_node}/{to_node}/{amt_msat}",
+		req:  (*routerrpc.QueryProbabilityRequest)(nil),
+		res:  (*routerrpc.QueryProbabilityResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			queryProbabilityReq, ok := m.(*routerrpc.QueryProbabilityRequest)
+			if !ok {
+				return nil, er.New("Argument is not a QueryProbabilityRequest")
+			}
+
+			//	invoke the probability service
+			cc, errr := c.withRouterServer()
+			if cc != nil {
+				var queryProbabilityResp *routerrpc.QueryProbabilityResponse
+
+				queryProbabilityResp, err := cc.QueryProbability(context.TODO(), queryProbabilityReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return queryProbabilityResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service resetmc
+	{
+		path: "/api/v2/router/mc/reset",
+		req:  nil,
+		res:  (*routerrpc.ResetMissionControlResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	invoke reset mission controle service
+			cc, errr := c.withRouterServer()
+			if cc != nil {
+				var resetMissionControlResp *routerrpc.ResetMissionControlResponse
+
+				resetMissionControlResp, err := cc.ResetMissionControl(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return resetMissionControlResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service buildroute
+	{
+		path: "/api/v2/router/route",
+		req:  (*routerrpc.BuildRouteRequest)(nil),
+		res:  (*routerrpc.BuildRouteResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			buildRouteReq, ok := m.(*routerrpc.BuildRouteRequest)
+			if !ok {
+				return nil, er.New("Argument is not a BuildRouteRequest")
+			}
+
+			//	invoke reset mission controle service
+			cc, errr := c.withRouterServer()
+			if cc != nil {
+				var buildRouteResp *routerrpc.BuildRouteResponse
+
+				buildRouteResp, err := cc.BuildRoute(context.TODO(), buildRouteReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return buildRouteResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
 }
 
 type RpcContext struct {
@@ -1354,6 +1675,7 @@ type RpcContext struct {
 	MaybeWalletUnlocker *walletunlocker.UnlockerService
 	MaybeMetaService    lnrpc.MetaServiceServer
 	MaybeVerRPCServer   verrpc.VersionerServer
+	MaybeRouterServer   routerrpc.RouterServer
 }
 
 func with(thing interface{}, name string) er.R {
@@ -1382,6 +1704,9 @@ func (c *RpcContext) withMetaServer() (lnrpc.MetaServiceServer, er.R) {
 }
 func (c *RpcContext) withVerRPCServer() (verrpc.VersionerServer, er.R) {
 	return c.MaybeVerRPCServer, with(c.MaybeVerRPCServer, "VersionerService")
+}
+func (c *RpcContext) withRouterServer() (routerrpc.RouterServer, er.R) {
+	return c.MaybeRouterServer, with(c.MaybeRouterServer, "RouterServer")
 }
 
 type SimpleHandler struct {

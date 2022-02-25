@@ -2782,14 +2782,6 @@ var (
 
 	pattern_Lightning_SubscribeChannelBackups_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "channels", "backup", "subscribe"}, ""))
 
-	pattern_Lightning_BakeMacaroon_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "macaroon"}, ""))
-
-	pattern_Lightning_ListMacaroonIDs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "macaroon", "ids"}, ""))
-
-	pattern_Lightning_DeleteMacaroonID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "macaroon", "root_key_id"}, ""))
-
-	pattern_Lightning_ListPermissions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "macaroon", "permissions"}, ""))
-
 	pattern_Lightning_ReSync_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pkt", "v1", "resync"}, ""))
 
 	pattern_Lightning_StopReSync_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pkt", "v1", "stopresync"}, ""))
@@ -2923,14 +2915,6 @@ var (
 	forward_Lightning_RestoreChannelBackups_0 = runtime.ForwardResponseMessage
 
 	forward_Lightning_SubscribeChannelBackups_0 = runtime.ForwardResponseStream
-
-	forward_Lightning_BakeMacaroon_0 = runtime.ForwardResponseMessage
-
-	forward_Lightning_ListMacaroonIDs_0 = runtime.ForwardResponseMessage
-
-	forward_Lightning_DeleteMacaroonID_0 = runtime.ForwardResponseMessage
-
-	forward_Lightning_ListPermissions_0 = runtime.ForwardResponseMessage
 
 	forward_Lightning_ReSync_0 = runtime.ForwardResponseMessage
 

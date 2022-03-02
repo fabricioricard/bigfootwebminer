@@ -1727,11 +1727,6 @@ func (w *Wallet) GetTransactions(
 	return &res, err
 }
 
-func Reverse(input []TransactionSummary) {
-    for i, j := 0, len(input)-1; i < j; i, j = i+1, j-1 {
-        input[i], input[j] = input[j], input[i]
-    }
-}
 
 // ListUnspent returns a slice of objects representing the unspent wallet
 // transactions fitting the given criteria. The confirmations will be more than

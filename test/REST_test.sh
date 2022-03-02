@@ -100,6 +100,10 @@ then
     exit "error: 'jq' is required to run this script"
 fi
 
+#   test commands to manage the wallet
+executeCommand 'genseed' 'POST' '/api/v1/lightning/genseed' '{ "aezeedPassphrase": "cGFzc3dvcmQ=" }'
+showCommandResult 'result message' '.message'
+
 #   test commands to get info about the running pld daemon
 executeCommand 'getinfo' 'GET' '/api/v1/meta/getinfo'
 showCommandResult 'neutrino peers' '.neutrino.peers | length'
@@ -196,11 +200,11 @@ showCommandResult 'result' ''
 #   test commands to manage on-chain transactions
 export  TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
 
-executeCommand 'estimatefee' 'POST' '/api/v2/router/route/estimatefee' "{ \"AddrToAmount\": [ \"${TARGET_WALLET}\": 100000 ] }"
+executeCommand 'estimatefee' 'POST' '/api/v2/router/route/estimatefee' "{ \"AddrToAmount\": [ { \"${TARGET_WALLET}\": 100000 } ] }"
 showCommandResult 'result' ''
 #    echo -e "\tfee sat: $( echo ${JSON_OUTPUT} | jq '.fee_sat' )"
 
-executeCommand 'sendmany' 'POST' '/api/v1/transactions/many' "{ \"AddrToAmount\": [ \"${TARGET_WALLET}\": 100000 ] }"
+executeCommand 'sendmany' 'POST' '/api/v1/transactions/many' "{ \"AddrToAmount\": [ { \"${TARGET_WALLET}\": 100000 } ] }"
 showCommandResult 'result' ''
 #    echo -e "\ttransaction Id: $( echo ${JSON_OUTPUT} | jq '.txid' )"
 
@@ -216,7 +220,7 @@ executeCommand 'listchaintrns' 'POST' '/api/v1/transactions' '{ "startHeight": 1
 showCommandResult 'result' ''
 #    echo -e "\t#transactions: $( echo ${JSON_OUTPUT} | jq '.transactions | length' )"
 
-executeCommand 'setnetworkstewardvote' 'POST' '/api/v1/setnetworkstewardvote' '{ "voteAgainst": 0, "voteFor": 1 }'
+executeCommand 'setnetworkstewardvote' 'POST' '/api/v1/setnetworkstewardvote' '{ "voteAgainst": "0", "voteFor": "1" }'
 showCommandResult 'result' ''
 
 executeCommand 'getnetworkstewardvote' 'GET' '/api/v1/getnetworkstewardvote'
@@ -224,9 +228,61 @@ showCommandResult 'result' ''
 #    echo -e "\tvote against: $( echo ${JSON_OUTPUT} | jq '.vote_against' )"
 #    echo -e "\tvote for: $( echo ${JSON_OUTPUT} | jq '.vote_for' )"
 
-executeCommand 'bcasttransaction'
-showCommandResult 'result' 'POST' '/api/v1/BcastTransaction' '{ "tx": "01020304050607080910" }'
+executeCommand 'bcasttransaction' 'POST' '/api/v1/bcasttransaction' '{ "tx": "01020304050607080910" }'
+showCommandResult 'result'
 #    echo -e "\ttransaction hash: $( echo ${JSON_OUTPUT} | jq '.txn_hash' )"
+
+#   test commands to manage payments
+executeCommand 'sendpayment' 'POST' '/api/v1/channels/transactions' '{ "paymentHash": "02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e", "amt": 100000, "dest": "1cc616cdeb96016bf278bfea15d55541d31823986b33c0dab38024cb8eff3791" }'
+showCommandResult 'result' ''
+
+#executeCommand 'payinvoice' 'lnpkt100u1p3q4r85pp5kecz6ckl97wwe2nnqn6lq5lju30z9sc8uaeacamudxv52kykgdnqdqqcqzpgsp5fa0tpf3j3ecppn3tvmc50n6w7pl6dcs7zvus82splfjs2qevwkxq9qy9qsq4sfdxwzrku87zaphgh6wa3rtc2a8g7rmg6a2dp4myk3qa8c7409sv205xxfsc2n0mzmemcg92ukg7x6q7xlkp5ca9gdwvsqmtpuazccpw25hg9'
+
+executeCommand 'sendtoroute' 'POST' '/api/v1/channels/transactions/route' '{ "paymentHash": "02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e", "route": { "hops": [ { "chanId": "xpto"} ] } }'
+showCommandResult 'result' ''
+
+executeCommand 'listpayments' 'GET' '/api/v1/payments' ''
+showCommandResult 'result' ''
+#    echo -e "\t#payments: $( echo ${JSON_OUTPUT} | jq '.payments | length' )"
+
+PUBKEY="02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e"
+AMOUNT="100000"
+executeCommand 'queryroutes' 'POST' "/api/v1/graph/routes/${PUBKEY}/${AMOUNT}" '02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e 1'
+showCommandResult 'result' ''
+
+executeCommand 'fwdinghistory' 'POST' '/v1/channels/transactions' '{ "indexOffset": 0, "numMaxEvents": 25 }'
+showCommandResult 'result' ''
+#    echo -e "\t#forwarding events: $( echo ${JSON_OUTPUT} | jq '.forwarding_events | length' )"
+
+#   deprecated command
+#executeCommand 'trackpayment' '1cc616cdeb96016bf278bfea15d55541d31823986b33c0dab38024cb8eff3791'
+
+executeCommand 'querymc' 'GET' '/api/v2/router/mc'
+showCommandResult 'result' ''
+#    echo -e "\t#pairs: $( echo ${JSON_OUTPUT} | jq '.pairs | length' )"
+
+FROM_NODE="01020304"
+TO_NODE="02030405"
+AMOUNT="100000"
+executeCommand 'queryprob' 'POST' "/api/v2/router/mc/probability/${FROM_NODE}/${TO_NODE}/${AMOUNT}" "{ \"fromNode\": \"${FROM_NODE}\", \"toNode\": \"${TO_NODE}\", \"amtMsat\": \"${AMOUNT}\" }"
+showCommandResult 'result' ''
+
+executeCommand 'resetmc' 'GET' '/api/v2/router/mc/reset'
+showCommandResult 'result' ''
+
+executeCommand 'buildroute' 'POST' '/api/v2/router/route' '{ "amtMsat": 0, "hopPubkeys": [ "01020304", "02030405", "03040506" ] }'
+showCommandResult 'result' ''
+
+#   test commands to manage peers
+executeCommand 'connect' 'POST' '/api/v1/peers' '{ "addr": { "pubkey": "272648127365482", "host": "192.168.40.1:8080" } }'
+showCommandResult 'result' ''
+
+executeCommand 'disconnect' 'POST' '/api/v1/peers/disconnect/{pub_key}' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'listpeers' 'GET' '/api/v1/listpeers'
+showCommandResult 'result' ''
+showCommandResult '#peers' '.peers | length'
 
 #   test commands to stop pld daemon
 executeCommand 'stop' 'GET' '/api/v1/stop'

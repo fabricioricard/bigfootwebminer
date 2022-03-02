@@ -276,7 +276,6 @@ then
     echo -e "\t#payments: $( echo ${JSON_OUTPUT} | jq '.payments | length' )"
 fi
 
-#executeCommand 'setnetworkstewardvote'
 #executeCommand 'queryroutes' '02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e 1'
 
 executeCommand 'fwdinghistory'

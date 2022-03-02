@@ -1682,12 +1682,14 @@ func (w *Wallet) GetTransactions(
 					}
 				}
 				//Skipping transactions
-				if skippedtxns < skip {
-					skippedtxns++
+				if (skippedtxns + int32(len(txs))) < skip {
+					skippedtxns += int32(len(txs))
 				} else {
-					if skippedtxns > 0 {
-						log.Infof("%d transactions were skipped", limit)
+					if skippedtxns < skip {
+						txs = txs[skip-skippedtxns:]
+						skippedtxns += int32(skip - skippedtxns)
 					}
+					
 					res.MinedTransactions = append(res.MinedTransactions, Block{
 						Hash:         &blockHash,
 						Height:       details[0].Block.Height,
@@ -1697,15 +1699,22 @@ func (w *Wallet) GetTransactions(
 					totalTxns += len(txs)
 				}
 			} else if coinbase != coinbaseOnly {
-				res.UnminedTransactions = txs
-				totalTxns += len(txs)
+				if (skippedtxns + int32(len(txs))) < skip {
+					skippedtxns += int32(len(txs))
+				} else {
+					if skippedtxns < skip {
+						txs = txs[skip-skippedtxns:]
+						skippedtxns += int32(skip - skippedtxns)
+					}
+					res.UnminedTransactions = txs
+					totalTxns += len(txs)
+				}
 			}
 
 			if (limit > 0) && (totalTxns >= int(limit)) {
 				log.Infof("Limit on number of transactions was reached %d", limit)
 				return true, nil
 			}
-
 			select {
 			case <-cancel:
 				return true, nil
@@ -1713,10 +1722,15 @@ func (w *Wallet) GetTransactions(
 				return false, nil
 			}
 		}
-
 		return w.TxStore.RangeTransactions(txmgrNs, start, end, rangeFn)
 	})
 	return &res, err
+}
+
+func Reverse(input []TransactionSummary) {
+    for i, j := 0, len(input)-1; i < j; i, j = i+1, j-1 {
+        input[i], input[j] = input[j], input[i]
+    }
 }
 
 // ListUnspent returns a slice of objects representing the unspent wallet

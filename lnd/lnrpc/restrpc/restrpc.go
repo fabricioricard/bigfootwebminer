@@ -408,6 +408,35 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
+	//	GenSeed service
+	{
+		path: "/api/v1/lightning/genseed",
+		req:  (*lnrpc.GenSeedRequest)(nil),
+		res:  (*lnrpc.GenSeedResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			genSeedReq, ok := m.(*lnrpc.GenSeedRequest)
+			if !ok {
+				return nil, er.New("Argument is not a GenSeedRequest")
+			}
+
+			//	generate a new seed
+			cc, errr := c.withUnlocker()
+			if cc != nil {
+				var genSeedResp *lnrpc.GenSeedResponse
+
+				genSeedResp, err := cc.GenSeed(context.TODO(), genSeedReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return genSeedResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
 	//	meta service get recovery info
 	{
 		path: "/api/v1/meta/getrecoveryinfo",

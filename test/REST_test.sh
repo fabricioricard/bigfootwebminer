@@ -100,6 +100,10 @@ then
     exit "error: 'jq' is required to run this script"
 fi
 
+#   test commands to manage the wallet
+executeCommand 'genseed' 'POST' '/api/v1/lightning/genseed' '{ "aezeedPassphrase": "cGFzc3dvcmQ=" }'
+showCommandResult 'result message' '.message'
+
 #   test commands to get info about the running pld daemon
 executeCommand 'getinfo' 'GET' '/api/v1/meta/getinfo'
 showCommandResult 'neutrino peers' '.neutrino.peers | length'

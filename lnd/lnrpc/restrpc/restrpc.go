@@ -462,7 +462,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service debug level
 	{
-		path: "/api/v1/debuglevel",
+		path: "/api/v1/meta/debuglevel",
 		req:  (*lnrpc.DebugLevelRequest)(nil),
 		res:  (*lnrpc.DebugLevelResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -491,7 +491,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service to stop the pld daemon
 	{
-		path: "/api/v1/stop",
+		path: "/api/v1/meta/stop",
 		req:  nil,
 		res:  (*lnrpc.StopResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -514,7 +514,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	TODO: service daemon version
 	{
-		path: "/api/v2/versioner/version",
+		path: "/api/v1/meta/version",
 		req:  nil,
 		res:  (*verrpc.Version)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -538,7 +538,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//	TODO: service openchannel
 	/*
 		{
-			path: "/api/v1/channels/stream",
+			path: "/api/v1/channels/open",
 			req:  (*lnrpc.OpenChannelRequest)(nil),
 			res:  nil,
 			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -567,7 +567,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//	TODO: service closechannel
 	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
 	{
-		path: "/api//v1/channels/{channel_point.funding_txid_str}/{channel_point.output_index}",
+		path: "/api//v1/channels/close",
 		req:  (*lnrpc.CloseChannelRequest)(nil),
 		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -596,7 +596,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This means the Payload for this REST command needs to be created !
 	/*
 		{
-			path: "/api/v1/channels",
+			path: "/api/v1/channels/closeall",
 			req:  nil,
 			res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
 			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -621,7 +621,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//	TODO: service abandonchannel
 	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
 	{
-		path: "/api/v1/channels/abandon/{channel_point.funding_txid_str}/{channel_point.output_index}",
+		path: "/api/v1/channel/abandon",
 		req:  (*lnrpc.AbandonChannelRequest)(nil),
 		res:  (*lnrpc.AbandonChannelResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -650,7 +650,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service channelbalance
 	{
-		path: "/api/v1/channelbalance",
+		path: "/api/v1/channel/balance",
 		req:  nil,
 		res:  (*lnrpc.ChannelBalanceResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -673,7 +673,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service pendingchannels
 	{
-		path: "/api/v1/pendingchannels",
+		path: "/api/v1/channel/pending",
 		req:  nil,
 		res:  (*lnrpc.PendingChannelsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -696,7 +696,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listchannels
 	{
-		path: "/api/v1/channels",
+		path: "/api/v1/channel",
 		req:  (*lnrpc.ListChannelsRequest)(nil),
 		res:  (*lnrpc.ListChannelsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -725,7 +725,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service closedchannels
 	{
-		path: "/api/v1/channels/closed",
+		path: "/api/v1/channel/closed",
 		req:  (*lnrpc.ClosedChannelsRequest)(nil),
 		res:  (*lnrpc.ClosedChannelsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -754,7 +754,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnetworkinfo
 	{
-		path: "/api/v1/graph/info",
+		path: "/api/v1/channel/networkinfo",
 		req:  nil,
 		res:  (*lnrpc.NetworkInfo)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -777,7 +777,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service feereport
 	{
-		path: "/api/v1/fees",
+		path: "/api/v1/channel/feereport",
 		req:  nil,
 		res:  (*lnrpc.FeeReportResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -800,7 +800,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service updatechanpolicy
 	{
-		path: "/api/v1/chanpolicy",
+		path: "/api/v1/channel/policy",
 		req:  (*lnrpc.PolicyUpdateRequest)(nil),
 		res:  (*lnrpc.PolicyUpdateResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -827,10 +827,9 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
-	//	TODO: service exportchanbackup
-	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
+	//	service exportchanbackup
 	{
-		path: "/api/v1/channels/backup/{chan_point.funding_txid_str}/{chan_point.output_index}",
+		path: "/api/v1/channel/backup/export",
 		req:  (*lnrpc.ExportChannelBackupRequest)(nil),
 		res:  (*lnrpc.ChannelBackup)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -859,7 +858,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service verifychanbackup
 	{
-		path: "/api/v1/channels/backup/verify",
+		path: "/api/v1/channel/backup/verify",
 		req:  (*lnrpc.ChanBackupSnapshot)(nil),
 		res:  (*lnrpc.VerifyChanBackupResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -888,7 +887,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service restorechanbackup
 	{
-		path: "/api/v1/channels/backup/restore",
+		path: "/api/v1/channel/backup/restore",
 		req:  (*lnrpc.RestoreChanBackupRequest)(nil),
 		res:  (*lnrpc.RestoreBackupResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -975,7 +974,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getchaninfo
 	{
-		path: "/api/v1/graph/edge/{chan_id}",
+		path: "/api/v1/graph/channel",
 		req:  (*lnrpc.ChanInfoRequest)(nil),
 		res:  (*lnrpc.ChannelEdge)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1004,7 +1003,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnodeinfo
 	{
-		path: "/api/v1/graph/node/{pub_key}",
+		path: "/api/v1/graph/nodeinfo",
 		req:  (*lnrpc.NodeInfoRequest)(nil),
 		res:  (*lnrpc.NodeInfo)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1033,7 +1032,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service addinvoice
 	{
-		path: "/api/v1/invoices",
+		path: "/api/v1/invoice/add",
 		req:  (*lnrpc.Invoice)(nil),
 		res:  (*lnrpc.AddInvoiceResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1062,7 +1061,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service lookupinvoice
 	{
-		path: "/api/v1/invoice/{r_hash_str}",
+		path: "/api/v1/invoice/lookup",
 		req:  (*lnrpc.PaymentHash)(nil),
 		res:  (*lnrpc.Invoice)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1091,7 +1090,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listinvoices
 	{
-		path: "/api/v1/invoices",
+		path: "/api/v1/invoice",
 		req:  (*lnrpc.ListInvoiceRequest)(nil),
 		res:  (*lnrpc.ListInvoiceResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1120,7 +1119,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service decodepayreq
 	{
-		path: "/api/v1/payreq/{pay_req}",
+		path: "/api/v1/invoice/decodepayreq",
 		req:  (*lnrpc.PayReqString)(nil),
 		res:  (*lnrpc.PayReq)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1149,7 +1148,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service estimatefee
 	{
-		path: "/api/v2/router/route/estimatefee",
+		path: "/api/v1/transaction/estimatefee",
 		req:  (*lnrpc.EstimateFeeRequest)(nil),
 		res:  (*lnrpc.EstimateFeeResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1178,7 +1177,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendmany
 	{
-		path: "/api/v1/transactions/many",
+		path: "/api/v1/transaction/sendmany",
 		req:  (*lnrpc.SendManyRequest)(nil),
 		res:  (*lnrpc.SendManyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1207,7 +1206,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendcoins
 	{
-		path: "/api/v1/transactions",
+		path: "/api/v1/transaction/sendcoins",
 		req:  (*lnrpc.SendCoinsRequest)(nil),
 		res:  (*lnrpc.SendCoinsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1236,7 +1235,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listunspent
 	{
-		path: "/api/v1/utxos",
+		path: "/api/v1/transaction/listunspent",
 		req:  (*lnrpc.ListUnspentRequest)(nil),
 		res:  (*lnrpc.ListUnspentResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1265,7 +1264,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listchaintrns
 	{
-		path: "/api/v1/transactions",
+		path: "/api/v1/transaction",
 		req:  (*lnrpc.GetTransactionsRequest)(nil),
 		res:  (*lnrpc.TransactionDetails)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1294,7 +1293,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service setnetworkstewardvote
 	{
-		path: "/api/v1/setnetworkstewardvote",
+		path: "/api/v1/transaction/setnetworkstewardvote",
 		req:  (*lnrpc.SetNetworkStewardVoteRequest)(nil),
 		res:  (*lnrpc.SetNetworkStewardVoteResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1323,7 +1322,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnetworkstewardvote
 	{
-		path: "/api/v1/getnetworkstewardvote",
+		path: "/api/v1/transaction/getnetworkstewardvote",
 		req:  nil,
 		res:  (*lnrpc.GetNetworkStewardVoteResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1346,7 +1345,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service bcasttransaction
 	{
-		path: "/api/v1/bcasttransaction",
+		path: "/api/v1/transaction/bcast",
 		req:  (*lnrpc.BcastTransactionRequest)(nil),
 		res:  (*lnrpc.BcastTransactionResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1375,7 +1374,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendpayment
 	{
-		path: "/api/v1/channels/transactions",
+		path: "/api/v1/payment/send",
 		req:  (*lnrpc.SendRequest)(nil),
 		res:  (*lnrpc.SendResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1406,7 +1405,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	/*
 		check payInvoice incm_pay.go source file
 		{
-			path: "/v1/channels/transactions",
+			path: "/api/v1/payment/payinvoice",
 			req:  (*routerrpc.SendPaymentRequest)(nil),
 			res:  nil,
 			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1434,7 +1433,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	*/
 	//	service sendtoroute
 	{
-		path: "/api/v1/channels/transactions/route",
+		path: "/api/v1/payment/sendroute",
 		req:  (*lnrpc.SendToRouteRequest)(nil),
 		res:  (*lnrpc.SendResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1462,26 +1461,16 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		},
 	},
 	//	service listpayments
-	//	TODO: the rest-annotations.yaml says its a GET but, the query have a lot of parameteres
 	{
-		path: "/api/v1/payments",
-		//req:  (*lnrpc.ListPaymentsRequest)(nil),
-		req: nil,
-		res: (*lnrpc.ListPaymentsResponse)(nil),
+		path: "/api/v1/payment",
+		req:  (*lnrpc.ListPaymentsRequest)(nil),
+		res:  (*lnrpc.ListPaymentsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
-			/*
-				listPaymentsReq, ok := m.(*lnrpc.ListPaymentsRequest)
-				if !ok {
-					return nil, er.New("Argument is not a ListPaymentsRequest")
-				}
-			*/
-			listPaymentsReq := &lnrpc.ListPaymentsRequest{
-				IncludeIncomplete: true,
-				IndexOffset:       0,
-				MaxPayments:       25,
-				Reversed:          false,
+			listPaymentsReq, ok := m.(*lnrpc.ListPaymentsRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ListPaymentsRequest")
 			}
 
 			//	invoke Lightning list payments command
@@ -1502,7 +1491,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service queryroutes
 	{
-		path: "/api/v1/graph/routes/{pub_key}/{amt}",
+		path: "/api/v1/payment/queryroutes",
 		req:  (*lnrpc.QueryRoutesRequest)(nil),
 		res:  (*lnrpc.QueryRoutesResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1531,7 +1520,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service fwdinghistory
 	{
-		path: "/v1/channels/transactions",
+		path: "/api/v1/payment/fwdinghistory",
 		req:  (*lnrpc.ForwardingHistoryRequest)(nil),
 		res:  (*lnrpc.ForwardingHistoryResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1558,41 +1547,9 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 	},
-	//	service trackpayment
-	//	DEPRECATED: no endpoint for this command
-	/*
-		{
-			path: "/v1/channels/transactions",
-			req:  (*lnrpc.SendRequest)(nil),
-			res:  (*lnrpc.BcastTransactionResponse)(nil),
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-
-				//	get the request payload
-				sendReq, ok := m.(*lnrpc.SendRequest)
-				if !ok {
-					return nil, er.New("Argument is not a SendRequest")
-				}
-
-				//	invoke Lightning send payment command
-				cc, errr := c.withRpcServer()
-				if cc != nil {
-					var sendResp *lnrpc.SendResponse
-
-					sendResp, err := cc.trackPayment(context.TODO(), sendReq)
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return sendResp, nil
-					}
-				} else {
-					return nil, errr
-				}
-			},
-		},
-	*/
 	//	service querymc
 	{
-		path: "/api/v2/router/mc",
+		path: "/api/v1/payment/querymc",
 		req:  nil,
 		res:  (*routerrpc.QueryMissionControlResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1615,7 +1572,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service queryprob
 	{
-		path: "/api/v2/router/mc/probability/{from_node}/{to_node}/{amt_msat}",
+		path: "/api/v1/payment/queryprob",
 		req:  (*routerrpc.QueryProbabilityRequest)(nil),
 		res:  (*routerrpc.QueryProbabilityResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1644,7 +1601,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service resetmc
 	{
-		path: "/api/v2/router/mc/reset",
+		path: "/api/v1/payment/resetmc",
 		req:  nil,
 		res:  (*routerrpc.ResetMissionControlResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1667,7 +1624,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service buildroute
 	{
-		path: "/api/v2/router/route",
+		path: "/api/v1/payment/buildroute",
 		req:  (*routerrpc.BuildRouteRequest)(nil),
 		res:  (*routerrpc.BuildRouteResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1696,7 +1653,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service connect
 	{
-		path: "/api/v1/peers",
+		path: "/api/v1/peer/connect",
 		req:  (*lnrpc.ConnectPeerRequest)(nil),
 		res:  (*lnrpc.ConnectPeerResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1725,7 +1682,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service disconnect
 	{
-		path: "/api/v1/peers/disconnect/{pub_key}",
+		path: "/api/v1/peer/disconnect",
 		req:  (*lnrpc.DisconnectPeerRequest)(nil),
 		res:  (*lnrpc.DisconnectPeerResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1754,7 +1711,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listpeers
 	{
-		path: "/api/v1/listpeers",
+		path: "/api/v1/peer",
 		req:  nil,
 		res:  (*lnrpc.ListPeersResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {

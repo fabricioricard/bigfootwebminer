@@ -262,7 +262,7 @@ func (s *Store) updateMinedBalance(ns walletdb.ReadWriteBucket, rec *TxRecord,
 		if err != nil {
 			return err
 		}
-		if err := deleteRawUnspent(ns, unspentKey); err != nil {
+		if err := DeleteRawUnspent(ns, unspentKey); err != nil {
 			return err
 		}
 		spentByAddress[prevAddr] += amt
@@ -547,7 +547,7 @@ func rollbackTransaction(
 			unspentKey, credKey := existsUnspent(ns, &op)
 			if credKey != nil {
 				coins -= btcutil.Amount(output.Value)
-				if err = deleteRawUnspent(ns, unspentKey); err != nil {
+				if err = DeleteRawUnspent(ns, unspentKey); err != nil {
 					return
 				}
 			}
@@ -702,7 +702,7 @@ func rollbackTransaction(
 		credKey := existsRawUnspent(ns, outPointKey)
 		if credKey != nil {
 			coins -= btcutil.Amount(output.Value)
-			if err = deleteRawUnspent(ns, outPointKey); err != nil {
+			if err = DeleteRawUnspent(ns, outPointKey); err != nil {
 				return
 			}
 			prevAddr := txscript.PkScriptToAddress(output.PkScript, params).String()

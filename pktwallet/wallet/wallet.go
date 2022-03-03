@@ -147,6 +147,14 @@ type rescanJob struct {
 	dropDb     bool
 }
 
+type CoinbaseSelector int
+
+const (
+	coinbaseInclude CoinbaseSelector = 0
+	coinbaseExclude                  = 1
+	coinbaseOnly                     = 2
+)
+
 func (w *Wallet) Database() walletdb.DB {
 	return w.db
 }
@@ -611,12 +619,13 @@ func getBlockStamp(chainClient chain.Interface, height int32) (*waddrmgr.BlockSt
 }
 
 type (
+	SendMode    uint8
 	CreateTxReq struct {
 		InputAddresses  *[]btcutil.Address
 		Outputs         []*wire.TxOut
 		Minconf         int32
 		FeeSatPerKB     btcutil.Amount
-		DryRun          bool
+		SendMode        SendMode
 		ChangeAddress   *btcutil.Address
 		InputMinHeight  int
 		InputComparator utils.Comparator
@@ -631,6 +640,12 @@ type (
 		tx  *txauthor.AuthoredTx
 		err er.R
 	}
+)
+
+const (
+	SendModeUnsigned SendMode = 0
+	SendModeSigned   SendMode = 1
+	SendModeBcasted  SendMode = 2
 )
 
 // txCreator is responsible for the input selection and creation of
@@ -1577,6 +1592,8 @@ type GetTransactionsResult struct {
 // Block structure which records properties about the block.
 func (w *Wallet) GetTransactions(
 	startBlock, endBlock *BlockIdentifier,
+	limit, skip, //0 means no limit imposed
+	coinbase int32,
 	cancel <-chan struct{},
 ) (*GetTransactionsResult, er.R) {
 	var start, end int32 = 0, -1
@@ -1638,8 +1655,10 @@ func (w *Wallet) GetTransactions(
 			}
 		}
 	}
-
+	log.Infof("Default skip: %d, limit:%d, coinbase:%d\n", skip, limit, coinbase)
 	var res GetTransactionsResult
+	var totalTxns = 0
+	var skippedtxns int32 = 0
 	err := walletdb.View(w.db, func(dbtx walletdb.ReadTx) er.R {
 		txmgrNs := dbtx.ReadBucket(wtxmgrNamespaceKey)
 
@@ -1649,7 +1668,6 @@ func (w *Wallet) GetTransactions(
 			dets := make([]wtxmgr.TxDetails, len(details))
 			copy(dets, details)
 			details = dets
-
 			txs := make([]TransactionSummary, 0, len(details))
 			for i := range details {
 				txs = append(txs, makeTxSummary(dbtx, w, &details[i]))
@@ -1657,14 +1675,36 @@ func (w *Wallet) GetTransactions(
 
 			if details[0].Block.Height != -1 {
 				blockHash := details[0].Block.Hash
-				res.MinedTransactions = append(res.MinedTransactions, Block{
-					Hash:         &blockHash,
-					Height:       details[0].Block.Height,
-					Timestamp:    details[0].Block.Time.Unix(),
-					Transactions: txs,
-				})
-			} else {
+				if (details[0].MsgTx.TxIn[0].PreviousOutPoint.Hash.IsEqual(&chainhash.Hash{0000000000000000000000000000000000000000000000000000000000000000})) {
+					if coinbase == coinbaseExclude {
+						txs = txs[1:]
+					} else if coinbase == coinbaseOnly {
+						txs = txs[:1]
+					}
+				}
+				//Skipping transactions
+				if skippedtxns < skip {
+					skippedtxns++
+				} else {
+					if skippedtxns > 0 {
+						log.Infof("%d transactions were skipped", limit)
+					}
+					res.MinedTransactions = append(res.MinedTransactions, Block{
+						Hash:         &blockHash,
+						Height:       details[0].Block.Height,
+						Timestamp:    details[0].Block.Time.Unix(),
+						Transactions: txs,
+					})
+					totalTxns += len(txs)
+				}
+			} else if coinbase != coinbaseOnly {
 				res.UnminedTransactions = txs
+				totalTxns += len(txs)
+			}
+
+			if (limit > 0) && (totalTxns >= int(limit)) {
+				log.Infof("Limit on number of transactions was reached %d", limit)
+				return true, nil
 			}
 
 			select {
@@ -2184,11 +2224,11 @@ func (w *Wallet) SendOutputs(txr CreateTxReq) (*txauthor.AuthoredTx, er.R) {
 	if err != nil {
 		return nil, err
 	}
-	if txr.DryRun {
+	if txr.SendMode != SendModeBcasted {
 		return createdTx, nil
 	}
 
-	txHash, err := w.reliablyPublishTransaction(createdTx.Tx, txr.Label)
+	txHash, err := w.ReliablyPublishTransaction(createdTx.Tx, txr.Label)
 	if err != nil {
 		return nil, err
 	}
@@ -2370,7 +2410,7 @@ func (w *Wallet) SignTransaction(tx *wire.MsgTx, hashType params.SigHashType,
 // This function is unstable and will be removed once syncing code is moved out
 // of the wallet.
 func (w *Wallet) PublishTransaction(tx *wire.MsgTx, label string) er.R {
-	_, err := w.reliablyPublishTransaction(tx, label)
+	_, err := w.ReliablyPublishTransaction(tx, label)
 	return err
 }
 
@@ -2379,7 +2419,7 @@ func (w *Wallet) PublishTransaction(tx *wire.MsgTx, label string) er.R {
 // relevant database state, and finally possible removing the transaction from
 // the database (along with cleaning up all inputs used, and outputs created) if
 // the transaction is rejected by the backend.
-func (w *Wallet) reliablyPublishTransaction(tx *wire.MsgTx, label string) (*chainhash.Hash, er.R) {
+func (w *Wallet) ReliablyPublishTransaction(tx *wire.MsgTx, label string) (*chainhash.Hash, er.R) {
 	// We need to addRelevantTx this transaction so the user's next tx won't just keep
 	// on trying to spend the same money over and over, but it will get flushed on restarts
 	// because if the tx is invalid, the wallet would otherwise just remember it forever.

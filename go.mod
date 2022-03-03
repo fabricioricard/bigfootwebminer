@@ -9,10 +9,8 @@ replace github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.5
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 
 require (
-	git.schwanenlied.me/yawning/bsaes.git v0.0.0-20180720073208-c0276d75487e // indirect
 	github.com/NebulousLabs/fastrand v0.0.0-20181203155948-6fb6489aac4e // indirect
 	github.com/NebulousLabs/go-upnp v0.0.0-20180202185039-29b680b06c82
-	github.com/Yawning/aez v0.0.0-20180114000226-4dad034d9db2
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da
 	github.com/aead/siphash v1.0.1
 	github.com/arl/statsviz v0.2.2-0.20201115121518-5ea9f0cf1bd1
@@ -31,7 +29,7 @@ require (
 	github.com/go-errors/errors v1.0.1
 	github.com/go-openapi/strfmt v0.19.5 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.0
 	github.com/golang/snappy v0.0.2
 	github.com/google/btree v1.0.0 // indirect
 	github.com/gorilla/websocket v1.4.3-0.20200912193213-c3dd95aea977
@@ -66,7 +64,6 @@ require (
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
-	github.com/tv42/zbase32 v0.0.0-20160707012821-501572607d02
 	github.com/urfave/cli v1.18.0
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	go.etcd.io/bbolt v1.3.6-0.20200807205753-f6be82302843
@@ -79,6 +76,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20201021134325-0d71844de594 // indirect
 	google.golang.org/grpc v1.34.0-dev.0.20201021230544-4e8458e5c638
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/errgo.v1 v1.0.1 // indirect
 	gopkg.in/macaroon-bakery.v2 v2.0.1
 	gopkg.in/macaroon.v2 v2.0.0

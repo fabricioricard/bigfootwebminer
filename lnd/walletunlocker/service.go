@@ -2,20 +2,21 @@ package walletunlocker
 
 import (
 	"context"
-	"crypto/rand"
+	"io/ioutil"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/lnd/aezeed"
 	"github.com/pkt-cash/pktd/lnd/chanbackup"
-	"github.com/pkt-cash/pktd/lnd/keychain"
+	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/lnwallet"
 	"github.com/pkt-cash/pktd/lnd/lnwallet/btcwallet"
 	"github.com/pkt-cash/pktd/lnd/macaroons"
+	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
+	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
 )
 
 var (
@@ -50,7 +51,7 @@ type WalletInitMsg struct {
 
 	// WalletSeed is the deciphered cipher seed that the wallet should use
 	// to initialize itself.
-	WalletSeed *aezeed.CipherSeed
+	Seed *seedwords.Seed
 
 	// RecoveryWindow is the address look-ahead used when restoring a seed
 	// with existing funds. A recovery window zero indicates that no
@@ -129,13 +130,16 @@ type UnlockerService struct {
 	// different access permissions. These might not exist in a stateless
 	// initialization of lnd.
 	macaroonFiles []string
+
+	walletFile string
+	walletPath string
 }
 
 var _ lnrpc.WalletUnlockerServer = (*UnlockerService)(nil)
 
 // New creates and returns a new UnlockerService.
 func New(chainDir string, params *chaincfg.Params, noFreelistSync bool,
-	macaroonFiles []string) *UnlockerService {
+	macaroonFiles []string, walletPath string, walletFilename string) *UnlockerService {
 
 	return &UnlockerService{
 		InitMsgs:   make(chan *WalletInitMsg, 1),
@@ -147,6 +151,8 @@ func New(chainDir string, params *chaincfg.Params, noFreelistSync bool,
 		chainDir:        chainDir,
 		netParams:       params,
 		macaroonFiles:   macaroonFiles,
+		walletFile:      walletFilename,
+		walletPath:      walletPath,
 	}
 }
 
@@ -170,7 +176,10 @@ func (u *UnlockerService) GenSeed0(_ context.Context,
 	// Before we start, we'll ensure that the wallet hasn't already created
 	// so we don't show a *new* seed to the user if one already exists.
 	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
-	loader := wallet.NewLoader(u.netParams, netDir, "wallet.db", u.noFreelistSync, 0)
+	if u.walletPath != "" {
+		netDir = u.walletPath
+	}
+	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, 0)
 	walletExists, err := loader.WalletExists()
 	if err != nil {
 		return nil, err
@@ -179,55 +188,30 @@ func (u *UnlockerService) GenSeed0(_ context.Context,
 		return nil, er.Errorf("wallet already exists")
 	}
 
-	var entropy [aezeed.EntropySize]byte
+	//var entropy [aezeed.EntropySize]byte
 
-	switch {
-	// If the user provided any entropy, then we'll make sure it's sized
-	// properly.
-	case len(in.SeedEntropy) != 0 && len(in.SeedEntropy) != aezeed.EntropySize:
-		return nil, er.Errorf("incorrect entropy length: expected "+
-			"16 bytes, instead got %v bytes", len(in.SeedEntropy))
-
-	// If the user provided the correct number of bytes, then we'll copy it
-	// over into our buffer for usage.
-	case len(in.SeedEntropy) == aezeed.EntropySize:
-		copy(entropy[:], in.SeedEntropy[:])
-
-	// Otherwise, we'll generate a fresh new set of bytes to use as entropy
-	// to generate the seed.
-	default:
-		if _, err := rand.Read(entropy[:]); err != nil {
-			return nil, er.E(err)
-		}
+	if len(in.SeedEntropy) != 0 {
+		return nil, er.Errorf("seed input entropy is not supported")
 	}
 
 	// Now that we have our set of entropy, we'll create a new cipher seed
 	// instance.
 	//
-	cipherSeed, err := aezeed.New(
-		keychain.KeyDerivationVersion, &entropy, time.Now(),
-	)
+	cipherSeed, err := seedwords.RandomSeed()
 	if err != nil {
 		return nil, err
 	}
 
-	// With our raw cipher seed obtained, we'll convert it into an encoded
-	// mnemonic using the user specified pass phrase.
-	mnemonic, err := cipherSeed.ToMnemonic(in.AezeedPassphrase)
-	if err != nil {
-		return nil, err
-	}
+	encipheredSeed := cipherSeed.Encrypt(in.AezeedPassphrase)
 
-	// Additionally, we'll also obtain the raw enciphered cipher seed as
-	// well to return to the user.
-	encipheredSeed, err := cipherSeed.Encipher(in.AezeedPassphrase)
+	mnemonic, err := encipheredSeed.Words("english")
 	if err != nil {
 		return nil, err
 	}
 
 	return &lnrpc.GenSeedResponse{
-		CipherSeedMnemonic: []string(mnemonic[:]),
-		EncipheredSeed:     encipheredSeed[:],
+		CipherSeedMnemonic: strings.Split(mnemonic, " "),
+		EncipheredSeed:     encipheredSeed.Bytes[:],
 	}, nil
 }
 
@@ -305,9 +289,10 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 	// We'll then open up the directory that will be used to store the
 	// wallet's files so we can check if the wallet already exists.
 	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
-	loader := wallet.NewLoader(
-		u.netParams, netDir, "wallet.db", u.noFreelistSync, uint32(recoveryWindow),
-	)
+	if u.walletPath != "" {
+		netDir = u.walletPath
+	}
+	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, uint32(recoveryWindow))
 
 	walletExists, err := loader.WalletExists()
 	if err != nil {
@@ -320,15 +305,13 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 		return nil, er.Errorf("wallet already exists")
 	}
 
-	// At this point, we know that the wallet doesn't already exist. So
-	// we'll map the user provided aezeed and passphrase into a decoded
-	// cipher seed instance.
-	var mnemonic aezeed.Mnemonic
-	copy(mnemonic[:], in.CipherSeedMnemonic[:])
+	mnemonic := strings.Join(in.CipherSeedMnemonic, " ")
+	seedEnc, err := seedwords.SeedFromWords(mnemonic)
+	if err != nil {
+		return nil, err
+	}
 
-	// If we're unable to map it back into the ciphertext, then either the
-	// mnemonic is wrong, or the passphrase is wrong.
-	cipherSeed, err := mnemonic.ToCipherSeed(in.AezeedPassphrase)
+	seed, err := seedEnc.Decrypt(in.AezeedPassphrase, false)
 	if err != nil {
 		return nil, err
 	}
@@ -338,7 +321,7 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 	// daemon to initialize itself and startup.
 	initMsg := &WalletInitMsg{
 		Passphrase:     password,
-		WalletSeed:     cipherSeed,
+		Seed:           seed,
 		RecoveryWindow: uint32(recoveryWindow),
 		StatelessInit:  in.StatelessInit,
 	}
@@ -383,13 +366,19 @@ func (u *UnlockerService) UnlockWallet(ctx context.Context,
 func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	in *lnrpc.UnlockWalletRequest) (*lnrpc.UnlockWalletResponse, er.R) {
 
-	password := in.WalletPassword
+	privpassword := in.WalletPassword
+	pubpassword := []byte(wallet.InsecurePubPassphrase)
+	if in.WalletPubPassword != nil {
+		pubpassword = in.WalletPubPassword
+	}
+
 	recoveryWindow := uint32(in.RecoveryWindow)
 
 	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
-	loader := wallet.NewLoader(
-		u.netParams, netDir, "wallet.db", u.noFreelistSync, recoveryWindow,
-	)
+	if u.walletPath != "" {
+		netDir = u.walletPath
+	}
+	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, recoveryWindow)
 
 	// Check if wallet already exists.
 	walletExists, err := loader.WalletExists()
@@ -403,7 +392,7 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	}
 
 	// Try opening the existing wallet with the provided password.
-	unlockedWallet, err := loader.OpenExistingWallet(password, false)
+	unlockedWallet, err := loader.OpenExistingWallet(pubpassword, false)
 	if err != nil {
 		// Could not open wallet, most likely this means that provided
 		// password was incorrect.
@@ -413,7 +402,7 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	// We successfully opened the wallet and pass the instance back to
 	// avoid it needing to be unlocked again.
 	walletUnlockMsg := &WalletUnlockMsg{
-		Passphrase:     password,
+		Passphrase:     privpassword,
 		RecoveryWindow: recoveryWindow,
 		Wallet:         unlockedWallet,
 		UnloadWallet:   loader.UnloadWallet,
@@ -461,7 +450,10 @@ func (u *UnlockerService) ChangePassword0(ctx context.Context,
 	in *lnrpc.ChangePasswordRequest) (*lnrpc.ChangePasswordResponse, er.R) {
 
 	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
-	loader := wallet.NewLoader(u.netParams, netDir, "wallet.db", u.noFreelistSync, 0)
+	if u.walletPath != "" {
+		netDir = u.walletPath
+	}
+	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, 0)
 
 	// First, we'll make sure the wallet exists for the specific chain and
 	// network.
@@ -624,4 +616,76 @@ func ValidatePassword(password []byte) er.R {
 	}
 
 	return nil
+}
+
+func (u *UnlockerService) CreateWallet(ctx context.Context, req *lnrpc.CreateWalletRequest) (*lnrpc.CreateWalletResponse, error) {
+	response := &lnrpc.CreateWalletResponse{}
+	var cipherSeed []string
+	var aezeedPass []byte
+	//Validate password
+	err := ValidatePassword(req.WalletPassword)
+	if err != nil {
+		log.Infof("Password could not be validated.")
+		return response, er.Native(err)
+	}
+	if req.CipherSeedMnemonic != nil {
+		cipherSeed = req.CipherSeedMnemonic
+		log.Infof("Using provided cipher seed mnemonic.")
+		//Check Seed Mnemonic
+		if len(req.CipherSeedMnemonic) != 15 {
+			return response, er.Native(er.New("wrong cipher seed mnemonic length: got " + string(len(req.CipherSeedMnemonic)) + " words, expecting 15 words"))
+		}
+		cipherSeedString := strings.Join(cipherSeed, " ")
+		seedEnc, err := seedwords.SeedFromWords(cipherSeedString)
+		if err != nil {
+			return response, er.Native(err)
+		}
+		if seedEnc.NeedsPassphrase() && req.AezeedPass == nil {
+			return response, er.Native(er.New("This seed is encrypted aezeedPassphrase provided is empty"))
+		}
+	} else {
+		log.Infof("Generating seed.")
+		if req.AezeedPass != nil {
+			aezeedPass = req.AezeedPass
+		}
+		//passphrase for encrypting seed
+		genSeedReq := &lnrpc.GenSeedRequest{
+			AezeedPassphrase: aezeedPass,
+		}
+		seedResp, err := u.GenSeed(ctx, genSeedReq)
+		if err != nil {
+			return response, er.Native(er.New("unable to generate seed: " + err.Error()))
+		}
+		cipherSeed = seedResp.CipherSeedMnemonic
+	}
+
+	statelessInit := req.StatelessInitFlag
+	var chanBackups *lnrpc.ChanBackupSnapshot
+	initWalletRequest := &lnrpc.InitWalletRequest{
+		WalletPassword:     req.WalletPassword,
+		CipherSeedMnemonic: cipherSeed,
+		AezeedPassphrase:   aezeedPass,
+		RecoveryWindow:     0,
+		ChannelBackups:     chanBackups,
+		StatelessInit:      statelessInit,
+	}
+	initWalletResponce, errr := u.InitWallet(ctx, initWalletRequest)
+	if errr != nil {
+		log.Errorf("Failed to initialize wallet.")
+		return response, errr
+	}
+	if req.StatelessInitFlag {
+		if req.SaveTo != "" {
+			macSavePath := lncfg.CleanAndExpandPath(req.SaveTo)
+			errr := ioutil.WriteFile(macSavePath, initWalletResponce.AdminMacaroon, 0644)
+			if errr != nil {
+				_ = os.Remove(macSavePath)
+				return response, errr
+			}
+		}
+	}
+	response = &lnrpc.CreateWalletResponse{
+		Seed: cipherSeed,
+	}
+	return response, nil
 }

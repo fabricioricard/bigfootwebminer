@@ -102,13 +102,10 @@ func (l *Loader) RunAfterLoad(fn func(*Wallet)) {
 }
 
 func WalletDbPath(netDir, walletName string) string {
-	if strings.HasSuffix(walletName, ".db") {
-		if strings.HasPrefix(walletName, "/") {
-			// absolute path
-			return walletName
-		} else {
-			return filepath.Join(netDir, walletName)
-		}
+	if filepath.IsAbs(walletName) {
+		return walletName
+	} else if strings.HasSuffix(walletName, ".db") {
+		return filepath.Join(netDir, walletName)
 	} else {
 		return filepath.Join(netDir, fmt.Sprintf("wallet_%s.db", walletName))
 	}

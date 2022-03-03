@@ -60,6 +60,7 @@ const (
 	Lcolor
 
 	Llongdate
+	Lnodate
 )
 
 // Level is the level at which a logger is configured.  All messages sent
@@ -185,6 +186,8 @@ func newBackend(w io.Writer) *backend {
 			flags |= Lcolor
 		case "longdate":
 			flags |= Llongdate
+		case "nodate":
+			flags |= Lnodate
 		default:
 			continue
 		}
@@ -286,40 +289,48 @@ const (
 	colorCrit = Bright + fgBlack + bgRed
 )
 
+func color(color string, str string) string {
+	if b.flag&Lcolor == Lcolor {
+		return color + str + Reset
+	} else {
+		return str
+	}
+}
+
 func Height(h int32) string {
 	out := "unconfirmed"
 	if h > -1 {
 		out = strconv.FormatInt(int64(h), 10)
 	}
-	return fgYellow + out + Reset
+	return color(fgYellow, out)
 }
 
 func Txid(str string) string {
-	return fgCyan + str + Reset
+	return color(fgCyan, str)
 }
 
 func GreenBg(str string) string {
-	return BgGreen + fgBlack + str + Reset
+	return color(BgGreen + fgBlack, str)
 }
 
 func BgYellow(str string) string {
-	return bgYellow + fgBlack + str + Reset
+	return color(bgYellow + fgBlack, str)
 }
 
 func Coins(amount float64) string {
-	return Bright + FgGreen + strconv.FormatFloat(amount, 'f', 4, 64) + Reset
+	return color(Bright + FgGreen, strconv.FormatFloat(amount, 'f', 4, 64))
 }
 
 func Address(addr string) string {
-	return Bright + FgMagenta + addr + Reset
+	return color(Bright + FgMagenta, addr)
 }
 
 func IpAddr(addr string) string {
-	return Bright + fgRed + addr + Reset
+	return color(Bright + fgRed, addr)
 }
 
 func Int(num int) string {
-	return Bright + fgYellow + strconv.FormatInt(int64(num), 10) + Reset
+	return color(Bright + fgYellow, strconv.FormatInt(int64(num), 10))
 }
 
 // Appends a header in the default format 'YYYY-MM-DD hh:mm:ss.sss [LVL] TAG: '.
@@ -362,10 +373,12 @@ func formatHeader(flags uint32, buf *[]byte, t time.Time, lvl Level, file string
 		itoa(buf, sec, 2)
 		*buf = append(*buf, '.')
 		itoa(buf, ms, 3)
-	} else {
+		*buf = append(*buf, " "...)
+	} else if flags&Lnodate != Lnodate {
 		itoa(buf, int(t.Unix()), -1)
+		*buf = append(*buf, " "...)
 	}
-	*buf = append(*buf, " ["...)
+	*buf = append(*buf, "["...)
 	*buf = append(*buf, lvl.String()...)
 	*buf = append(*buf, "] "...)
 	if flags&(Lshortfile|Llongfile) != 0 {

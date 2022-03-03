@@ -158,14 +158,8 @@ func bakeMacaroon(ctx *cli.Context) er.R {
 		return er.E(errr)
 	}
 
-	// Now we should have gotten a valid macaroon. Unmarshal it so we can
-	// add first-party caveats (if necessary) to it.
-	macBytes, err := util.DecodeHex(resp.Macaroon)
-	if err != nil {
-		return err
-	}
 	unmarshalMac := &macaroon.Macaroon{}
-	if errr := unmarshalMac.UnmarshalBinary(macBytes); errr != nil {
+	if errr := unmarshalMac.UnmarshalBinary(resp.Macaroon); errr != nil {
 		return er.E(errr)
 	}
 
@@ -189,7 +183,7 @@ func bakeMacaroon(ctx *cli.Context) er.R {
 	if err != nil {
 		return err
 	}
-	macBytes, errr = constrainedMac.MarshalBinary()
+	macBytes, errr := constrainedMac.MarshalBinary()
 	if errr != nil {
 		return er.E(errr)
 	}

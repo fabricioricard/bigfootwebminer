@@ -618,8 +618,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			},
 		},
 	*/
-	//	TODO: service abandonchannel
-	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
+	//	service abandonchannel
 	{
 		path: "/api/v1/channel/abandon",
 		req:  (*lnrpc.AbandonChannelRequest)(nil),
@@ -1730,6 +1729,232 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 					return nil, er.E(err)
 				} else {
 					return listPeersResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service signmessage
+	{
+		path: "/api/v1/lightning/signmessage",
+		req:  (*lnrpc.SignMessageRequest)(nil),
+		res:  (*lnrpc.SignMessageResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			signMessageReq, ok := m.(*lnrpc.SignMessageRequest)
+			if !ok {
+				return nil, er.New("Argument is not a SignMessageRequest")
+			}
+
+			//	invoke wallet sign message command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var signMessageResp *lnrpc.SignMessageResponse
+
+				signMessageResp, err := cc.SignMessage(context.TODO(), signMessageReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return signMessageResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service getsecret
+	{
+		path: "/api/v1/lightning/getsecret",
+		req:  (*lnrpc.GetSecretRequest)(nil),
+		res:  (*lnrpc.GetSecretResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			getSecretReq, ok := m.(*lnrpc.GetSecretRequest)
+			if !ok {
+				return nil, er.New("Argument is not a GetSecretRequest")
+			}
+
+			//	invoke wallet get secret command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var getSecretResp *lnrpc.GetSecretResponse
+
+				getSecretResp, err := cc.GetSecret(context.TODO(), getSecretReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return getSecretResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service importprivkey
+	{
+		path: "/api/v1/lightning/importprivkey",
+		req:  (*lnrpc.ImportPrivKeyRequest)(nil),
+		res:  (*lnrpc.ImportPrivKeyResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			importPrivKeyReq, ok := m.(*lnrpc.ImportPrivKeyRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ImportPrivKeyRequest")
+			}
+
+			//	invoke wallet import private key command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var importPrivKeyResp *lnrpc.ImportPrivKeyResponse
+
+				importPrivKeyResp, err := cc.ImportPrivKey(context.TODO(), importPrivKeyReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return importPrivKeyResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service listlockunspent
+	{
+		path: "/api/v1/lightning/listlockunspent",
+		req:  nil,
+		res:  (*lnrpc.ListLockUnspentResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	invoke wallet list lock unspent command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var listLockUnspentResp *lnrpc.ListLockUnspentResponse
+
+				listLockUnspentResp, err := cc.ListLockUnspent(context.TODO(), nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return listLockUnspentResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service lockunspent
+	{
+		path: "/api/v1/lightning/lockunspent",
+		req:  (*lnrpc.LockUnspentRequest)(nil),
+		res:  (*lnrpc.LockUnspentResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			lockUnspentReq, ok := m.(*lnrpc.LockUnspentRequest)
+			if !ok {
+				return nil, er.New("Argument is not a LockUnspentRequest")
+			}
+
+			//	invoke wallet lock unspent command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var lockUnspentResp *lnrpc.LockUnspentResponse
+
+				lockUnspentResp, err := cc.LockUnspent(context.TODO(), lockUnspentReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return lockUnspentResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service createtransaction
+	{
+		path: "/api/v1/lightning/createtransaction",
+		req:  (*lnrpc.CreateTransactionRequest)(nil),
+		res:  (*lnrpc.CreateTransactionResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			createTransactionReq, ok := m.(*lnrpc.CreateTransactionRequest)
+			if !ok {
+				return nil, er.New("Argument is not a CreateTransactionRequest")
+			}
+
+			//	invoke wallet create transaction command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var createTransactionResp *lnrpc.CreateTransactionResponse
+
+				createTransactionResp, err := cc.CreateTransaction(context.TODO(), createTransactionReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return createTransactionResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service dumpprivkey
+	{
+		path: "/api/v1/lightning/dumpprivkey",
+		req:  (*lnrpc.DumpPrivKeyRequest)(nil),
+		res:  (*lnrpc.DumpPrivKeyResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			dumpPrivKeyReq, ok := m.(*lnrpc.DumpPrivKeyRequest)
+			if !ok {
+				return nil, er.New("Argument is not a DumpPrivKeyRequest")
+			}
+
+			//	invoke wallet dump private key command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var dumpPrivKeyResp *lnrpc.DumpPrivKeyResponse
+
+				dumpPrivKeyResp, err := cc.DumpPrivKey(context.TODO(), dumpPrivKeyReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return dumpPrivKeyResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
+	//	service gettransactions
+	{
+		path: "/api/v1/lightning/gettransactions",
+		req:  (*lnrpc.GetTransactionsRequest)(nil),
+		res:  (*lnrpc.TransactionDetails)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			getTransactionsReq, ok := m.(*lnrpc.GetTransactionsRequest)
+			if !ok {
+				return nil, er.New("Argument is not a GetTransactionsRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var transactionDetailsResp *lnrpc.TransactionDetails
+
+				transactionDetailsResp, err := cc.GetTransactions(context.TODO(), getTransactionsReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return transactionDetailsResp, nil
 				}
 			} else {
 				return nil, errr

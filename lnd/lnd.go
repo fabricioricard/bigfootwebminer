@@ -213,6 +213,8 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 	// Bring up the REST handler immediately
 	restContext := restrpc.RpcContext{}
 	restHandler := restrpc.RestHandlers(&restContext)
+	restrpc.RestHandlersHelp(restHandler)
+
 	for _, restEndpoint := range cfg.RESTListeners {
 		lis, err := lncfg.ListenOnAddress(restEndpoint)
 		if err != nil {
@@ -393,7 +395,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 	// We wait until the user provides a password over RPC. In case lnd is
 	// started with the --noseedbackup flag, we use the default password
 	// for wallet encryption.
-	
+
 	if !cfg.NoSeedBackup {
 		params, shutdown, err := waitForWalletPassword(
 			cfg, cfg.RESTListeners, serverOpts, restDialOpts,

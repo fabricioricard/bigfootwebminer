@@ -24,6 +24,7 @@ import (
 	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
+	"github.com/urfave/cli"
 )
 
 type RpcFunc struct {
@@ -31,6 +32,9 @@ type RpcFunc struct {
 	req  proto.Message
 	res  proto.Message
 	f    func(c *RpcContext, m proto.Message) (proto.Message, er.R)
+
+	helpPath string
+	cmd      cli.Command
 }
 
 var rpcFunctions []RpcFunc = []RpcFunc{
@@ -52,6 +56,9 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 			return nil, nil
 		},
+
+		helpPath: "/api/v1/help/wallet/unlock",
+		cmd:      commandUnlock,
 	},
 	//WalletUnlocker: Wallet create
 	//Will try to create/restore wallet
@@ -74,6 +81,9 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 			return resp, nil
 		},
+
+		helpPath: "/api/v1/help/wallet/create",
+		cmd:      commandCreate,
 	},
 	//MetaService get info
 	{
@@ -206,6 +216,9 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				Lightning: lightning,
 			}, nil
 		},
+
+		helpPath: "/api/v1/help/wallet/getinfo",
+		cmd:      commandGetInfo,
 	},
 	//MetaService change wallet password
 	{
@@ -227,6 +240,9 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 			return resp, nil
 		},
+
+		helpPath: "/api/v1/help/wallet/changepassword",
+		cmd:      commandChangePassword,
 	},
 	//Wallet balance
 	//requires unlocked wallet -> access to rpcServer
@@ -2066,6 +2082,20 @@ func marshal(w http.ResponseWriter, m proto.Message, isJson bool) er.R {
 
 func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, isJson bool) er.R {
 	var req proto.Message
+
+	//	check if the URI is for command help
+	if r.RequestURI == s.rf.helpPath {
+
+		if r.Method != "GET" {
+			return er.New("Request should be a GET because the help endpoint requires no input")
+		}
+		err := marshalHelp(w, s.rf.cmd)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	if s.rf.req != nil {
 		if r.Method != "POST" {
 			return er.New("Request should be a POST because the endpoint requires input")
@@ -2118,6 +2148,10 @@ func RestHandlers(c *RpcContext) *mux.Router {
 	r := mux.NewRouter()
 	for _, rf := range rpcFunctions {
 		r.Handle(rf.path, &SimpleHandler{c: c, rf: rf})
+		//	when informed add an additional handler for the command help
+		if len(rf.helpPath) > 0 {
+			r.Handle(rf.helpPath, &SimpleHandler{c: c, rf: rf})
+		}
 	}
 	return r
 }

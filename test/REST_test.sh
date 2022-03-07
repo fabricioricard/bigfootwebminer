@@ -180,11 +180,15 @@ showCommandResult 'result' ''
 executeCommand 'exportchanbackup' 'POST' '/api/v1/channel/backup/export' "{ \"chanPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
 showCommandResult 'result' '.multi_chan_backup.multi_chan_backup'
 
-executeCommand 'verifychanbackup' 'POST' '/api/v1/channel/backup/verify' "{ \"singleChanBackups\": { \"chanBackups\": { \"chanPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } } } }"
+executeCommand 'verifychanbackup' 'POST' '/api/v1/channel/backup/verify' "{ \"singleChanBackups\": { \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] } }"
 showCommandResult 'result' ''
 
-executeCommand 'restorechanbackup' 'POST' '/api/v1/channel/backup/restore' "{ \"chanBackups\": { \"chanPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } } }"
+executeCommand 'restorechanbackup' 'POST' '/api/v1/channel/backup/restore' "{ \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] }"
 showCommandResult 'result' ''
+
+showCommandResult 'result' ''
+echo "++++++++++++++++++++++++++++++++"
+exit 0
 
 #
 #   test commands to get graph info

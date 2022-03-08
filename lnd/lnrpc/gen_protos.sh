@@ -42,5 +42,11 @@ for file in $PROTOS; do
     exit 1
   fi
 
-
 done
+
+go run ../pkthelp/mkhelp/mkhelp.go . > ../pkthelp/pkthelp_gen.go
+if [ $? -ne 0 ]
+then
+  echo "${0}: fail attempting to generate help for protos"
+  exit 1
+fi

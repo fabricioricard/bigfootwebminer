@@ -478,7 +478,8 @@ func (u *UnlockerService) CreateWallet(ctx context.Context, req *lnrpc.CreateWal
 		}
 		if seedEnc.NeedsPassphrase() && req.AezeedPass == nil {
 			return response, er.Native(er.New("This seed is encrypted aezeedPassphrase provided is empty"))
-		}
+		} 
+		aezeedPass = req.AezeedPass
 	} else {
 		log.Infof("Generating seed.")
 		if req.AezeedPass != nil {

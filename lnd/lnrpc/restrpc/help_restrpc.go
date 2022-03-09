@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/lnd/pkthelp"
@@ -22,28 +21,24 @@ func mainREST_help() pkthelp.Method {
 		Name: "pld - Lightning Network Daemon REST interface (pld)",
 		Description: []string{
 			"For help on a specific command, use the following URIs:",
-			"	getinfo          /api/v1/help/meta/getinfo",
-			"	getrecoveryinfo  /api/v1/meta/getrecoveryinfo",
-			"	debuglevel       /api/v1/meta/debuglevel",
-			"	stop             /api/v1/meta/stop",
-			"	version          /api/v1/meta/version",
+			"    getinfo          /api/v1/help/meta/getinfo",
+			"    getrecoveryinfo  /api/v1/meta/getrecoveryinfo",
+			"    debuglevel       /api/v1/meta/debuglevel",
+			"    stop             /api/v1/meta/stop",
+			"    version          /api/v1/meta/version",
 		},
 	}
 }
 
-//	rest help response protobuf
-type restHelpResponse struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,json=name,proto3" json:"name,omitempty"`
-	Service              string   `protobuf:"bytes,2,opt,name=category,json=category,omitempty,proto3" json:"category,omitempty"`
-	Description          []string `protobuf:"bytes,3,rep,name=description,json=description,proto3" json:"description,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
+//	convert	type to proto struct
+func convertHelpType(t pkthelp.Type) *Type {
+	resultType := &Type{
+		Name:        t.Name,
+		Description: t.Description,
+	}
 
-func (m *restHelpResponse) Reset()         { *m = restHelpResponse{} }
-func (m *restHelpResponse) String() string { return proto.CompactTextString(m) }
-func (m *restHelpResponse) ProtoMessage()  {}
+	return resultType
+}
 
 //	marshal rest help response
 func marshalHelp(httpResponse http.ResponseWriter, helpInfo pkthelp.Method) er.R {
@@ -55,10 +50,12 @@ func marshalHelp(httpResponse http.ResponseWriter, helpInfo pkthelp.Method) er.R
 		Indent:       "\t",
 	}
 
-	s, err := marshaler.MarshalToString(&restHelpResponse{
+	s, err := marshaler.MarshalToString(&RestHelpResponse{
 		Name:        helpInfo.Name,
 		Service:     helpInfo.Service,
 		Description: helpInfo.Description,
+		Request:     convertHelpType(helpInfo.Req),
+		Response:    convertHelpType(helpInfo.Res),
 	})
 	if err != nil {
 		return er.E(err)

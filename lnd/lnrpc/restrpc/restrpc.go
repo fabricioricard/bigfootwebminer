@@ -218,7 +218,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//MetaService change wallet password
 	{
-		path: "/meta/changepassword",
+		path: "/wallet/password/change",
 		req:  (*lnrpc.ChangePasswordRequest)(nil),
 		res:  (*lnrpc.ChangePasswordResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -257,7 +257,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 
-		getHelpInfo: pkthelp.MetaService_ChangePassword,
+		getHelpInfo: pkthelp.Lightning_WalletBalance,
 	},
 	//Wallet transactions
 	//requires unlocked wallet -> access to rpcServer
@@ -280,11 +280,13 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, err
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetTransactions,
 	},
 	//New wallet address
 	//requires unlocked wallet -> access to rpcServer
 	{
-		path: "/lightning/getnewaddress",
+		path: "/wallet/addreses/create",
 		req:  (*lnrpc.GetNewAddressRequest)(nil),
 		res:  (*lnrpc.GetNewAddressResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -302,10 +304,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, err
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetNewAddress,
 	},
 	//GetAddressBalances
 	{
-		path: "/lightning/getaddressbalances",
+		path: "/wallet/addresses/balances",
 		req:  (*lnrpc.GetAddressBalancesRequest)(nil),
 		res:  (*lnrpc.GetAddressBalancesResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -323,6 +327,8 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, err
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetAddressBalances,
 	},
 	//Sendfrom
 	{
@@ -344,10 +350,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, err
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_SendFrom,
 	},
 	//GetWalletSeed
 	{
-		path: "/lightning/getwalletseed",
+		path: "/wallet/seed",
 		req:  nil,
 		res:  (*lnrpc.GetWalletSeedResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -361,10 +369,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, err
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetWalletSeed,
 	},
 	//GetTransaction
 	{
-		path: "/lightning/gettransaction",
+		path: "/wallet/transaction",
 		req:  (*lnrpc.GetTransactionRequest)(nil),
 		res:  (*lnrpc.GetTransactionResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -382,10 +392,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, err
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetTransaction,
 	},
 	//Resync
 	{
-		path: "/lightning/resync",
+		path: "/wallet/resync",
 		req:  (*lnrpc.ReSyncChainRequest)(nil),
 		res:  (*lnrpc.ReSyncChainResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -403,10 +415,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, err
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ReSync,
 	},
 	//StopResync
 	{
-		path: "/lightning/stopresync",
+		path: "/wallet/stopresync",
 		req:  nil,
 		res:  (*lnrpc.StopReSyncResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -420,10 +434,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, err
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_StopReSync,
 	},
 	//	GenSeed service
 	{
-		path: "/lightning/genseed",
+		path: "/util/createseed",
 		req:  (*lnrpc.GenSeedRequest)(nil),
 		res:  (*lnrpc.GenSeedResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -449,10 +465,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.WalletUnlocker_GenSeed,
 	},
 	//	meta service get recovery info
 	{
-		path: "/meta/getrecoveryinfo",
+		path: "/wallet/getrecoveryinfo",
 		req:  nil,
 		res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -472,6 +490,8 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetRecoveryInfo,
 	},
 	//	service debug level
 	{
@@ -501,6 +521,8 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_DebugLevel,
 	},
 	//	service to stop the pld daemon
 	{
@@ -524,8 +546,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_StopDaemon,
 	},
-	//	TODO: service daemon version
+	//	service daemon version
 	{
 		path: "/meta/version",
 		req:  nil,
@@ -547,6 +571,8 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Versioner_GetVersion,
 	},
 	//	TODO: service openchannel
 	/*
@@ -575,12 +601,14 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 					return nil, errr
 				}
 			},
+
+			getHelpInfo: pkthelp.Lightning_OpenChannel,
 		},
 	*/
 	//	TODO: service closechannel
 	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
 	{
-		path: "/api//v1/channels/close",
+		path: "/channels/close",
 		req:  (*lnrpc.CloseChannelRequest)(nil),
 		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -604,6 +632,8 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_CloseChannel,
 	},
 	//	TODO: service closeallchannels
 	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This means the Payload for this REST command needs to be created !
@@ -633,7 +663,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	*/
 	//	service abandonchannel
 	{
-		path: "/channel/abandon",
+		path: "/lightning/channel/abandon",
 		req:  (*lnrpc.AbandonChannelRequest)(nil),
 		res:  (*lnrpc.AbandonChannelResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -659,10 +689,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_AbandonChannel,
 	},
 	//	service channelbalance
 	{
-		path: "/channel/balance",
+		path: "/lightning/channel/balance",
 		req:  nil,
 		res:  (*lnrpc.ChannelBalanceResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -682,10 +714,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ChannelBalance,
 	},
 	//	service pendingchannels
 	{
-		path: "/channel/pending",
+		path: "/lightning/channel/pending",
 		req:  nil,
 		res:  (*lnrpc.PendingChannelsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -705,10 +739,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_PendingChannels,
 	},
 	//	service listchannels
 	{
-		path: "/channel",
+		path: "/lightning/channel",
 		req:  (*lnrpc.ListChannelsRequest)(nil),
 		res:  (*lnrpc.ListChannelsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -734,10 +770,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ListChannels,
 	},
 	//	service closedchannels
 	{
-		path: "/channel/closed",
+		path: "/lightning/channel/closed",
 		req:  (*lnrpc.ClosedChannelsRequest)(nil),
 		res:  (*lnrpc.ClosedChannelsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -763,10 +801,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ClosedChannels,
 	},
 	//	service getnetworkinfo
 	{
-		path: "/channel/networkinfo",
+		path: "/lightning/channel/networkinfo",
 		req:  nil,
 		res:  (*lnrpc.NetworkInfo)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -786,10 +826,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetNetworkInfo,
 	},
 	//	service feereport
 	{
-		path: "/channel/feereport",
+		path: "/lightning/channel/feereport",
 		req:  nil,
 		res:  (*lnrpc.FeeReportResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -809,10 +851,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_FeeReport,
 	},
 	//	service updatechanpolicy
 	{
-		path: "/channel/policy",
+		path: "/lightning/channel/policy",
 		req:  (*lnrpc.PolicyUpdateRequest)(nil),
 		res:  (*lnrpc.PolicyUpdateResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -838,10 +882,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_FeeReport,
 	},
 	//	service exportchanbackup
 	{
-		path: "/channel/backup/export",
+		path: "/lightning/channel/backup/export",
 		req:  (*lnrpc.ExportChannelBackupRequest)(nil),
 		res:  (*lnrpc.ChannelBackup)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -867,10 +913,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ExportChannelBackup,
 	},
 	//	service verifychanbackup
 	{
-		path: "/channel/backup/verify",
+		path: "/lightning/channel/backup/verify",
 		req:  (*lnrpc.ChanBackupSnapshot)(nil),
 		res:  (*lnrpc.VerifyChanBackupResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -896,10 +944,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_VerifyChanBackup,
 	},
 	//	service restorechanbackup
 	{
-		path: "/channel/backup/restore",
+		path: "/lightning/channel/backup/restore",
 		req:  (*lnrpc.RestoreChanBackupRequest)(nil),
 		res:  (*lnrpc.RestoreBackupResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -925,10 +975,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_RestoreChannelBackups,
 	},
 	//	service describegraph
 	{
-		path: "/graph",
+		path: "/lightning/graph",
 		req:  (*lnrpc.ChannelGraphRequest)(nil),
 		res:  (*lnrpc.ChannelGraph)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -954,10 +1006,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_DescribeGraph,
 	},
 	//	service getnodemetrics
 	{
-		path: "/graph/nodemetrics",
+		path: "/lightning/graph/nodemetrics",
 		req:  (*lnrpc.NodeMetricsRequest)(nil),
 		res:  (*lnrpc.NodeMetricsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -983,10 +1037,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetNodeMetrics,
 	},
 	//	service getchaninfo
 	{
-		path: "/graph/channel",
+		path: "/lightning/graph/channel",
 		req:  (*lnrpc.ChanInfoRequest)(nil),
 		res:  (*lnrpc.ChannelEdge)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1012,10 +1068,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetChanInfo,
 	},
 	//	service getnodeinfo
 	{
-		path: "/graph/nodeinfo",
+		path: "/lightning/graph/nodeinfo",
 		req:  (*lnrpc.NodeInfoRequest)(nil),
 		res:  (*lnrpc.NodeInfo)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1041,10 +1099,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetNodeInfo,
 	},
 	//	service addinvoice
 	{
-		path: "/invoice/add",
+		path: "/lightning/invoice/create",
 		req:  (*lnrpc.Invoice)(nil),
 		res:  (*lnrpc.AddInvoiceResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1070,10 +1130,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_AddInvoice,
 	},
 	//	service lookupinvoice
 	{
-		path: "/invoice/lookup",
+		path: "/lightning/invoice/lookup",
 		req:  (*lnrpc.PaymentHash)(nil),
 		res:  (*lnrpc.Invoice)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1099,10 +1161,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_LookupInvoice,
 	},
 	//	service listinvoices
 	{
-		path: "/invoice",
+		path: "/lightning/invoice",
 		req:  (*lnrpc.ListInvoiceRequest)(nil),
 		res:  (*lnrpc.ListInvoiceResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1128,10 +1192,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ListInvoices,
 	},
 	//	service decodepayreq
 	{
-		path: "/invoice/decodepayreq",
+		path: "/lightning/invoice/decodepayreq",
 		req:  (*lnrpc.PayReqString)(nil),
 		res:  (*lnrpc.PayReq)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1157,10 +1223,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_DecodePayReq,
 	},
 	//	service estimatefee
 	{
-		path: "/transaction/estimatefee",
+		path: "/neutrino/estimatefee",
 		req:  (*lnrpc.EstimateFeeRequest)(nil),
 		res:  (*lnrpc.EstimateFeeResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1186,10 +1254,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_EstimateFee,
 	},
 	//	service sendmany
 	{
-		path: "/transaction/sendmany",
+		path: "/wallet/sendmany",
 		req:  (*lnrpc.SendManyRequest)(nil),
 		res:  (*lnrpc.SendManyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1215,10 +1285,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_SendMany,
 	},
 	//	service sendcoins
 	{
-		path: "/transaction/sendcoins",
+		path: "/wallet/sendcoins",
 		req:  (*lnrpc.SendCoinsRequest)(nil),
 		res:  (*lnrpc.SendCoinsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1244,10 +1316,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_SendCoins,
 	},
 	//	service listunspent
 	{
-		path: "/transaction/listunspent",
+		path: "/wallet/unspent",
 		req:  (*lnrpc.ListUnspentRequest)(nil),
 		res:  (*lnrpc.ListUnspentResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1273,39 +1347,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
-	},
-	//	service listchaintrns
-	{
-		path: "/transaction",
-		req:  (*lnrpc.GetTransactionsRequest)(nil),
-		res:  (*lnrpc.TransactionDetails)(nil),
-		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			//	get the request payload
-			getTransactionsReq, ok := m.(*lnrpc.GetTransactionsRequest)
-			if !ok {
-				return nil, er.New("Argument is not a GetTransactionsRequest")
-			}
-
-			//	get a list of transactions from wallet
-			cc, errr := c.withRpcServer()
-			if cc != nil {
-				var transactionDetailsResp *lnrpc.TransactionDetails
-
-				transactionDetailsResp, err := cc.GetTransactions(context.TODO(), getTransactionsReq)
-				if err != nil {
-					return nil, er.E(err)
-				} else {
-					return transactionDetailsResp, nil
-				}
-			} else {
-				return nil, errr
-			}
-		},
+		getHelpInfo: pkthelp.Lightning_ListUnspent,
 	},
 	//	service setnetworkstewardvote
 	{
-		path: "/transaction/setnetworkstewardvote",
+		path: "/wallet/setnetworkstewardvote",
 		req:  (*lnrpc.SetNetworkStewardVoteRequest)(nil),
 		res:  (*lnrpc.SetNetworkStewardVoteResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1331,10 +1378,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_SetNetworkStewardVote,
 	},
 	//	service getnetworkstewardvote
 	{
-		path: "/transaction/getnetworkstewardvote",
+		path: "/wallet/getnetworkstewardvote",
 		req:  nil,
 		res:  (*lnrpc.GetNetworkStewardVoteResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1354,10 +1403,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetNetworkStewardVote,
 	},
 	//	service bcasttransaction
 	{
-		path: "/transaction/bcast",
+		path: "/neutrino/bcasttransaction",
 		req:  (*lnrpc.BcastTransactionRequest)(nil),
 		res:  (*lnrpc.BcastTransactionResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1383,10 +1434,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_BcastTransaction,
 	},
 	//	service sendpayment
 	{
-		path: "/payment/send",
+		path: "/lightning/payment/send",
 		req:  (*lnrpc.SendRequest)(nil),
 		res:  (*lnrpc.SendResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1412,6 +1465,8 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_SendPaymentSync,
 	},
 	//	TODO: service payinvoice
 	/*
@@ -1445,7 +1500,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	*/
 	//	service sendtoroute
 	{
-		path: "/payment/sendroute",
+		path: "/lightning/payment/sendroutes",
 		req:  (*lnrpc.SendToRouteRequest)(nil),
 		res:  (*lnrpc.SendResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1471,10 +1526,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_SendToRouteSync,
 	},
 	//	service listpayments
 	{
-		path: "/payment",
+		path: "/lightning/payment",
 		req:  (*lnrpc.ListPaymentsRequest)(nil),
 		res:  (*lnrpc.ListPaymentsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1500,10 +1557,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ListPayments,
 	},
 	//	service queryroutes
 	{
-		path: "/payment/queryroutes",
+		path: "/lightning/payment/queryroutes",
 		req:  (*lnrpc.QueryRoutesRequest)(nil),
 		res:  (*lnrpc.QueryRoutesResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1529,10 +1588,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_QueryRoutes,
 	},
 	//	service fwdinghistory
 	{
-		path: "/payment/fwdinghistory",
+		path: "/lightning/payment/fwdinghistory",
 		req:  (*lnrpc.ForwardingHistoryRequest)(nil),
 		res:  (*lnrpc.ForwardingHistoryResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1558,10 +1619,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ForwardingHistory,
 	},
 	//	service querymc
 	{
-		path: "/payment/querymc",
+		path: "/lightning/payment/querymc",
 		req:  nil,
 		res:  (*routerrpc.QueryMissionControlResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1581,10 +1644,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Router_QueryMissionControl,
 	},
 	//	service queryprob
 	{
-		path: "/payment/queryprob",
+		path: "/lightning/payment/queryprob",
 		req:  (*routerrpc.QueryProbabilityRequest)(nil),
 		res:  (*routerrpc.QueryProbabilityResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1610,10 +1675,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Router_QueryProbability,
 	},
 	//	service resetmc
 	{
-		path: "/payment/resetmc",
+		path: "/lightning/payment/resetmc",
 		req:  nil,
 		res:  (*routerrpc.ResetMissionControlResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1633,10 +1700,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Router_ResetMissionControl,
 	},
 	//	service buildroute
 	{
-		path: "/payment/buildroute",
+		path: "/lightning/payment/buildroute",
 		req:  (*routerrpc.BuildRouteRequest)(nil),
 		res:  (*routerrpc.BuildRouteResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1662,10 +1731,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Router_BuildRoute,
 	},
 	//	service connect
 	{
-		path: "/peer/connect",
+		path: "/lightning/peers/connect",
 		req:  (*lnrpc.ConnectPeerRequest)(nil),
 		res:  (*lnrpc.ConnectPeerResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1691,10 +1762,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ConnectPeer,
 	},
 	//	service disconnect
 	{
-		path: "/peer/disconnect",
+		path: "/lightning/peers/disconnect",
 		req:  (*lnrpc.DisconnectPeerRequest)(nil),
 		res:  (*lnrpc.DisconnectPeerResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1720,10 +1793,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_DisconnectPeer,
 	},
 	//	service listpeers
 	{
-		path: "/peer",
+		path: "/lightning/peers",
 		req:  nil,
 		res:  (*lnrpc.ListPeersResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1747,10 +1822,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ListPeers,
 	},
 	//	service signmessage
 	{
-		path: "/lightning/signmessage",
+		path: "/wallet/addresses/signmessage",
 		req:  (*lnrpc.SignMessageRequest)(nil),
 		res:  (*lnrpc.SignMessageResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1776,10 +1853,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Signer_SignMessage,
 	},
 	//	service getsecret
 	{
-		path: "/lightning/getsecret",
+		path: "/wallet/getsecret",
 		req:  (*lnrpc.GetSecretRequest)(nil),
 		res:  (*lnrpc.GetSecretResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1805,10 +1884,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetSecret,
 	},
 	//	service importprivkey
 	{
-		path: "/lightning/importprivkey",
+		path: "/wallet/addresses/import",
 		req:  (*lnrpc.ImportPrivKeyRequest)(nil),
 		res:  (*lnrpc.ImportPrivKeyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1834,10 +1915,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ImportPrivKey,
 	},
 	//	service listlockunspent
 	{
-		path: "/lightning/listlockunspent",
+		path: "/wallet/lockunspent",
 		req:  nil,
 		res:  (*lnrpc.ListLockUnspentResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1857,10 +1940,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_ListLockUnspent,
 	},
 	//	service lockunspent
 	{
-		path: "/lightning/lockunspent",
+		path: "/wallet/lockunspent/create",
 		req:  (*lnrpc.LockUnspentRequest)(nil),
 		res:  (*lnrpc.LockUnspentResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1886,10 +1971,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_LockUnspent,
 	},
 	//	service createtransaction
 	{
-		path: "/lightning/createtransaction",
+		path: "/wallet/transactions/create",
 		req:  (*lnrpc.CreateTransactionRequest)(nil),
 		res:  (*lnrpc.CreateTransactionResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1915,10 +2002,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_CreateTransaction,
 	},
 	//	service dumpprivkey
 	{
-		path: "/lightning/dumpprivkey",
+		path: "/wallet/addresses/dumpprivkey",
 		req:  (*lnrpc.DumpPrivKeyRequest)(nil),
 		res:  (*lnrpc.DumpPrivKeyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1944,10 +2033,12 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_DumpPrivKey,
 	},
 	//	service gettransactions
 	{
-		path: "/lightning/gettransactions",
+		path: "/wallet/transactions",
 		req:  (*lnrpc.GetTransactionsRequest)(nil),
 		res:  (*lnrpc.TransactionDetails)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1973,6 +2064,8 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				return nil, errr
 			}
 		},
+
+		getHelpInfo: pkthelp.Lightning_GetTransactions,
 	},
 }
 

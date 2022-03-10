@@ -2067,6 +2067,39 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.Lightning_GetTransactions,
 	},
+	/*
+		//	service wtclient: AddTower
+		{
+			path: "/wtclient/create",
+			req:  (*lnrpc.GetTransactionsRequest)(nil),
+			res:  (*lnrpc.TransactionDetails)(nil),
+			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+				//	get the request payload
+				getTransactionsReq, ok := m.(*lnrpc.GetTransactionsRequest)
+				if !ok {
+					return nil, er.New("Argument is not a GetTransactionsRequest")
+				}
+
+				//	invoke wallet get transactions command
+				cc, errr := c.withRpcServer()
+				if cc != nil {
+					var transactionDetailsResp *lnrpc.TransactionDetails
+
+					transactionDetailsResp, err := cc.GetTransactions(context.TODO(), getTransactionsReq)
+					if err != nil {
+						return nil, er.E(err)
+					} else {
+						return transactionDetailsResp, nil
+					}
+				} else {
+					return nil, errr
+				}
+			},
+
+			getHelpInfo: pkthelp.WatchtowerClient_AddTower,
+		},
+	*/
 }
 
 type RpcContext struct {

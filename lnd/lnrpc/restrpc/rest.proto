@@ -26,6 +26,7 @@ message Field {
     string name = 1;
     repeated string description = 2;
     bool repeated = 3;
+    Type type = 4;
 }
 
 message Type {

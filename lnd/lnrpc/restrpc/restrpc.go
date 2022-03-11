@@ -19,6 +19,7 @@ import (
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
 	"github.com/pkt-cash/pktd/lnd/lnrpc/verrpc"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/wtclientrpc"
 	"github.com/pkt-cash/pktd/lnd/pkthelp"
 	"github.com/pkt-cash/pktd/lnd/walletunlocker"
 	"github.com/pkt-cash/pktd/neutrino"
@@ -644,41 +645,40 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		getHelpInfo: pkthelp.Versioner_GetVersion,
 	},
 	//	TODO: service openchannel
-	/*
-		{
-			category:    categoryChannels,
-			description: "Open a channel to a node or an existing peer",
+	{
+		category:    categoryChannels,
+		description: "Open a channel to a node or an existing peer",
 
-			path: "/channels/open",
-			req:  (*lnrpc.OpenChannelRequest)(nil),
-			res:  nil,
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+		path: "/channels/open",
+		req:  (*lnrpc.OpenChannelRequest)(nil),
+		res:  (*lnrpc.ChannelPoint)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-				//	get the request payload
-				openChannelReq, ok := m.(*lnrpc.OpenChannelRequest)
-				if !ok {
-					return nil, er.New("Argument is not a OpenChannelRequest")
-				}
+			//	get the request payload
+			openChannelReq, ok := m.(*lnrpc.OpenChannelRequest)
+			if !ok {
+				return nil, er.New("Argument is not a OpenChannelRequest")
+			}
 
-				//	open a channel
-				cc, errr := c.withRpcServer()
-				if cc != nil {
-					err := cc.OpenChannel(openChannelReq, lightningOpenChannelServer{stream})
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return nil, nil
-					}
+			//	open a channel
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var openChannelResp *lnrpc.ChannelPoint
+
+				openChannelResp, err := cc.OpenChannelSync(context.TODO(), openChannelReq)
+				if err != nil {
+					return nil, er.E(err)
 				} else {
-					return nil, errr
+					return openChannelResp, nil
 				}
-			},
-
-			getHelpInfo: pkthelp.Lightning_OpenChannel,
+			} else {
+				return nil, errr
+			}
 		},
-	*/
+
+		getHelpInfo: pkthelp.Lightning_OpenChannel,
+	},
 	//	TODO: service closechannel
-	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
 	{
 		category:    categoryChannels,
 		description: "Close an existing channel",
@@ -711,7 +711,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		getHelpInfo: pkthelp.Lightning_CloseChannel,
 	},
 	//	TODO: service closeallchannels
-	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This means the Payload for this REST command needs to be created !
+	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This is done in the client ide (pldctl)
 	/*
 		{
 			category:    categoryChannels,
@@ -1628,38 +1628,36 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		getHelpInfo: pkthelp.Lightning_SendPaymentSync,
 	},
 	//	TODO: service payinvoice
-	/*
-		check payInvoice incm_pay.go source file
-		{
-			category:    categoryPayments,
-			description: "Pay an invoice over lightning",
+	//	uses a stream Router_SendPaymentV2Server to send the payment updates - how to do it with RESP endpoints ?
+	{
+		category:    categoryPayments,
+		description: "Pay an invoice over lightning",
 
-			path: "/payment/payinvoice",
-			req:  (*routerrpc.SendPaymentRequest)(nil),
-			res:  nil,
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+		path: "/payment/payinvoice",
+		req:  (*routerrpc.SendPaymentRequest)(nil),
+		res:  nil,
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-				//	get the request payload
-				sendPaymentReq, ok := m.(*routerrpc.SendPaymentRequest)
-				if !ok {
-					return nil, er.New("Argument is not a SendPaymentRequest")
-				}
+			//	get the request payload
+			sendPaymentReq, ok := m.(*routerrpc.SendPaymentRequest)
+			if !ok {
+				return nil, er.New("Argument is not a SendPaymentRequest")
+			}
 
-				//	query the mission control status
-				cc, errr := c.withRouterServer()
-				if cc != nil {
-					err := cc.SendPaymentV2(sendPaymentReq, )
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return nil, nil
-					}
+			//	invoke Lightning send payment command
+			cc, errr := c.withRouterServer()
+			if cc != nil {
+				err := cc.SendPaymentV2(sendPaymentReq, nil)
+				if err != nil {
+					return nil, er.E(err)
 				} else {
-					return nil, errr
+					return nil, nil
 				}
-			},
+			} else {
+				return nil, errr
+			}
 		},
-	*/
+	},
 	//	service sendtoroute
 	{
 		category:    categoryPayments,
@@ -1795,6 +1793,37 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		},
 
 		getHelpInfo: pkthelp.Lightning_ForwardingHistory,
+	},
+	//	TODO: service trackpayment
+	//	uses a stream Router_SendPaymentV2Server to send the payment updates - how to do it with RESP endpoints ?
+	{
+		category:    categoryPayments,
+		description: "Track progress of an existing payment",
+
+		path: "/payment/track",
+		req:  (*routerrpc.TrackPaymentRequest)(nil),
+		res:  nil,
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			trackPaymentReq, ok := m.(*routerrpc.TrackPaymentRequest)
+			if !ok {
+				return nil, er.New("Argument is not a TrackPaymentRequest")
+			}
+
+			//	invoke Lightning send payment command
+			cc, errr := c.withRouterServer()
+			if cc != nil {
+				err := cc.TrackPaymentV2(trackPaymentReq, nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return nil, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
 	},
 	//	service querymc
 	{
@@ -2252,53 +2281,228 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.Lightning_DumpPrivKey,
 	},
-	/*
-		//	service wtclient: AddTower
-		{
-			category:    categoryWatchtower,
-			description: "Interact with the watchtower client",
+	//	service wtclient: Add
+	{
+		category:    categoryWatchtower,
+		description: "Register a watchtower to use for future sessions/backups",
 
-			path: "/wtclient/create",
-			req:  (*lnrpc.GetTransactionsRequest)(nil),
-			res:  (*lnrpc.TransactionDetails)(nil),
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+		path: "/wtclient/tower/create",
+		req:  (*wtclientrpc.AddTowerRequest)(nil),
+		res:  (*wtclientrpc.AddTowerResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-				//	get the request payload
-				getTransactionsReq, ok := m.(*lnrpc.GetTransactionsRequest)
-				if !ok {
-					return nil, er.New("Argument is not a GetTransactionsRequest")
-				}
+			//	get the request payload
+			addTowerReq, ok := m.(*wtclientrpc.AddTowerRequest)
+			if !ok {
+				return nil, er.New("Argument is not a AddTowerRequest")
+			}
 
-				//	invoke wallet get transactions command
-				cc, errr := c.withRpcServer()
-				if cc != nil {
-					var transactionDetailsResp *lnrpc.TransactionDetails
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
 
-					transactionDetailsResp, err := cc.GetTransactions(context.TODO(), getTransactionsReq)
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return transactionDetailsResp, nil
-					}
+			if cc != nil {
+				var addTowerResp *wtclientrpc.AddTowerResponse
+
+				addTowerResp, err := cc.AddTower(context.TODO(), addTowerReq)
+				if err != nil {
+					return nil, er.E(err)
 				} else {
-					return nil, errr
+					return addTowerResp, nil
 				}
-			},
-
-			getHelpInfo: pkthelp.WatchtowerClient_AddTower,
+			} else {
+				return nil, errr
+			}
 		},
-	*/
+
+		getHelpInfo: pkthelp.WatchtowerClient_AddTower,
+	},
+	//	service wtclient: Remove
+	{
+		category:    categoryWatchtower,
+		description: "Remove a watchtower to prevent its use for future sessions/backups",
+
+		path: "/wtclient/tower/remove",
+		req:  (*wtclientrpc.RemoveTowerRequest)(nil),
+		res:  (*wtclientrpc.RemoveTowerResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			removeTowerReq, ok := m.(*wtclientrpc.RemoveTowerRequest)
+			if !ok {
+				return nil, er.New("Argument is not a RemoveTowerRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var removeTowerResp *wtclientrpc.RemoveTowerResponse
+
+				removeTowerResp, err := cc.RemoveTower(context.TODO(), removeTowerReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return removeTowerResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_RemoveTower,
+	},
+	//	service wtclient: Towers
+	{
+		category:    categoryWatchtower,
+		description: "Display information about all registered watchtowers",
+
+		path: "/wtclient/tower",
+		req:  (*wtclientrpc.ListTowersRequest)(nil),
+		res:  (*wtclientrpc.ListTowersResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			listTowersReq, ok := m.(*wtclientrpc.ListTowersRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ListTowersRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var listTowersResp *wtclientrpc.ListTowersResponse
+
+				listTowersResp, err := cc.ListTowers(context.TODO(), listTowersReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return listTowersResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_ListTowers,
+	},
+	//	service wtclient: Tower
+	{
+		category:    categoryWatchtower,
+		description: "Display information about a specific registered watchtower",
+
+		path: "/wtclient/tower/getinfo",
+		req:  (*wtclientrpc.GetTowerInfoRequest)(nil),
+		res:  (*wtclientrpc.Tower)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			getTowerInfoReq, ok := m.(*wtclientrpc.GetTowerInfoRequest)
+			if !ok {
+				return nil, er.New("Argument is not a GetTowerInfoRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var towerResp *wtclientrpc.Tower
+
+				towerResp, err := cc.GetTowerInfo(context.TODO(), getTowerInfoReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return towerResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_GetTowerInfo,
+	},
+	//	service wtclient: stats
+	{
+		category:    categoryWatchtower,
+		description: "Display the session stats of the watchtower client",
+
+		path: "/wtclient/tower/stats",
+		req:  (*wtclientrpc.StatsRequest)(nil),
+		res:  (*wtclientrpc.StatsResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			statsReq, ok := m.(*wtclientrpc.StatsRequest)
+			if !ok {
+				return nil, er.New("Argument is not a StatsRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var statsResp *wtclientrpc.StatsResponse
+
+				statsResp, err := cc.Stats(context.TODO(), statsReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return statsResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_Stats,
+	},
+	//	service wtclient: policy
+	{
+		category:    categoryWatchtower,
+		description: "Display the active watchtower client policy configuration",
+
+		path: "/wtclient/tower/policy",
+		req:  (*wtclientrpc.PolicyRequest)(nil),
+		res:  (*wtclientrpc.PolicyResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			policyReq, ok := m.(*wtclientrpc.PolicyRequest)
+			if !ok {
+				return nil, er.New("Argument is not a PolicyRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var policyResp *wtclientrpc.PolicyResponse
+
+				policyResp, err := cc.Policy(context.TODO(), policyReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return policyResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_Policy,
+	},
 }
 
 type RpcContext struct {
-	MaybeCC             *chainreg.ChainControl
-	MaybeNeutrino       *neutrino.ChainService
-	MaybeWallet         *wallet.Wallet
-	MaybeRpcServer      lnrpc.LightningServer
-	MaybeWalletUnlocker *walletunlocker.UnlockerService
-	MaybeMetaService    lnrpc.MetaServiceServer
-	MaybeVerRPCServer   verrpc.VersionerServer
-	MaybeRouterServer   routerrpc.RouterServer
+	MaybeCC               *chainreg.ChainControl
+	MaybeNeutrino         *neutrino.ChainService
+	MaybeWallet           *wallet.Wallet
+	MaybeRpcServer        lnrpc.LightningServer
+	MaybeWalletUnlocker   *walletunlocker.UnlockerService
+	MaybeMetaService      lnrpc.MetaServiceServer
+	MaybeVerRPCServer     verrpc.VersionerServer
+	MaybeRouterServer     routerrpc.RouterServer
+	MaybeWatchTowerClient wtclientrpc.WatchtowerClientClient
 }
 
 func with(thing interface{}, name string) er.R {
@@ -2330,6 +2534,10 @@ func (c *RpcContext) withVerRPCServer() (verrpc.VersionerServer, er.R) {
 }
 func (c *RpcContext) withRouterServer() (routerrpc.RouterServer, er.R) {
 	return c.MaybeRouterServer, with(c.MaybeRouterServer, "RouterServer")
+}
+
+func (c *RpcContext) withWatchTowerClient() (wtclientrpc.WatchtowerClientClient, er.R) {
+	return c.MaybeWatchTowerClient, with(c.MaybeWatchTowerClient, "WatchTowerClient")
 }
 
 type SimpleHandler struct {

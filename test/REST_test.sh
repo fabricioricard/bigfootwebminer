@@ -135,55 +135,67 @@ executeCommand 'version' 'GET' '/api/v1/meta/version'
 showCommandResult 'result' ''
 
 #
+#   fetch a public key for the channels tests
+#
+
+executeCommand 'describegraph' 'POST' '/api/v1/lightning/graph' '{ "includeUnannounced": true }'
+PUBLIC_KEY="$( getCommandResult '.nodes | .[0] | .pubKey ' | tr -d '\"' | cut --characters=3- )"
+echo -e "    >>> using public key: ${PUBLIC_KEY}"
+
+#
 #   test commands to manage channels
 #
 
-#executeCommand 'openchannel'
-#showCommandResult 'result' ''
+AMOUNT="100000"
 
-#executeCommand 'closechannel'
-#showCommandResult 'result' ''
+executeCommand 'openchannel' 'POST' '/api/v1/channels/open' "{ \"node_pubkey\": \"${PUBLIC_KEY}\", \"local_funding_amount\": ${AMOUNT} }"
+showCommandResult 'result' ''
+
+CHANNEL_POINT="XPTO"
+
+executeCommand 'closechannel' 'POST' '/api/v1/channels/close' "{ \"channel_point\": \"${CHANNEL_POINT}\" }"
+showCommandResult 'result' ''
 
 #executeCommand 'closeallchannels'
 #showCommandResult 'result' ''
 
 FUNDING_TXID="934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f"
 
-executeCommand 'abandonchannel' 'POST' '/api/v1/channel/abandon' "{ \"channelPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
+executeCommand 'abandonchannel' 'POST' '/api/v1/channels/abandon' "{ \"channelPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
 showCommandResult 'result' ''
 
-executeCommand 'channelbalance' 'GET' '/api/v1/channel/balance'
+executeCommand 'channelbalance' 'GET' '/api/v1/channels/balance'
 showCommandResult 'channel balance' '.balance'
 
-executeCommand 'pendingchannels' 'GET' '/api/v1/channel/pending'
+executeCommand 'pendingchannels' 'GET' '/api/v1/channels/pending'
 showCommandResult '#pending open channels' '.pendingOpenChannels | length'
 showCommandResult '#pending closing channels' '.pendingClosingChannels | length'
 showCommandResult 'limbo balance' '.totalLimboBalance'
 
-executeCommand 'listchannels' 'POST' '/api/v1/channel' '{  }'
+executeCommand 'listchannels' 'POST' '/api/v1/channels' '{  }'
 showCommandResult '#open channels' '.channels | length'
 
-executeCommand 'closedchannels' 'POST' '/api/v1/channel/closed' '{  }'
+executeCommand 'closedchannels' 'POST' '/api/v1/channels/closed' '{  }'
 showCommandResult '#closed channels' '.channels | length'
 
-executeCommand 'getnetworkinfo' 'GET' '/api/v1/channel/networkinfo'
+executeCommand 'getnetworkinfo' 'GET' '/api/v1/channels/networkinfo'
 showCommandResult 'nodes' '.numNodes'
 showCommandResult 'channels' '.numChannels'
 
-executeCommand 'feereport' 'GET' '/api/v1/channel/feereport'
+executeCommand 'feereport' 'GET' '/api/v1/channels/feereport'
 showCommandResult '#channel fees' '.channelFees | length'
 showCommandResult 'week fee sum' '.weekFeeSum'
 
-executeCommand 'updatechanpolicy' 'POST' '/api/v1/channel/policy' '{ "baseFeeMsat": 10, "feeRate": 10, "timeLockDelta": 20, "maxHtlcMsat": 30, "minHtlcMsat": 1, "minHtlcMsatSpecified": false }'
+executeCommand 'updatechanpolicy' 'POST' '/api/v1/channels/policy' '{ "baseFeeMsat": 10, "feeRate": 10, "timeLockDelta": 20, "maxHtlcMsat": 30, "minHtlcMsat": 1, "minHtlcMsatSpecified": false }'
 showCommandResult 'result' ''
 
-executeCommand 'exportchanbackup' 'POST' '/api/v1/channel/backup/export' "{ \"chanPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
+executeCommand 'exportchanbackup' 'POST' '/api/v1/channels/backup/export' "{ \"chanPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
 showCommandResult 'result' '.multi_chan_backup.multi_chan_backup'
 
-executeCommand 'verifychanbackup' 'POST' '/api/v1/channel/backup/verify' "{ \"singleChanBackups\": { \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] } }"
+executeCommand 'verifychanbackup' 'POST' '/api/v1/channels/backup/verify' "{ \"singleChanBackups\": { \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] } }"
 showCommandResult 'result' ''
 
-executeCommand 'restorechanbackup' 'POST' '/api/v1/channel/backup/restore' "{ \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] }"
+executeCommand 'restorechanbackup' 'POST' '/api/v1/channels/backup/restore' "{ \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] }"
 showCommandResult 'result' ''
 
 showCommandResult 'result' ''
@@ -193,7 +205,7 @@ exit 0
 #
 #   test commands to get graph info
 #
-executeCommand 'describegraph' 'POST' '/api/v1/graph' '{ "includeUnannounced": true }'
+executeCommand 'describegraph' 'POST' '/api/v1/lightning/graph' '{ "includeUnannounced": true }'
 showCommandResult 'last update' '.nodes | .[0] | .lastUpdate '
 PUBLIC_KEY="$( getCommandResult '.nodes | .[0] | .pubKey ' | tr -d '\"' )"
 echo -e "    >>> public key: ${PUBLIC_KEY}"
@@ -330,13 +342,11 @@ showCommandResult '#peers' '.peers | length'
 executeCommand 'newaddress' 'POST' '/api/v1/lightning/getnewaddress' '{  }'
 showCommandResult 'result' ''
 
-executeCommand 'walletbalance' 'POST' '/api/v1/lightning/walletbalance' '{  }'
-showCommandResult 'result' ''
-#    echo -e "\ttotal balance: $( echo ${JSON_OUTPUT} | jq '.total_balance' )"
+executeCommand 'walletbalance' 'GET' '/api/v1/lightning/walletbalance'
+echo -e "\ttotal balance: $( echo ${JSON_OUTPUT} | jq '.totalBalance' )"
 
-executeCommand 'getaddressbalances' 'POST' '/api/v1/lightning/getaddressbalances' '{  }'
-showCommandResult 'result' ''
-#    echo -e "\t#addresses: $( echo ${JSON_OUTPUT} | jq '.addrs | length' )"
+executeCommand 'getaddressbalances' 'POST' '/api/v1/wallet/addresses/balances' '{  }'
+echo -e "\t#addresses: $( echo ${JSON_OUTPUT} | jq '.addrs | length' )"
 
 #executeCommand 'signmessage' 'pkt1q0tgwuwcg4tmwegmevdfz3g6tw838upqcq8xt8u message'
 executeCommand 'signmessage' 'POST' '/api/v1/lightning/signmessage' '{ "msg": "testing pld REST endpoints" }'
@@ -382,8 +392,8 @@ executeCommand 'dumpprivkey' 'POST' '/api/v1/lightning/dumpprivkey' '{ "address"
 showCommandResult 'result' ''
 #    echo -e "\tprivate key: $( echo ${JSON_OUTPUT} | jq '.private_key' )"
 
-executeCommand 'getnewaddress' 'POST' '/api/v1/lightning/getnewaddress' '{  }'
-showCommandResult 'result' ''
+#executeCommand 'getnewaddress' 'POST' '/api/v1/lightning/getnewaddress' '{  }'
+#showCommandResult 'result' ''
 #    echo -e "\taddress: $( echo ${JSON_OUTPUT} | jq '.address' )"
 
 #executeCommand 'gettransaction' '934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f'

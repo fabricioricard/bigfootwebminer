@@ -161,8 +161,12 @@ showCommandResult 'result' ''
 
 FUNDING_TXID="934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f"
 
-executeCommand 'abandonchannel' 'POST' '/api/v1/channels/abandon' "{ \"channelPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
+executeCommand 'abandonchannel' 'POST' '/api/v1/lightning/channel/abandon' "{ \"channelPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
 showCommandResult 'result' ''
+
+showCommandResult 'result' ''
+echo "++++++++++++++++++++++++++++++++"
+exit 0
 
 executeCommand 'channelbalance' 'GET' '/api/v1/channels/balance'
 showCommandResult 'channel balance' '.balance'
@@ -197,10 +201,6 @@ showCommandResult 'result' ''
 
 executeCommand 'restorechanbackup' 'POST' '/api/v1/channels/backup/restore' "{ \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] }"
 showCommandResult 'result' ''
-
-showCommandResult 'result' ''
-echo "++++++++++++++++++++++++++++++++"
-exit 0
 
 #
 #   test commands to get graph info

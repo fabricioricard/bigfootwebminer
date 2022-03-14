@@ -29,6 +29,10 @@ import (
 )
 
 const (
+	URI_prefix = "/api/v1"
+)
+
+const (
 	categoryMeta       = "Meta"
 	categoryChannels   = "Channels"
 	categoryGraph      = "Graph"
@@ -2603,7 +2607,7 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 	var req proto.Message
 
 	//	check if the URI is for command help
-	if r.RequestURI == helpURI_prefix+s.rf.path {
+	if r.RequestURI == URI_prefix+helpURI_prefix+s.rf.path {
 
 		if r.Method != "GET" {
 			return er.New("Request should be a GET because the help endpoint requires no input")
@@ -2664,14 +2668,10 @@ func (s *SimpleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func RestHandlers(c *RpcContext) *mux.Router {
-	const (
-		URI_prefix = "/api/v1"
-	)
-
 	r := mux.NewRouter()
 	for _, rf := range rpcFunctions {
 		r.Handle(URI_prefix+rf.path, &SimpleHandler{c: c, rf: rf})
-		r.Handle(helpURI_prefix+rf.path, &SimpleHandler{c: c, rf: rf})
+		r.Handle(URI_prefix+helpURI_prefix+rf.path, &SimpleHandler{c: c, rf: rf})
 	}
 	return r
 }

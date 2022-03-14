@@ -67,12 +67,13 @@ func marshalHelp(httpResponse http.ResponseWriter, helpInfo pkthelp.Method) er.R
 //	the REST master help messsage
 func RESTCategory_help(category string) *RestCommandCategory {
 	restCommandCategory := &RestCommandCategory{
-		Endpoints: make(map[string]string),
+		Description: []string{""},
+		Endpoints:   make(map[string]string),
 	}
 
 	for _, function := range rpcFunctions {
 		if function.category == category {
-			restCommandCategory.Endpoints[function.path] = function.description
+			restCommandCategory.Endpoints[URI_prefix+function.path] = function.description
 		}
 	}
 
@@ -104,6 +105,7 @@ func RESTMaster_help() *RestMasterHelpResponse {
 //	add the REST master help HTTP handler
 func RestHandlersHelp(router *mux.Router) {
 	router.HandleFunc("/", getMainHelp)
+	router.HandleFunc(URI_prefix, getMainHelp)
 }
 
 //	get REST master help handler

@@ -2673,5 +2673,12 @@ func RestHandlers(c *RpcContext) *mux.Router {
 		r.Handle(URI_prefix+rf.path, &SimpleHandler{c: c, rf: rf})
 		r.Handle(URI_prefix+helpURI_prefix+rf.path, &SimpleHandler{c: c, rf: rf})
 	}
+
+	//	add a handler for endpoint not found (404)
+	r.NotFoundHandler = http.HandlerFunc(func(httpResponse http.ResponseWriter, r *http.Request) {
+		httpResponse.Header().Set("Content-Type", "text/plain")
+		http.Error(httpResponse, "404 - invalid endpoint: for help on all endpoints go to /api/v1 URI", http.StatusNotFound)
+	})
+
 	return r
 }

@@ -25,6 +25,7 @@ option go_package = "github.com/pkt-cash/pktd/lnd/lnrpc/restrpc";
 message RestCommandCategory {
     repeated string description = 1;
     map<string, string> endpoints = 2;
+    map<string, RestCommandCategory> subcategory = 3;
 }
 
 message RestMasterHelpResponse{

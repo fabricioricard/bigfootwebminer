@@ -19,6 +19,7 @@ import (
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
 	"github.com/pkt-cash/pktd/lnd/lnrpc/verrpc"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/wtclientrpc"
 	"github.com/pkt-cash/pktd/lnd/pkthelp"
 	"github.com/pkt-cash/pktd/lnd/walletunlocker"
 	"github.com/pkt-cash/pktd/neutrino"
@@ -28,16 +29,30 @@ import (
 )
 
 const (
-	categoryMeta       = "Meta"
-	categoryChannels   = "Channels"
-	categoryGraph      = "Graph"
-	categoryInvoices   = "Invoices"
-	categoryOnChain    = "On-chain"
-	categoryPayments   = "Payments"
-	categoryPeers      = "Peers"
-	categoryStartup    = "Startup"
-	categoryWallet     = "Wallet"
-	categoryWatchtower = "Watchtower"
+	URI_prefix = "/api/v1"
+)
+
+const (
+	categoryLightning             = "Lightning"
+	subcategoryChannel            = "Channel"
+	subSubCategoryBackup          = "Backup"
+	subCategoryGraph              = "Graph"
+	subCategoryInvoice            = "Invoice"
+	subCategoryPayment            = "Payment"
+	subCategoryPeer               = "Peer"
+	categoryMeta                  = "Meta"
+	categoryWallet                = "Wallet"
+	subCategoryNetworkStewardVote = "Network Steward Vote"
+	subCategoryTransaction        = "Transaction"
+	subCategoryUnspent            = "Unspent"
+	subSubCategoryLock            = "Lock"
+	subCategoryAddress            = "Address"
+	categoryNeutrino              = "Neutrino"
+	categoryUtil                  = "Util"
+	subCategorySeed               = "Seed"
+	categoryWatchtower            = "Watchtower"
+
+	categoryOrphan = "Orphan"
 )
 
 type RpcFunc struct {
@@ -55,7 +70,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//WalletUnlocker: Wallet unlock
 	//Will try to unlock the wallet with the password(s) provided
 	{
-		category:    categoryStartup,
+		category:    categoryWallet,
 		description: "Unlock an encrypted wallet at startup",
 
 		path: "/wallet/unlock",
@@ -79,7 +94,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//WalletUnlocker: Wallet create
 	//Will try to create/restore wallet
 	{
-		category:    categoryStartup,
+		category:    categoryWallet,
 		description: "Initialize a wallet when starting lnd for the first time",
 
 		path: "/wallet/create",
@@ -242,10 +257,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//MetaService change wallet password
 	{
-		category:    categoryStartup,
+		category:    categoryWallet,
 		description: "Change an encrypted wallet's password at startup",
 
-		path: "/wallet/password/change",
+		path: "/wallet/changepassphrase",
 		req:  (*lnrpc.ChangePasswordRequest)(nil),
 		res:  (*lnrpc.ChangePasswordResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -269,10 +284,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//Wallet balance
 	//requires unlocked wallet -> access to rpcServer
 	{
-		category:    categoryWallet,
+		category:    categoryOrphan,
 		description: "Compute and display the wallet's current balance",
 
-		path: "/lightning/walletbalance",
+		path: "/wallet/balance",
 		req:  nil,
 		res:  (*lnrpc.GetAddressBalancesResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -292,10 +307,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//Wallet transactions
 	//requires unlocked wallet -> access to rpcServer
 	{
-		category:    categoryWallet,
+		category:    subCategoryTransaction,
 		description: "List transactions from the wallet",
 
-		path: "/lightning/gettransactions",
+		path: "/wallet/transaction/query",
 		req:  (*lnrpc.GetTransactionsRequest)(nil),
 		res:  (*lnrpc.TransactionDetails)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -319,10 +334,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//New wallet address
 	//requires unlocked wallet -> access to rpcServer
 	{
-		category:    categoryWallet,
+		category:    subCategoryAddress,
 		description: "Generates a new address",
 
-		path: "/wallet/addreses/create",
+		path: "/wallet/address/create",
 		req:  (*lnrpc.GetNewAddressRequest)(nil),
 		res:  (*lnrpc.GetNewAddressResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -345,10 +360,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//GetAddressBalances
 	{
-		category:    categoryWallet,
+		category:    subCategoryAddress,
 		description: "Compute and display balances for each address in the wallet",
 
-		path: "/wallet/addresses/balances",
+		path: "/wallet/address/balances",
 		req:  (*lnrpc.GetAddressBalancesRequest)(nil),
 		res:  (*lnrpc.GetAddressBalancesResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -371,10 +386,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//Sendfrom
 	{
-		category:    categoryWallet,
+		category:    subCategoryTransaction,
 		description: "Authors, signs, and sends a transaction that outputs some amount to a payment address",
 
-		path: "/lightning/sendfrom",
+		path: "/wallet/transaction/sendfrom",
 		req:  (*lnrpc.SendFromRequest)(nil),
 		res:  (*lnrpc.SendFromResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -419,7 +434,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//GetTransaction
 	{
-		category:    categoryWallet,
+		category:    subCategoryTransaction,
 		description: "Returns a JSON object with details regarding a transaction relevant to this wallet",
 
 		path: "/wallet/transaction",
@@ -445,10 +460,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//Resync
 	{
-		category:    categoryWallet,
+		category:    subCategoryUnspent,
 		description: "Scan over the chain to find any transactions which may not have been recorded in the wallet's database",
 
-		path: "/wallet/resync",
+		path: "/wallet/unspent/resync",
 		req:  (*lnrpc.ReSyncChainRequest)(nil),
 		res:  (*lnrpc.ReSyncChainResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -471,10 +486,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//StopResync
 	{
-		category:    categoryWallet,
+		category:    subCategoryUnspent,
 		description: "Stop a re-synchronization job before it's completion",
 
-		path: "/wallet/stopresync",
+		path: "/wallet/unspent/stopresync",
 		req:  nil,
 		res:  (*lnrpc.StopReSyncResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -493,7 +508,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	GenSeed service
 	{
-		category:    categoryWallet,
+		category:    subCategorySeed,
 		description: "Create a secret seed",
 
 		path: "/util/createseed",
@@ -525,33 +540,20 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.WalletUnlocker_GenSeed,
 	},
-	//	meta service get recovery info
+	//	TODO: Change Passphrase service
 	{
-		category:    categoryMeta,
-		description: "Display information about an ongoing recovery attempt",
+		category:    subCategorySeed,
+		description: "Alter the passphrase which is used to encrypt a wallet seed",
 
-		path: "/wallet/getrecoveryinfo",
+		path: "/util/seed/changepassphrase",
 		req:  nil,
-		res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
+		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			//	get Lightning recovery info
-			cc, errr := c.withRpcServer()
-			if cc != nil {
-				var recoveryInfoResp *lnrpc.GetRecoveryInfoResponse
-
-				recoveryInfoResp, err := cc.GetRecoveryInfo(context.TODO(), nil)
-				if err != nil {
-					return nil, er.E(err)
-				} else {
-					return recoveryInfoResp, nil
-				}
-			} else {
-				return nil, errr
-			}
+			return nil, nil
 		},
 
-		getHelpInfo: pkthelp.Lightning_GetRecoveryInfo,
+		getHelpInfo: pkthelp.WalletUnlocker_GenSeed,
 	},
 	//	service debug level
 	{
@@ -644,46 +646,45 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		getHelpInfo: pkthelp.Versioner_GetVersion,
 	},
 	//	TODO: service openchannel
-	/*
-		{
-			category:    categoryChannels,
-			description: "Open a channel to a node or an existing peer",
-
-			path: "/channels/open",
-			req:  (*lnrpc.OpenChannelRequest)(nil),
-			res:  nil,
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-
-				//	get the request payload
-				openChannelReq, ok := m.(*lnrpc.OpenChannelRequest)
-				if !ok {
-					return nil, er.New("Argument is not a OpenChannelRequest")
-				}
-
-				//	open a channel
-				cc, errr := c.withRpcServer()
-				if cc != nil {
-					err := cc.OpenChannel(openChannelReq, lightningOpenChannelServer{stream})
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return nil, nil
-					}
-				} else {
-					return nil, errr
-				}
-			},
-
-			getHelpInfo: pkthelp.Lightning_OpenChannel,
-		},
-	*/
-	//	TODO: service closechannel
-	//	check with Dimitris if the URL parameters should be validated with the payload, and fill the payload in the case they came only on URL
 	{
-		category:    categoryChannels,
+		category:    categoryOrphan,
+		description: "Open a channel to a node or an existing peer",
+
+		path: "/channels/open",
+		req:  (*lnrpc.OpenChannelRequest)(nil),
+		res:  (*lnrpc.ChannelPoint)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			openChannelReq, ok := m.(*lnrpc.OpenChannelRequest)
+			if !ok {
+				return nil, er.New("Argument is not a OpenChannelRequest")
+			}
+
+			//	open a channel
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var openChannelResp *lnrpc.ChannelPoint
+
+				openChannelResp, err := cc.OpenChannelSync(context.TODO(), openChannelReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return openChannelResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.Lightning_OpenChannel,
+	},
+	//	TODO: service closechannel
+	{
+		category:    subcategoryChannel,
 		description: "Close an existing channel",
 
-		path: "/channels/close",
+		path: "/lightning/channel/close",
 		req:  (*lnrpc.CloseChannelRequest)(nil),
 		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -711,7 +712,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		getHelpInfo: pkthelp.Lightning_CloseChannel,
 	},
 	//	TODO: service closeallchannels
-	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This means the Payload for this REST command needs to be created !
+	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This is done in the client ide (pldctl)
 	/*
 		{
 			category:    categoryChannels,
@@ -741,7 +742,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	*/
 	//	service abandonchannel
 	{
-		category:    categoryChannels,
+		category:    subcategoryChannel,
 		description: "Abandons an existing channel",
 
 		path: "/lightning/channel/abandon",
@@ -775,7 +776,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service channelbalance
 	{
-		category:    categoryChannels,
+		category:    subcategoryChannel,
 		description: "Returns the sum of the total available channel balance across all open channels",
 
 		path: "/lightning/channel/balance",
@@ -803,7 +804,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service pendingchannels
 	{
-		category:    categoryChannels,
+		category:    subcategoryChannel,
 		description: "Display information pertaining to pending channels",
 
 		path: "/lightning/channel/pending",
@@ -831,7 +832,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listchannels
 	{
-		category:    categoryChannels,
+		category:    subcategoryChannel,
 		description: "List all open channels",
 
 		path: "/lightning/channel",
@@ -865,7 +866,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service closedchannels
 	{
-		category:    categoryChannels,
+		category:    subcategoryChannel,
 		description: "List all closed channels",
 
 		path: "/lightning/channel/closed",
@@ -899,7 +900,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnetworkinfo
 	{
-		category:    categoryChannels,
+		category:    subcategoryChannel,
 		description: "Get statistical information about the current state of the network",
 
 		path: "/lightning/channel/networkinfo",
@@ -927,7 +928,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service feereport
 	{
-		category:    categoryChannels,
+		category:    subcategoryChannel,
 		description: "Display the current fee policies of all active channels",
 
 		path: "/lightning/channel/feereport",
@@ -955,7 +956,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service updatechanpolicy
 	{
-		category:    categoryChannels,
+		category:    subcategoryChannel,
 		description: "Update the channel policy for all channels, or a single channel",
 
 		path: "/lightning/channel/policy",
@@ -989,7 +990,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service exportchanbackup
 	{
-		category:    categoryChannels,
+		category:    subSubCategoryBackup,
 		description: "Obtain a static channel back up for a selected channels, or all known channels",
 
 		path: "/lightning/channel/backup/export",
@@ -1023,7 +1024,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service verifychanbackup
 	{
-		category:    categoryChannels,
+		category:    subSubCategoryBackup,
 		description: "Verify an existing channel backup",
 
 		path: "/lightning/channel/backup/verify",
@@ -1057,7 +1058,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service restorechanbackup
 	{
-		category:    categoryChannels,
+		category:    subSubCategoryBackup,
 		description: "Restore an existing single or multi-channel static channel backup",
 
 		path: "/lightning/channel/backup/restore",
@@ -1091,7 +1092,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service describegraph
 	{
-		category:    categoryGraph,
+		category:    subCategoryGraph,
 		description: "Describe the network graph",
 
 		path: "/lightning/graph",
@@ -1125,7 +1126,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnodemetrics
 	{
-		category:    categoryGraph,
+		category:    subCategoryGraph,
 		description: "Get node metrics",
 
 		path: "/lightning/graph/nodemetrics",
@@ -1159,7 +1160,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getchaninfo
 	{
-		category:    categoryGraph,
+		category:    subCategoryGraph,
 		description: "Get the state of a channel",
 
 		path: "/lightning/graph/channel",
@@ -1193,7 +1194,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnodeinfo
 	{
-		category:    categoryGraph,
+		category:    subCategoryGraph,
 		description: "Get information on a specific node",
 
 		path: "/lightning/graph/nodeinfo",
@@ -1227,7 +1228,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service addinvoice
 	{
-		category:    categoryInvoices,
+		category:    subCategoryInvoice,
 		description: "Add a new invoice",
 
 		path: "/lightning/invoice/create",
@@ -1261,7 +1262,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service lookupinvoice
 	{
-		category:    categoryInvoices,
+		category:    subCategoryInvoice,
 		description: "Lookup an existing invoice by its payment hash",
 
 		path: "/lightning/invoice/lookup",
@@ -1295,7 +1296,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listinvoices
 	{
-		category:    categoryInvoices,
+		category:    subCategoryInvoice,
 		description: "List all invoices currently stored within the database. Any active debug invoices are ignored",
 
 		path: "/lightning/invoice",
@@ -1329,7 +1330,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service decodepayreq
 	{
-		category:    categoryInvoices,
+		category:    subCategoryInvoice,
 		description: "Decode a payment request",
 
 		path: "/lightning/invoice/decodepayreq",
@@ -1363,7 +1364,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service estimatefee
 	{
-		category:    categoryOnChain,
+		category:    categoryNeutrino,
 		description: "Get fee estimates for sending bitcoin on-chain to multiple addresses",
 
 		path: "/neutrino/estimatefee",
@@ -1397,10 +1398,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendmany
 	{
-		category:    categoryOnChain,
+		category:    subCategoryTransaction,
 		description: "Send bitcoin on-chain to multiple addresses",
 
-		path: "/wallet/sendmany",
+		path: "/wallet/transaction/sendmany",
 		req:  (*lnrpc.SendManyRequest)(nil),
 		res:  (*lnrpc.SendManyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1431,10 +1432,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendcoins
 	{
-		category:    categoryOnChain,
+		category:    subCategoryTransaction,
 		description: "Send bitcoin on-chain to an address",
 
-		path: "/wallet/sendcoins",
+		path: "/wallet/transaction/sendcoins",
 		req:  (*lnrpc.SendCoinsRequest)(nil),
 		res:  (*lnrpc.SendCoinsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1465,7 +1466,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listunspent
 	{
-		category:    categoryOnChain,
+		category:    subCategoryUnspent,
 		description: "List utxos available for spending",
 
 		path: "/wallet/unspent",
@@ -1499,10 +1500,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service setnetworkstewardvote
 	{
-		category:    categoryOnChain,
+		category:    subCategoryNetworkStewardVote,
 		description: "Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)",
 
-		path: "/wallet/setnetworkstewardvote",
+		path: "/wallet/networkstewardvote/set",
 		req:  (*lnrpc.SetNetworkStewardVoteRequest)(nil),
 		res:  (*lnrpc.SetNetworkStewardVoteResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1533,10 +1534,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnetworkstewardvote
 	{
-		category:    categoryOnChain,
+		category:    subCategoryNetworkStewardVote,
 		description: "Find out how the wallet is currently configured to vote in a network steward election",
 
-		path: "/wallet/getnetworkstewardvote",
+		path: "/wallet/networkstewardvote",
 		req:  nil,
 		res:  (*lnrpc.GetNetworkStewardVoteResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1561,7 +1562,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service bcasttransaction
 	{
-		category:    categoryOnChain,
+		category:    categoryNeutrino,
 		description: "Broadcast a transaction onchain",
 
 		path: "/neutrino/bcasttransaction",
@@ -1595,7 +1596,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendpayment
 	{
-		category:    categoryPayments,
+		category:    subCategoryPayment,
 		description: "Send a payment over lightning",
 
 		path: "/lightning/payment/send",
@@ -1628,41 +1629,39 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		getHelpInfo: pkthelp.Lightning_SendPaymentSync,
 	},
 	//	TODO: service payinvoice
-	/*
-		check payInvoice incm_pay.go source file
-		{
-			category:    categoryPayments,
-			description: "Pay an invoice over lightning",
+	//	uses a stream Router_SendPaymentV2Server to send the payment updates - how to do it with RESP endpoints ?
+	{
+		category:    categoryOrphan,
+		description: "Pay an invoice over lightning",
 
-			path: "/payment/payinvoice",
-			req:  (*routerrpc.SendPaymentRequest)(nil),
-			res:  nil,
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+		path: "/payment/payinvoice",
+		req:  (*routerrpc.SendPaymentRequest)(nil),
+		res:  nil,
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-				//	get the request payload
-				sendPaymentReq, ok := m.(*routerrpc.SendPaymentRequest)
-				if !ok {
-					return nil, er.New("Argument is not a SendPaymentRequest")
-				}
+			//	get the request payload
+			sendPaymentReq, ok := m.(*routerrpc.SendPaymentRequest)
+			if !ok {
+				return nil, er.New("Argument is not a SendPaymentRequest")
+			}
 
-				//	query the mission control status
-				cc, errr := c.withRouterServer()
-				if cc != nil {
-					err := cc.SendPaymentV2(sendPaymentReq, )
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return nil, nil
-					}
+			//	invoke Lightning send payment command
+			cc, errr := c.withRouterServer()
+			if cc != nil {
+				err := cc.SendPaymentV2(sendPaymentReq, nil)
+				if err != nil {
+					return nil, er.E(err)
 				} else {
-					return nil, errr
+					return nil, nil
 				}
-			},
+			} else {
+				return nil, errr
+			}
 		},
-	*/
+	},
 	//	service sendtoroute
 	{
-		category:    categoryPayments,
+		category:    subCategoryPayment,
 		description: "Send a payment over a predefined route",
 
 		path: "/lightning/payment/sendroutes",
@@ -1696,7 +1695,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listpayments
 	{
-		category:    categoryPayments,
+		category:    subCategoryPayment,
 		description: "List all outgoing payments",
 
 		path: "/lightning/payment",
@@ -1730,7 +1729,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service queryroutes
 	{
-		category:    categoryPayments,
+		category:    subCategoryPayment,
 		description: "Query a route to a destination",
 
 		path: "/lightning/payment/queryroutes",
@@ -1764,7 +1763,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service fwdinghistory
 	{
-		category:    categoryPayments,
+		category:    subCategoryPayment,
 		description: "Query the history of all forwarded HTLCs",
 
 		path: "/lightning/payment/fwdinghistory",
@@ -1796,9 +1795,40 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.Lightning_ForwardingHistory,
 	},
+	//	TODO: service trackpayment
+	//	uses a stream Router_SendPaymentV2Server to send the payment updates - how to do it with RESP endpoints ?
+	{
+		category:    categoryOrphan,
+		description: "Track progress of an existing payment",
+
+		path: "/payment/track",
+		req:  (*routerrpc.TrackPaymentRequest)(nil),
+		res:  nil,
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			trackPaymentReq, ok := m.(*routerrpc.TrackPaymentRequest)
+			if !ok {
+				return nil, er.New("Argument is not a TrackPaymentRequest")
+			}
+
+			//	invoke Lightning send payment command
+			cc, errr := c.withRouterServer()
+			if cc != nil {
+				err := cc.TrackPaymentV2(trackPaymentReq, nil)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return nil, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+	},
 	//	service querymc
 	{
-		category:    categoryPayments,
+		category:    subCategoryPayment,
 		description: "Query the internal mission control state",
 
 		path: "/lightning/payment/querymc",
@@ -1826,7 +1856,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service queryprob
 	{
-		category:    categoryPayments,
+		category:    subCategoryPayment,
 		description: "Estimate a success probability",
 
 		path: "/lightning/payment/queryprob",
@@ -1860,7 +1890,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service resetmc
 	{
-		category:    categoryPayments,
+		category:    subCategoryPayment,
 		description: "Reset internal mission control state",
 
 		path: "/lightning/payment/resetmc",
@@ -1888,7 +1918,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service buildroute
 	{
-		category:    categoryPayments,
+		category:    subCategoryPayment,
 		description: "Build a route from a list of hop pubkeys",
 
 		path: "/lightning/payment/buildroute",
@@ -1922,10 +1952,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service connect
 	{
-		category:    categoryPeers,
+		category:    subCategoryPeer,
 		description: "Connect to a remote pld peer",
 
-		path: "/lightning/peers/connect",
+		path: "/lightning/peer/connect",
 		req:  (*lnrpc.ConnectPeerRequest)(nil),
 		res:  (*lnrpc.ConnectPeerResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1956,10 +1986,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service disconnect
 	{
-		category:    categoryPeers,
+		category:    subCategoryPeer,
 		description: "Disconnect a remote pld peer identified by public key",
 
-		path: "/lightning/peers/disconnect",
+		path: "/lightning/peer/disconnect",
 		req:  (*lnrpc.DisconnectPeerRequest)(nil),
 		res:  (*lnrpc.DisconnectPeerResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1990,10 +2020,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listpeers
 	{
-		category:    categoryPeers,
+		category:    subCategoryPeer,
 		description: "List all active, currently connected peers",
 
-		path: "/lightning/peers",
+		path: "/lightning/peer",
 		req:  nil,
 		res:  (*lnrpc.ListPeersResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -2022,10 +2052,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service signmessage
 	{
-		category:    categoryWallet,
+		category:    subCategoryAddress,
 		description: "Signs a message using the private key of a payment address",
 
-		path: "/wallet/addresses/signmessage",
+		path: "/wallet/address/signmessage",
 		req:  (*lnrpc.SignMessageRequest)(nil),
 		res:  (*lnrpc.SignMessageResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -2090,10 +2120,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service importprivkey
 	{
-		category:    categoryWallet,
+		category:    subCategoryAddress,
 		description: "Imports a WIF-encoded private key to the 'imported' account",
 
-		path: "/wallet/addresses/import",
+		path: "/wallet/address/import",
 		req:  (*lnrpc.ImportPrivKeyRequest)(nil),
 		res:  (*lnrpc.ImportPrivKeyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -2124,10 +2154,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listlockunspent
 	{
-		category:    categoryWallet,
+		category:    subSubCategoryLock,
 		description: "Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session",
 
-		path: "/wallet/lockunspent",
+		path: "/wallet/unspent/lock",
 		req:  nil,
 		res:  (*lnrpc.ListLockUnspentResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -2152,10 +2182,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service lockunspent
 	{
-		category:    categoryWallet,
+		category:    subSubCategoryLock,
 		description: "Locks or unlocks an unspent output",
 
-		path: "/wallet/lockunspent/create",
+		path: "/wallet/unspent/lock/create",
 		req:  (*lnrpc.LockUnspentRequest)(nil),
 		res:  (*lnrpc.LockUnspentResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -2186,10 +2216,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service createtransaction
 	{
-		category:    categoryWallet,
+		category:    subCategoryTransaction,
 		description: "Create a transaction but do not send it to the chain",
 
-		path: "/wallet/transactions/create",
+		path: "/wallet/transaction/create",
 		req:  (*lnrpc.CreateTransactionRequest)(nil),
 		res:  (*lnrpc.CreateTransactionResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -2220,10 +2250,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service dumpprivkey
 	{
-		category:    categoryWallet,
+		category:    subCategoryAddress,
 		description: "Returns the private key in WIF encoding that controls some wallet address",
 
-		path: "/wallet/addresses/dumpprivkey",
+		path: "/wallet/address/dumpprivkey",
 		req:  (*lnrpc.DumpPrivKeyRequest)(nil),
 		res:  (*lnrpc.DumpPrivKeyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -2252,53 +2282,228 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.Lightning_DumpPrivKey,
 	},
-	/*
-		//	service wtclient: AddTower
-		{
-			category:    categoryWatchtower,
-			description: "Interact with the watchtower client",
+	//	service wtclient: Add
+	{
+		category:    categoryWatchtower,
+		description: "Register a watchtower to use for future sessions/backups",
 
-			path: "/wtclient/create",
-			req:  (*lnrpc.GetTransactionsRequest)(nil),
-			res:  (*lnrpc.TransactionDetails)(nil),
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+		path: "/wtclient/tower/create",
+		req:  (*wtclientrpc.AddTowerRequest)(nil),
+		res:  (*wtclientrpc.AddTowerResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-				//	get the request payload
-				getTransactionsReq, ok := m.(*lnrpc.GetTransactionsRequest)
-				if !ok {
-					return nil, er.New("Argument is not a GetTransactionsRequest")
-				}
+			//	get the request payload
+			addTowerReq, ok := m.(*wtclientrpc.AddTowerRequest)
+			if !ok {
+				return nil, er.New("Argument is not a AddTowerRequest")
+			}
 
-				//	invoke wallet get transactions command
-				cc, errr := c.withRpcServer()
-				if cc != nil {
-					var transactionDetailsResp *lnrpc.TransactionDetails
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
 
-					transactionDetailsResp, err := cc.GetTransactions(context.TODO(), getTransactionsReq)
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return transactionDetailsResp, nil
-					}
+			if cc != nil {
+				var addTowerResp *wtclientrpc.AddTowerResponse
+
+				addTowerResp, err := cc.AddTower(context.TODO(), addTowerReq)
+				if err != nil {
+					return nil, er.E(err)
 				} else {
-					return nil, errr
+					return addTowerResp, nil
 				}
-			},
-
-			getHelpInfo: pkthelp.WatchtowerClient_AddTower,
+			} else {
+				return nil, errr
+			}
 		},
-	*/
+
+		getHelpInfo: pkthelp.WatchtowerClient_AddTower,
+	},
+	//	service wtclient: Remove
+	{
+		category:    categoryWatchtower,
+		description: "Remove a watchtower to prevent its use for future sessions/backups",
+
+		path: "/wtclient/tower/remove",
+		req:  (*wtclientrpc.RemoveTowerRequest)(nil),
+		res:  (*wtclientrpc.RemoveTowerResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			removeTowerReq, ok := m.(*wtclientrpc.RemoveTowerRequest)
+			if !ok {
+				return nil, er.New("Argument is not a RemoveTowerRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var removeTowerResp *wtclientrpc.RemoveTowerResponse
+
+				removeTowerResp, err := cc.RemoveTower(context.TODO(), removeTowerReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return removeTowerResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_RemoveTower,
+	},
+	//	service wtclient: Towers
+	{
+		category:    categoryWatchtower,
+		description: "Display information about all registered watchtowers",
+
+		path: "/wtclient/tower",
+		req:  (*wtclientrpc.ListTowersRequest)(nil),
+		res:  (*wtclientrpc.ListTowersResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			listTowersReq, ok := m.(*wtclientrpc.ListTowersRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ListTowersRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var listTowersResp *wtclientrpc.ListTowersResponse
+
+				listTowersResp, err := cc.ListTowers(context.TODO(), listTowersReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return listTowersResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_ListTowers,
+	},
+	//	service wtclient: Tower
+	{
+		category:    categoryWatchtower,
+		description: "Display information about a specific registered watchtower",
+
+		path: "/wtclient/tower/getinfo",
+		req:  (*wtclientrpc.GetTowerInfoRequest)(nil),
+		res:  (*wtclientrpc.Tower)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			getTowerInfoReq, ok := m.(*wtclientrpc.GetTowerInfoRequest)
+			if !ok {
+				return nil, er.New("Argument is not a GetTowerInfoRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var towerResp *wtclientrpc.Tower
+
+				towerResp, err := cc.GetTowerInfo(context.TODO(), getTowerInfoReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return towerResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_GetTowerInfo,
+	},
+	//	service wtclient: stats
+	{
+		category:    categoryWatchtower,
+		description: "Display the session stats of the watchtower client",
+
+		path: "/wtclient/tower/stats",
+		req:  (*wtclientrpc.StatsRequest)(nil),
+		res:  (*wtclientrpc.StatsResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			statsReq, ok := m.(*wtclientrpc.StatsRequest)
+			if !ok {
+				return nil, er.New("Argument is not a StatsRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var statsResp *wtclientrpc.StatsResponse
+
+				statsResp, err := cc.Stats(context.TODO(), statsReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return statsResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_Stats,
+	},
+	//	service wtclient: policy
+	{
+		category:    categoryWatchtower,
+		description: "Display the active watchtower client policy configuration",
+
+		path: "/wtclient/tower/policy",
+		req:  (*wtclientrpc.PolicyRequest)(nil),
+		res:  (*wtclientrpc.PolicyResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			policyReq, ok := m.(*wtclientrpc.PolicyRequest)
+			if !ok {
+				return nil, er.New("Argument is not a PolicyRequest")
+			}
+
+			//	invoke wallet get transactions command
+			cc, errr := c.withWatchTowerClient()
+
+			if cc != nil {
+				var policyResp *wtclientrpc.PolicyResponse
+
+				policyResp, err := cc.Policy(context.TODO(), policyReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return policyResp, nil
+				}
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.WatchtowerClient_Policy,
+	},
 }
 
 type RpcContext struct {
-	MaybeCC             *chainreg.ChainControl
-	MaybeNeutrino       *neutrino.ChainService
-	MaybeWallet         *wallet.Wallet
-	MaybeRpcServer      lnrpc.LightningServer
-	MaybeWalletUnlocker *walletunlocker.UnlockerService
-	MaybeMetaService    lnrpc.MetaServiceServer
-	MaybeVerRPCServer   verrpc.VersionerServer
-	MaybeRouterServer   routerrpc.RouterServer
+	MaybeCC               *chainreg.ChainControl
+	MaybeNeutrino         *neutrino.ChainService
+	MaybeWallet           *wallet.Wallet
+	MaybeRpcServer        lnrpc.LightningServer
+	MaybeWalletUnlocker   *walletunlocker.UnlockerService
+	MaybeMetaService      lnrpc.MetaServiceServer
+	MaybeVerRPCServer     verrpc.VersionerServer
+	MaybeRouterServer     routerrpc.RouterServer
+	MaybeWatchTowerClient wtclientrpc.WatchtowerClientClient
 }
 
 func with(thing interface{}, name string) er.R {
@@ -2330,6 +2535,10 @@ func (c *RpcContext) withVerRPCServer() (verrpc.VersionerServer, er.R) {
 }
 func (c *RpcContext) withRouterServer() (routerrpc.RouterServer, er.R) {
 	return c.MaybeRouterServer, with(c.MaybeRouterServer, "RouterServer")
+}
+
+func (c *RpcContext) withWatchTowerClient() (wtclientrpc.WatchtowerClientClient, er.R) {
+	return c.MaybeWatchTowerClient, with(c.MaybeWatchTowerClient, "WatchTowerClient")
 }
 
 type SimpleHandler struct {
@@ -2395,7 +2604,7 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 	var req proto.Message
 
 	//	check if the URI is for command help
-	if r.RequestURI == helpURI_prefix+s.rf.path {
+	if r.RequestURI == URI_prefix+helpURI_prefix+s.rf.path {
 
 		if r.Method != "GET" {
 			return er.New("Request should be a GET because the help endpoint requires no input")
@@ -2456,14 +2665,17 @@ func (s *SimpleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func RestHandlers(c *RpcContext) *mux.Router {
-	const (
-		URI_prefix = "/api/v1"
-	)
-
 	r := mux.NewRouter()
 	for _, rf := range rpcFunctions {
 		r.Handle(URI_prefix+rf.path, &SimpleHandler{c: c, rf: rf})
-		r.Handle(helpURI_prefix+rf.path, &SimpleHandler{c: c, rf: rf})
+		r.Handle(URI_prefix+helpURI_prefix+rf.path, &SimpleHandler{c: c, rf: rf})
 	}
+
+	//	add a handler for endpoint not found (404)
+	r.NotFoundHandler = http.HandlerFunc(func(httpResponse http.ResponseWriter, r *http.Request) {
+		httpResponse.Header().Set("Content-Type", "text/plain")
+		http.Error(httpResponse, "404 - invalid endpoint: for help on all endpoints go to /api/v1 URI", http.StatusNotFound)
+	})
+
 	return r
 }

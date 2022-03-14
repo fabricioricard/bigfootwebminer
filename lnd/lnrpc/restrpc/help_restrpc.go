@@ -15,6 +15,34 @@ const (
 	helpURI_prefix = "/help"
 )
 
+var (
+	categoryDescription map[string][]string = map[string][]string{
+		categoryLightning:  {"The Lightning Network component of the wallet"},
+		subcategoryChannel: {"Management of lightning channels to direct peers of this pld node"},
+		subSubCategoryBackup: {"Backup and recovery of the state of active Lightning channels",
+			"to and from this pld node"},
+		subCategoryGraph:   {"Information about the global known Lightning Network"},
+		subCategoryInvoice: {"Management of invoices which are used to request payment over Lightning"},
+		subCategoryPayment: {"Lightning network payments which have been made, or have been forwarded, through this node"},
+		subCategoryPeer:    {"Connections to other nodes in the Lightning Network"},
+		categoryMeta:       {"API endpoints which are relevant to the entire pld node, not any specific part"},
+		categoryWallet: {"APIs for management of on-chain (non-Lightning) payments,",
+			"seed export and recovery, and on-chain transaction detection"},
+		subCategoryNetworkStewardVote: {"Control how this wallet votes on PKT Network Steward"},
+		subCategoryTransaction:        {"Create and manage on-chain transactions with the wallet"},
+		subCategoryUnspent:            {"Detected unspent transactions associated with one of our wallet addresses"},
+		subSubCategoryLock: {"Manipulation of unspent outputs which are 'locked'",
+			"and therefore will not be used to source funds for any transaction"},
+		subCategoryAddress: {"Management of individual wallet addresses"},
+		categoryNeutrino:   {"Management of the Neutrino interface which is used to communicate with the p2p nodes in the network"},
+		categoryUtil:       {"Stateless utility functions which do not affect, not query, the node in any way"},
+		subCategorySeed:    {"Manipulation of pneumonic seed phrases which represent wallet keys"},
+		categoryWatchtower: {"Interact with the watchtower client"},
+
+		categoryOrphan: {"Forgotten or to deprecated ?"},
+	}
+)
+
 //	convert	pkthelp.type to REST help proto struct
 func convertHelpType(t pkthelp.Type) *Type {
 	resultType := &Type{
@@ -65,15 +93,23 @@ func marshalHelp(httpResponse http.ResponseWriter, helpInfo pkthelp.Method) er.R
 }
 
 //	the REST master help messsage
-func RESTCategory_help(category string) *RestCommandCategory {
+func RESTCategory_help(category string, subCategory map[string]*RestCommandCategory) *RestCommandCategory {
 	restCommandCategory := &RestCommandCategory{
-		Endpoints: make(map[string]string),
+		Description: categoryDescription[category],
+		Endpoints:   make(map[string]string),
+		Subcategory: make(map[string]*RestCommandCategory),
 	}
 
+	//	add all endpoints for the category
 	for _, function := range rpcFunctions {
 		if function.category == category {
-			restCommandCategory.Endpoints[function.path] = function.description
+			restCommandCategory.Endpoints[URI_prefix+function.path] = function.description
 		}
+	}
+
+	//	add all sub categories
+	for name, value := range subCategory {
+		restCommandCategory.Subcategory[name] = value
 	}
 
 	return restCommandCategory
@@ -81,29 +117,46 @@ func RESTCategory_help(category string) *RestCommandCategory {
 
 //	the REST master help messsage
 func RESTMaster_help() *RestMasterHelpResponse {
-	return &RestMasterHelpResponse{
+	masterHelpResp := &RestMasterHelpResponse{
 		Name: "pld - Lightning Network Daemon REST interface (pld)",
 		Description: []string{
 			"General information about PLD",
 		},
 		Category: map[string]*RestCommandCategory{
-			categoryMeta:       RESTCategory_help(categoryMeta),
-			categoryChannels:   RESTCategory_help(categoryChannels),
-			categoryGraph:      RESTCategory_help(categoryGraph),
-			categoryInvoices:   RESTCategory_help(categoryInvoices),
-			categoryOnChain:    RESTCategory_help(categoryOnChain),
-			categoryPayments:   RESTCategory_help(categoryPayments),
-			categoryPeers:      RESTCategory_help(categoryPeers),
-			categoryStartup:    RESTCategory_help(categoryStartup),
-			categoryWallet:     RESTCategory_help(categoryWallet),
-			categoryWatchtower: RESTCategory_help(categoryWatchtower),
+			categoryLightning: RESTCategory_help(categoryLightning, map[string]*RestCommandCategory{
+				subcategoryChannel: RESTCategory_help(subcategoryChannel, map[string]*RestCommandCategory{
+					subSubCategoryBackup: RESTCategory_help(subSubCategoryBackup, map[string]*RestCommandCategory{}),
+				}),
+				subCategoryGraph:   RESTCategory_help(subCategoryGraph, map[string]*RestCommandCategory{}),
+				subCategoryInvoice: RESTCategory_help(subCategoryInvoice, map[string]*RestCommandCategory{}),
+				subCategoryPayment: RESTCategory_help(subCategoryPayment, map[string]*RestCommandCategory{}),
+				subCategoryPeer:    RESTCategory_help(subCategoryPeer, map[string]*RestCommandCategory{}),
+			}),
+			categoryMeta: RESTCategory_help(categoryMeta, map[string]*RestCommandCategory{}),
+			categoryWallet: RESTCategory_help(categoryWallet, map[string]*RestCommandCategory{
+				subCategoryNetworkStewardVote: RESTCategory_help(subCategoryNetworkStewardVote, map[string]*RestCommandCategory{}),
+				subCategoryTransaction:        RESTCategory_help(subCategoryTransaction, map[string]*RestCommandCategory{}),
+				subCategoryUnspent: RESTCategory_help(subCategoryUnspent, map[string]*RestCommandCategory{
+					subSubCategoryLock: RESTCategory_help(subSubCategoryLock, map[string]*RestCommandCategory{}),
+				}),
+				subCategoryAddress: RESTCategory_help(subCategoryAddress, map[string]*RestCommandCategory{}),
+			}),
+			categoryNeutrino: RESTCategory_help(categoryNeutrino, map[string]*RestCommandCategory{}),
+			categoryUtil: RESTCategory_help(categoryUtil, map[string]*RestCommandCategory{
+				subCategorySeed: RESTCategory_help(subCategorySeed, map[string]*RestCommandCategory{}),
+			}),
+			categoryWatchtower: RESTCategory_help(categoryWatchtower, map[string]*RestCommandCategory{}),
+			categoryOrphan:     RESTCategory_help(categoryOrphan, map[string]*RestCommandCategory{}),
 		},
 	}
+
+	return masterHelpResp
 }
 
 //	add the REST master help HTTP handler
 func RestHandlersHelp(router *mux.Router) {
 	router.HandleFunc("/", getMainHelp)
+	router.HandleFunc(URI_prefix, getMainHelp)
 }
 
 //	get REST master help handler

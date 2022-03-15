@@ -36,10 +36,8 @@ var (
 		subCategoryAddress: {"Management of individual wallet addresses"},
 		categoryNeutrino:   {"Management of the Neutrino interface which is used to communicate with the p2p nodes in the network"},
 		categoryUtil:       {"Stateless utility functions which do not affect, not query, the node in any way"},
-		subCategorySeed:    {"Manipulation of pneumonic seed phrases which represent wallet keys"},
+		subCategorySeed:    {"Manipulation of mnemonic seed phrases which represent wallet keys"},
 		categoryWatchtower: {"Interact with the watchtower client"},
-
-		categoryOrphan: {"Forgotten or to deprecated ?"},
 	}
 )
 
@@ -146,7 +144,6 @@ func RESTMaster_help() *RestMasterHelpResponse {
 				subCategorySeed: RESTCategory_help(subCategorySeed, map[string]*RestCommandCategory{}),
 			}),
 			categoryWatchtower: RESTCategory_help(categoryWatchtower, map[string]*RestCommandCategory{}),
-			categoryOrphan:     RESTCategory_help(categoryOrphan, map[string]*RestCommandCategory{}),
 		},
 	}
 
@@ -165,7 +162,7 @@ func getMainHelp(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 	//	fill response payload
 	if httpRequest.Method != "GET" {
 		httpResponse.Header().Set("Content-Type", "text/plain")
-		http.Error(httpResponse, "400 - Request should be a GET because the help endpoint requires no input", http.StatusBadRequest)
+		http.Error(httpResponse, "405 - Request should be a GET because the help endpoint requires no input", http.StatusMethodNotAllowed)
 		return
 	}
 	//	marshal the REST master help

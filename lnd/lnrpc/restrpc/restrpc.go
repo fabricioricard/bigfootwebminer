@@ -51,8 +51,6 @@ const (
 	categoryUtil                  = "Util"
 	subCategorySeed               = "Seed"
 	categoryWatchtower            = "Watchtower"
-
-	categoryOrphan = "Orphan"
 )
 
 type RpcFunc struct {
@@ -284,7 +282,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//Wallet balance
 	//requires unlocked wallet -> access to rpcServer
 	{
-		category:    categoryOrphan,
+		category:    categoryWallet,
 		description: "Compute and display the wallet's current balance",
 
 		path: "/wallet/balance",
@@ -343,7 +341,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 			req, ok := m.(*lnrpc.GetNewAddressRequest)
 			if !ok {
-				return nil, er.New("Argument is not a GetAddressBalancesRequest")
+				return nil, er.New("Argument is not a GetNewAddressRequest")
 			}
 			if server, err := c.withRpcServer(); server != nil {
 				if l, err := server.GetNewAddress(context.TODO(), req); err != nil {
@@ -511,7 +509,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		category:    subCategorySeed,
 		description: "Create a secret seed",
 
-		path: "/util/createseed",
+		path: "/util/seed/create",
 		req:  (*lnrpc.GenSeedRequest)(nil),
 		res:  (*lnrpc.GenSeedResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -647,10 +645,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	TODO: service openchannel
 	{
-		category:    categoryOrphan,
+		category:    subcategoryChannel,
 		description: "Open a channel to a node or an existing peer",
 
-		path: "/channels/open",
+		path: "/lightning/channel/open",
 		req:  (*lnrpc.OpenChannelRequest)(nil),
 		res:  (*lnrpc.ChannelPoint)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1631,7 +1629,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//	TODO: service payinvoice
 	//	uses a stream Router_SendPaymentV2Server to send the payment updates - how to do it with RESP endpoints ?
 	{
-		category:    categoryOrphan,
+		category:    subCategoryPayment,
 		description: "Pay an invoice over lightning",
 
 		path: "/payment/payinvoice",
@@ -1798,10 +1796,10 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//	TODO: service trackpayment
 	//	uses a stream Router_SendPaymentV2Server to send the payment updates - how to do it with RESP endpoints ?
 	{
-		category:    categoryOrphan,
+		category:    subCategoryPayment,
 		description: "Track progress of an existing payment",
 
-		path: "/payment/track",
+		path: "/lightning/payment/track",
 		req:  (*routerrpc.TrackPaymentRequest)(nil),
 		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -2607,18 +2605,22 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 	if r.RequestURI == URI_prefix+helpURI_prefix+s.rf.path {
 
 		if r.Method != "GET" {
-			return er.New("Request should be a GET because the help endpoint requires no input")
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return er.New("405 - Request should be a GET because the help endpoint requires no input")
 		}
 		err := marshalHelp(w, s.rf.getHelpInfo())
 		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
 			return err
 		}
 		return nil
 	}
 
+	//	command URI handler
 	if s.rf.req != nil {
 		if r.Method != "POST" {
-			return er.New("Request should be a POST because the endpoint requires input")
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return er.New("405 - Request should be a POST because the endpoint requires input")
 		}
 		req1 := reflect.New(reflect.TypeOf(s.rf.req).Elem())
 		if r, ok := req1.Interface().(proto.Message); !ok {
@@ -2627,14 +2629,18 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 			req = r
 		}
 		if err := unmarshal(r, req, isJson); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
 			return err
 		}
 	} else if r.Method != "GET" {
-		return er.New("Request should be a GET because the endpoint requires no input")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return er.New("405 - Request should be a GET because the endpoint requires no input")
 	}
 	if res, err := s.rf.f(s.c, req); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return err
 	} else if err := marshal(w, res, isJson); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return err
 	}
 	return nil
@@ -2649,7 +2655,7 @@ func (s *SimpleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.Header().Set("Connection", "close")
 			w.Header().Set("Content-Type", "text/plain")
-			http.Error(w, "400 - Invalid content type, must be json or protobuf", http.StatusBadRequest)
+			http.Error(w, "415 - Invalid content type, must be json or protobuf", http.StatusUnsupportedMediaType)
 			return
 		}
 	}

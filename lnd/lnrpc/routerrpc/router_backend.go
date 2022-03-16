@@ -1147,7 +1147,7 @@ func (r *RouterBackend) MarshallPayment(payment *channeldb.MPPayment) (
 		Fee:             int64(fee.ToSatoshis()),
 		FeeSat:          int64(fee.ToSatoshis()),
 		FeeMsat:         int64(fee),
-		PaymentPreimage: hex.EncodeToString(preimage[:]),
+		PaymentPreimage: preimage[:],
 		PaymentRequest:  string(payment.Info.PaymentRequest),
 		Status:          status,
 		Htlcs:           htlcs,

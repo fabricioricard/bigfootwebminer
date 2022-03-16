@@ -635,16 +635,9 @@ message FeeLimit {
 
 message SendRequest {
     /*
-    The identity pubkey of the payment recipient. When using REST, this field
-    must be encoded as base64.
+    The identity pubkey of the payment recipient.
     */
     bytes dest = 1;
-
-    /*
-    The hex-encoded identity pubkey of the payment recipient. Deprecated now
-    that the REST gateway supports base64 encoding of bytes fields.
-    */
-    string dest_string = 2 [deprecated = true];
 
     /*
     The amount to send expressed in satoshis.
@@ -661,16 +654,9 @@ message SendRequest {
     int64 amt_msat = 12;
 
     /*
-    The hash to use within the payment's HTLC. When using REST, this field
-    must be encoded as base64.
+    The hash to use within the payment's HTLC.
     */
     bytes payment_hash = 4;
-
-    /*
-    The hex-encoded hash to use within the payment's HTLC. Deprecated now
-    that the REST gateway supports base64 encoding of bytes fields.
-    */
-    string payment_hash_string = 5 [deprecated = true];
 
     /*
     A bare-bones invoice for a payment within the Lightning Network. With the
@@ -715,8 +701,7 @@ message SendRequest {
     An optional field that can be used to pass an arbitrary set of TLV records
     to a peer which understands the new records. This can be used to pass
     application specific data during the payment attempt. Record types are
-    required to be in the custom range >= 65536. When using REST, the values
-    must be encoded as base64.
+    required to be in the custom range >= 65536.
     */
     map<uint64, bytes> dest_custom_records = 11;
 
@@ -742,17 +727,11 @@ message SendResponse {
 
 message SendToRouteRequest {
     /*
-    The payment hash to use for the HTLC. When using REST, this field must be
-    encoded as base64.
+    The payment hash to use for the HTLC.
     */
     bytes payment_hash = 1;
 
-    /*
-    An optional hex-encoded payment hash to be used for the HTLC. Deprecated now
-    that the REST gateway supports base64 encoding of bytes fields.
-    */
-    string payment_hash_string = 2 [deprecated = true];
-
+    reserved 2;
     reserved 3;
 
     // Route that should be used to attempt to complete the payment.
@@ -871,8 +850,7 @@ message ChannelAcceptResponse {
 message ChannelPoint {
     oneof funding_txid {
         /*
-        Txid of the funding transaction. When using REST, this field must be
-        encoded as base64.
+        Txid of the funding transaction.
         */
         bytes funding_txid_bytes = 1;
 
@@ -1024,11 +1002,15 @@ message NewAddressResponse {
 
 message SignMessageRequest {
     /*
-    The message to be signed. When using REST, this field must be encoded as
-    base64.
+    The message to be signed.
     */
-    bytes msg = 1;
-    string address = 2;
+    string msg = 1;
+
+    // If specified then will override msg, binary form.
+    bytes msg_bin = 2;
+
+    // Address to select for signing with.
+    string address = 3;
 }
 message SignMessageResponse {
     // The signature for the given message
@@ -1054,7 +1036,7 @@ message ConnectPeerResponse {
 
 message DisconnectPeerRequest {
     // The pubkey of the node to disconnect from
-    string pub_key = 1;
+    bytes pub_key = 1;
 }
 message DisconnectPeerResponse {
 }
@@ -1730,21 +1712,14 @@ message ReadyForPsbtFunding {
 
 message OpenChannelRequest {
     /*
-    The pubkey of the node to open a channel with. When using REST, this field
-    must be encoded as base64.
+    The pubkey of the node to open a channel with.
     */
     bytes node_pubkey = 2;
 
-    /*
-    The hex encoded pubkey of the node to open a channel with. Deprecated now
-    that the REST gateway supports base64 encoding of bytes fields.
-    */
-    string node_pubkey_string = 3 [deprecated = true];
-
-    // The number of satoshis the wallet should commit to the channel
+    // The number of pktoshis the wallet should commit to the channel
     int64 local_funding_amount = 4;
 
-    // The number of satoshis to push to the remote side as part of the initial
+    // The number of pktoshis to push to the remote side as part of the initial
     // commitment state
     int64 push_sat = 5;
 
@@ -2307,8 +2282,8 @@ message ChannelBalanceResponse {
 }
 
 message QueryRoutesRequest {
-    // The 33-byte hex-encoded public key for the payment destination
-    string pub_key = 1;
+    // The 33-byte public key for the payment destination
+    bytes pub_key = 1;
 
     /*
     The amount to send expressed in satoshis.
@@ -2344,8 +2319,7 @@ message QueryRoutesRequest {
     FeeLimit fee_limit = 5;
 
     /*
-    A list of nodes to ignore during path finding. When using REST, these fields
-    must be encoded as base64.
+    A list of nodes to ignore during path finding.
     */
     repeated bytes ignored_nodes = 6;
 
@@ -2358,7 +2332,7 @@ message QueryRoutesRequest {
     The source node where the request route should originated from. If empty,
     self is assumed.
     */
-    string source_pub_key = 8;
+    bytes source_pub_key = 8;
 
     /*
     If set to true, edge probabilities from mission control will be used to get
@@ -2383,8 +2357,7 @@ message QueryRoutesRequest {
     to a peer which understands the new records. This can be used to pass
     application specific data during the payment attempt. If the destination
     does not support the specified recrods, and error will be returned.
-    Record types are required to be in the custom range >= 65536. When using
-    REST, the values must be encoded as base64.
+    Record types are required to be in the custom range >= 65536.
     */
     map<uint64, bytes> dest_custom_records = 13;
 
@@ -2416,14 +2389,12 @@ message QueryRoutesRequest {
 
 message NodePair {
     /*
-    The sending node of the pair. When using REST, this field must be encoded as
-    base64.
+    The sending node of the pair.
     */
     bytes from = 1;
 
     /*
-    The receiving node of the pair. When using REST, this field must be encoded
-    as base64.
+    The receiving node of the pair.
     */
     bytes to = 2;
 }
@@ -2565,8 +2536,8 @@ message Route {
 }
 
 message NodeInfoRequest {
-    // The 33-byte hex-encoded compressed public of the target node
-    string pub_key = 1;
+    // The 33-byte compressed public of the target node
+    bytes pub_key = 1;
 
     // If true, will include all known channels associated with the node.
     bool include_channels = 2;
@@ -2599,7 +2570,9 @@ each outgoing edge.
 */
 message LightningNode {
     uint32 last_update = 1;
-    string pub_key = 2;
+
+    // The public key of the node
+    bytes pub_key = 2;
     string alias = 3;
     repeated NodeAddress addresses = 4;
     string color = 5;
@@ -2778,7 +2751,7 @@ message ClosedChannelUpdate {
 
 message HopHint {
     // The public key of the node at the start of the channel.
-    string node_id = 1;
+    bytes node_id = 1;
 
     // The unique identifier of the channel.
     uint64 chan_id = 2 [jstype = JS_STRING];
@@ -2816,15 +2789,12 @@ message Invoice {
     reserved 2;
 
     /*
-    The hex-encoded preimage (32 byte) which will allow settling an incoming
-    HTLC payable to this preimage. When using REST, this field must be encoded
-    as base64.
+    The 32 byte preimage which will allow settling an incoming HTLC.
     */
     bytes r_preimage = 3;
 
     /*
-    The hash of the preimage. When using REST, this field must be encoded as
-    base64.
+    The hash of the preimage.
     */
     bytes r_hash = 4;
 
@@ -2861,8 +2831,7 @@ message Invoice {
     /*
     Hash (SHA-256) of a description of the payment. Used if the description of
     payment (memo) is too long to naturally fit within the description field
-    of an encoded payment request. When using REST, this field must be encoded
-    as base64.
+    of an encoded payment request.
     */
     bytes description_hash = 10;
 
@@ -2900,8 +2869,7 @@ message Invoice {
     */
     uint64 settle_index = 17;
 
-    // Deprecated, use amt_paid_sat or amt_paid_msat.
-    int64 amt_paid = 18 [deprecated = true];
+    reserved 18;
 
     /*
     The amount that was accepted for this invoice, in satoshis. This will ONLY
@@ -2993,7 +2961,7 @@ message AddInvoiceResponse {
     /*
     A bare-bones invoice for a payment within the Lightning Network. With the
     details of the invoice, the sender has all the data necessary to send a
-    payment to the recipient.
+    payment to the recipient. Represented as bech32 encoding.
     */
     string payment_request = 2;
 
@@ -3006,17 +2974,10 @@ message AddInvoiceResponse {
     uint64 add_index = 16;
 }
 message PaymentHash {
-    /*
-    The hex-encoded payment hash of the invoice to be looked up. The passed
-    payment hash must be exactly 32 bytes, otherwise an error is returned.
-    Deprecated now that the REST gateway supports base64 encoding of bytes
-    fields.
-    */
-    string r_hash_str = 1 [deprecated = true];
+    reserved 1;
 
     /*
-    The payment hash of the invoice to be looked up. When using REST, this field
-    must be encoded as base64.
+    The payment hash of the invoice to be looked up.
     */
     bytes r_hash = 2;
 }
@@ -3131,7 +3092,7 @@ message Payment {
     int64 fee = 5 [deprecated = true];
 
     // The payment preimage
-    string payment_preimage = 6;
+    bytes payment_preimage = 6;
 
     // The value of the payment in satoshis
     int64 value_sat = 7;
@@ -3470,8 +3431,7 @@ message ChannelBackup {
     /*
     Is an encrypted single-chan backup. this can be passed to
     RestoreChannelBackups, or the WalletUnlocker Init and Unlock methods in
-    order to trigger the recovery protocol. When using REST, this field must be
-    encoded as base64.
+    order to trigger the recovery protocol.
     */
     bytes chan_backup = 2;
 }
@@ -3485,8 +3445,7 @@ message MultiChanBackup {
     /*
     A single encrypted blob containing all the static channel backups of the
     channel listed above. This can be stored as a single file or blob, and
-    safely be replaced with any prior/future versions. When using REST, this
-    field must be encoded as base64.
+    safely be replaced with any prior/future versions.
     */
     bytes multi_chan_backup = 2;
 }
@@ -3522,8 +3481,7 @@ message RestoreChanBackupRequest {
         ChannelBackups chan_backups = 1;
 
         /*
-        The channels to restore in the packed multi backup format. When using
-        REST, this field must be encoded as base64.
+        The channels to restore in the packed multi backup format.
         */
         bytes multi_chan_backup = 2;
     }
@@ -3724,7 +3682,7 @@ message StopReSyncResponse{
 message GetWalletSeedRequest{}
 
 message GetWalletSeedResponse{
-    string seed = 1;
+    repeated string seed = 1;
 }
 
 message GetSecretRequest{
@@ -3766,9 +3724,16 @@ message LockUnspentResponse{
 }
 
 message CreateTransactionRequest{
+    // Address which we will be paying to
     string to_address = 1;
-    int32 amount = 2;
+
+    // Number of PKT to send
+    double amount = 2;
+
+    // Addresses which can be selected for sourcing funds from
     repeated string from_address = 3;
+
+    // Output an electrum format transaction
     bool electrum_format = 4;
     string change_address = 5;
     int32 input_min_height = 6;

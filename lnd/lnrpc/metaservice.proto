@@ -49,3 +49,5 @@ message ChangePasswordRequest {
     */
     bytes new_passphrase_bin = 4;
 }
+
+message ChangePasswordResponse {}

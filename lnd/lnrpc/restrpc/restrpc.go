@@ -98,23 +98,29 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		path: "/wallet/create",
 		req:  (*lnrpc.InitWalletRequest)(nil), // Use init wallet structure to create
 		res:  nil,
+
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-			req, ok := m.(*lnrpc.CreateWalletRequest)
+
+			//	get the request payload
+			initWalletReq, ok := m.(*lnrpc.InitWalletRequest)
 			if !ok {
-				return nil, er.New("Argument is not a CreateWalletRequest")
+				return nil, er.New("Argument is not a InitWalletRequest")
 			}
-			u, err := c.withUnlocker()
-			if err != nil {
-				return nil, err
-			}
-			resp, errr := u.CreateWallet(context.TODO(), req)
+
+			//	init wallet
+			cc, errr := c.withUnlocker()
 			if errr != nil {
-				return nil, er.E(errr)
+				return nil, errr
 			}
-			return resp, nil
+
+			_, err := cc.InitWallet(context.TODO(), initWalletReq)
+			if err != nil {
+				return nil, er.E(err)
+			}
+			return nil, nil
 		},
 
-		getHelpInfo: pkthelp.WalletUnlocker_CreateWallet,
+		getHelpInfo: pkthelp.WalletUnlocker_InitWallet,
 	},
 	//MetaService get info
 	{

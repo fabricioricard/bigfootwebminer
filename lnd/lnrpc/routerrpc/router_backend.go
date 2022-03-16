@@ -121,15 +121,15 @@ func (r *RouterBackend) QueryRoutes(ctx context.Context,
 
 	// Parse the hex-encoded source and target public keys into full public
 	// key objects we can properly manipulate.
-	targetPubKey, err := parsePubKey(in.PubKey)
+	targetPubKey, err := parsePubKey(string(in.PubKey))
 	if err != nil {
 		return nil, err
 	}
 
 	var sourcePubKey route.Vertex
-	if in.SourcePubKey != "" {
+	if len(in.SourcePubKey) > 0 {
 		var err er.R
-		sourcePubKey, err = parsePubKey(in.SourcePubKey)
+		sourcePubKey, err = parsePubKey(string(in.SourcePubKey))
 		if err != nil {
 			return nil, err
 		}
@@ -731,7 +731,7 @@ func unmarshallRouteHints(rpcRouteHints []*lnrpc.RouteHint) (
 
 // unmarshallHopHint unmarshalls a single hop hint.
 func unmarshallHopHint(rpcHint *lnrpc.HopHint) (zpay32.HopHint, er.R) {
-	pubBytes, err := util.DecodeHex(rpcHint.NodeId)
+	pubBytes, err := util.DecodeHex(string(rpcHint.NodeId))
 	if err != nil {
 		return zpay32.HopHint{}, err
 	}

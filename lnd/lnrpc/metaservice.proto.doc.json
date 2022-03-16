@@ -22,8 +22,20 @@
           "extensions": [],
           "fields": [
             {
-              "name": "current_password",
-              "description": "current_password should be the current valid passphrase used to unlock the\ndaemon. When using REST, this field must be encoded as base64.",
+              "name": "current_passphrase",
+              "description": "current_password should be the current valid passphrase used to unlock the daemon.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "current_password_bin",
+              "description": "Binary form of current_passphrase, if specified will override current_passphrase.\nWhen using JSON, this field must be encoded as base64.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -34,60 +46,24 @@
               "defaultValue": ""
             },
             {
-              "name": "current_pub_password",
-              "description": "to support old pld created wallet we need to pass the pub password as well",
+              "name": "new_passphrase",
+              "description": "new_passphrase should be the new passphrase that will be needed to unlock the\ndaemon.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_passphrase_bin",
+              "description": "Binary form of new_passphrase, if specified will override new_passphrase.\nWhen using JSON, this field must be encoded as base64.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
               "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "new_password",
-              "description": "new_password should be the new passphrase that will be needed to unlock the\ndaemon. When using REST, this field must be encoded as base64.",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "new_pub_password",
-              "description": "",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "stateless_init",
-              "description": "stateless_init is an optional argument instructing the daemon NOT to create\nany *.macaroon files in its filesystem. If this parameter is set, then the\nadmin macaroon returned in the response MUST be stored by the caller of the\nRPC as otherwise all access to the daemon will be lost!",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "new_macaroon_root_key",
-              "description": "new_macaroon_root_key is an optional argument instructing the daemon to\nrotate the macaroon root key when set to true. This will invalidate all\npreviously generated macaroons.",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -101,23 +77,10 @@
           "fullName": "lnrpc.ChangePasswordResponse",
           "description": "",
           "hasExtensions": false,
-          "hasFields": true,
+          "hasFields": false,
           "hasOneofs": false,
           "extensions": [],
-          "fields": [
-            {
-              "name": "admin_macaroon",
-              "description": "The binary serialized admin macaroon that can be used to access the daemon\nafter rotating the macaroon root key. If both the stateless_init and\nnew_macaroon_root_key parameter were set to true, this is the ONLY copy of\nthe macaroon that was created from the new root key and MUST be stored\nsafely by the caller. Otherwise a copy of this macaroon is also persisted on\ndisk by the daemon, together with other macaroon files.",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
+          "fields": []
         },
         {
           "name": "GetInfo2Request",

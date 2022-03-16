@@ -237,19 +237,13 @@ func (u *MetaService) ChangePassword(ctx context.Context,
 func (m *MetaService) ChangePassword0(ctx context.Context,
 	in *lnrpc.ChangePasswordRequest) (*lnrpc.ChangePasswordResponse, er.R) {
 
-	privatePw := in.CurrentPassword
+	privatePw := in.CurrentPasswordBin
 	newPubPw := []byte(wallet.InsecurePubPassphrase)
 	publicPw := []byte(wallet.InsecurePubPassphrase)
-	if in.CurrentPubPassword != nil {
-		publicPw = in.CurrentPubPassword
-	}
 
-	if in.NewPubPassword != nil {
-		newPubPw = in.NewPubPassword
-	}
 	// If the current password is blank, we'll assume the user is coming
 	// from a --noseedbackup state, so we'll use the default passwords.
-	if len(in.CurrentPassword) == 0 {
+	if len(privatePw) == 0 {
 		publicPw = lnwallet.DefaultPublicPassphrase
 		privatePw = lnwallet.DefaultPrivatePassphrase
 	}
@@ -269,13 +263,8 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 		}
 
 		// Make sure the new password meets our constraints.
-		if err := ValidatePassword(in.NewPassword); err != nil {
+		if err := ValidatePassword(in.NewPassphraseBin); err != nil {
 			return nil, err
-		}
-		if in.NewPubPassword != nil {
-			if err := ValidatePassword(in.NewPassword); err != nil {
-				return nil, err
-			}
 		}
 
 		// Load the existing wallet in order to proceed with the password change.
@@ -299,16 +288,12 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 		// to delete them here and they will be recreated during normal startup
 		// later. If they are missing, this is only an error if the
 		// stateless_init flag was not set.
-		if in.NewMacaroonRootKey || in.StatelessInit {
-			for _, file := range m.macaroonFiles {
-				err := os.Remove(file)
-				if err != nil && !in.StatelessInit {
-					return nil, er.Errorf("could not remove "+
-						"macaroon file: %v. if the wallet "+
-						"was initialized stateless please "+
-						"add the --stateless_init "+
-						"flag", err)
-				}
+
+		//	since we don't have macarrons anymore, 'stateless_init' will always be true
+		for _, file := range m.macaroonFiles {
+			err := os.Remove(file)
+			if err != nil {
+				return nil, er.Errorf("could not remove macaroon file: %v", err)
 			}
 		}
 	} //wallet is locked
@@ -317,7 +302,7 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 	// wallet. This will be done atomically in order to prevent one
 	// passphrase change from being successful and not the other.
 	err := m.Wallet.ChangePassphrases(
-		publicPw, newPubPw, privatePw, in.NewPassword,
+		publicPw, newPubPw, privatePw, in.NewPassphraseBin,
 	)
 	if err != nil {
 		return nil, er.Errorf("unable to change wallet passphrase: "+
@@ -334,7 +319,7 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 		// Attempt to open the macaroon DB, unlock it and then change
 		// the passphrase.
 		macaroonService, err := macaroons.NewService(
-			netDir, "lnd", in.StatelessInit,
+			netDir, "lnd", true,
 		)
 		if err != nil {
 			return nil, err
@@ -350,7 +335,7 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 			}
 			return nil, err
 		}
-		err = macaroonService.ChangePassword(privatePw, in.NewPassword)
+		err = macaroonService.ChangePassword(privatePw, in.NewPassphraseBin)
 		if err != nil {
 			closeErr := macaroonService.Close()
 			if closeErr != nil {
@@ -361,21 +346,6 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 			return nil, err
 		}
 
-		// If requested by the user, attempt to replace the existing
-		// macaroon root key with a new one.
-		if in.NewMacaroonRootKey {
-			err = macaroonService.GenerateNewRootKey()
-			if err != nil {
-				closeErr := macaroonService.Close()
-				if closeErr != nil {
-					return nil, er.Errorf("could not generate "+
-						"new root key: %v --> follow-up error "+
-						"when closing: %v", err, closeErr)
-				}
-				return nil, err
-			}
-		}
-
 		err = macaroonService.Close()
 		if err != nil {
 			return nil, er.Errorf("could not close macaroon service: %v",
@@ -383,9 +353,9 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 		}
 		adminMac = <-m.MacResponseChan
 	}
-	return &lnrpc.ChangePasswordResponse{
-		AdminMacaroon: adminMac,
-	}, nil
+	_ = adminMac
+
+	return &lnrpc.ChangePasswordResponse{}, nil
 }
 
 // ValidatePassword assures the password meets all of our constraints.

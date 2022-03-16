@@ -1091,27 +1091,31 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		}(lis)
 	}
 
+	//	since the creation of RESP API the gRPC reverse proxy is not necessary anymore:w
+
 	// Start a REST proxy for our gRPC server above.
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	shutdownFuncs = append(shutdownFuncs, cancel)
+	/*
+		ctx := context.Background()
+		ctx, cancel := context.WithCancel(ctx)
+		shutdownFuncs = append(shutdownFuncs, cancel)
 
-	mux := proxy.NewServeMux()
+		mux := proxy.NewServeMux()
 
-	errr := lnrpc.RegisterWalletUnlockerHandlerFromEndpoint(
-		ctx, mux, restProxyDest, restDialOpts,
-	)
-	if errr != nil {
-		return nil, shutdown, er.E(errr)
-	}
+		errr := lnrpc.RegisterWalletUnlockerHandlerFromEndpoint(
+			ctx, mux, restProxyDest, restDialOpts,
+		)
+		if errr != nil {
+			return nil, shutdown, er.E(errr)
+		}
 
-	//Launching REST for MetaService, for getinfo2 and changepassword
-	//on walletunlocker shutdown this is closed so we are relaunching it
-	//in the rpcserver
-	errrr := lnrpc.RegisterMetaServiceHandlerFromEndpoint(ctx, mux, restProxyDest, restDialOpts)
-	if errrr != nil {
-		return nil, shutdown, er.E(errrr)
-	}
+		//Launching REST for MetaService, for getinfo2 and changepassword
+		//on walletunlocker shutdown this is closed so we are relaunching it
+		//in the rpcserver
+		errrr := lnrpc.RegisterMetaServiceHandlerFromEndpoint(ctx, mux, restProxyDest, restDialOpts)
+		if errrr != nil {
+			return nil, shutdown, er.E(errrr)
+		}
+	*/
 
 	// Wait for gRPC and REST servers to be up running.
 	wg.Wait()

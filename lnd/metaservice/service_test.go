@@ -38,7 +38,6 @@ const (
 var (
 	testPassword = []byte("test-password")
 	testSeed     = []byte("test-seed-123456789")
-	testMac      = []byte("fakemacaroon")
 
 	testNetParams = &chaincfg.MainNetParams
 
@@ -86,10 +85,8 @@ func TestChangePasswordForNonExistingWallet(t *testing.T) {
 
 	newPassword := []byte("hunter2???")
 	req := &lnrpc.ChangePasswordRequest{
-		CurrentPassword:    testPassword,
-		CurrentPubPassword: testPassword,
-		NewPassword:        newPassword,
-		NewMacaroonRootKey: true,
+		CurrentPasswordBin: testPassword,
+		NewPassphraseBin:   newPassword,
 	}
 
 	_, err = metaService.ChangePassword(ctx, req)
@@ -189,8 +186,8 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 
 	log.Debugf(">>>>> [3] attempt to change passwaord using an incorrect current password")
 	wrongReq := &lnrpc.ChangePasswordRequest{
-		CurrentPassword: []byte("wrong-ofc"),
-		NewPassword:     newPassword,
+		CurrentPasswordBin: []byte("wrong-ofc"),
+		NewPassphraseBin:   newPassword,
 	}
 	_, err = metaService.ChangePassword(ctx, wrongReq)
 	require.Error(t, err)
@@ -208,7 +205,7 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	//	changing the wallet's password using an invalid new password should fail
 	log.Debugf(">>>>> [5] attempt to change passwaord using an invalid new password")
 
-	wrongReq.NewPassword = []byte("8")
+	wrongReq.NewPassphraseBin = []byte("8")
 	_, err = metaService.ChangePassword(ctx, wrongReq)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "custom password must have at least 8 characters")
@@ -218,10 +215,8 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	log.Debugf(">>>>> [6] finally change passwaord")
 
 	req := &lnrpc.ChangePasswordRequest{
-		CurrentPassword:    testPassword,
-		CurrentPubPassword: testPassword,
-		NewPassword:        newPassword,
-		NewMacaroonRootKey: true,
+		CurrentPasswordBin: testPassword,
+		NewPassphraseBin:   newPassword,
 	}
 
 	_, errr = changePassword(metaService, testDir, req)

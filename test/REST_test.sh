@@ -125,9 +125,6 @@ done
 executeCommand 'getinfo' 'GET' '/api/v1/meta/getinfo'
 showCommandResult '#neutrino peers' '.neutrino.peers | length'
 
-executeCommand 'getrecoveryinfo' 'GET' '/api/v1/meta/getrecoveryinfo'
-showCommandResult 'recovery mode' '.recoveryMode'
-
 executeCommand 'debuglevel' 'POST' '/api/v1/meta/debuglevel' '{ "show": true, "level_spec": "debug" }'
 showCommandResult 'subsystems' '.subSystems'
 

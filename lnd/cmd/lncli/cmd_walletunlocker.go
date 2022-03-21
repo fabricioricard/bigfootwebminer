@@ -4,15 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/walletunlocker"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
@@ -341,14 +338,14 @@ mnemonicCheck:
 		fmt.Println()
 
 		genSeedReq := &lnrpc.GenSeedRequest{
-			AezeedPassphrase: aezeedPass,
+			SeedPassphraseBin: aezeedPass,
 		}
 		seedResp, err := client.GenSeed(ctxb, genSeedReq)
 		if err != nil {
 			return er.Errorf("unable to generate seed: %v", err)
 		}
 
-		cipherSeedMnemonic = seedResp.CipherSeedMnemonic
+		cipherSeedMnemonic = seedResp.Seed
 	}
 
 	// Before we initialize the wallet, we'll display the cipher seed to
@@ -370,23 +367,18 @@ mnemonicCheck:
 	// With either the user's prior cipher seed, or a newly generated one,
 	// we'll go ahead and initialize the wallet.
 	req := &lnrpc.InitWalletRequest{
-		WalletPassword:     walletPassword,
-		CipherSeedMnemonic: cipherSeedMnemonic,
-		AezeedPassphrase:   aezeedPass,
-		RecoveryWindow:     recoveryWindow,
-		ChannelBackups:     chanBackups,
-		StatelessInit:      statelessInit,
+		WalletPassphraseBin: walletPassword,
+		WalletSeed:          cipherSeedMnemonic,
+		SeedPassphraseBin:   aezeedPass,
+		RecoveryWindow:      recoveryWindow,
+		ChannelBackups:      chanBackups,
 	}
-	response, errr := client.InitWallet(ctxb, req)
+	_, errr := client.InitWallet(ctxb, req)
 	if errr != nil {
 		return er.E(errr)
 	}
 
 	fmt.Println("\npld successfully initialized!")
-
-	if statelessInit {
-		return storeOrPrintAdminMac(ctx, response.AdminMacaroon)
-	}
 
 	return nil
 }
@@ -479,8 +471,8 @@ func unlock(ctx *cli.Context) er.R {
 	defer cleanUp()
 
 	var (
-		pw   []byte
-		ppw  []byte
+		pw []byte
+		//		ppw  []byte
 		errr error
 		err  er.R
 	)
@@ -501,7 +493,7 @@ func unlock(ctx *cli.Context) er.R {
 	// lncli.
 	default:
 		pw, err = readPassword("Input wallet private password: ")
-		ppw, _ = readPassword("Input wallet public password: ")
+		//		ppw, _ = readPassword("Input wallet public password: ")
 	}
 	if err != nil {
 		return err
@@ -528,10 +520,8 @@ func unlock(ctx *cli.Context) er.R {
 	}
 
 	req := &lnrpc.UnlockWalletRequest{
-		WalletPassword:    pw,
-		WalletPubPassword: ppw,
-		RecoveryWindow:    recoveryWindow,
-		StatelessInit:     ctx.Bool(statelessInitFlag.Name),
+		WalletPassphraseBin: pw,
+		RecoveryWindow:      recoveryWindow,
 	}
 	_, errr = client.UnlockWallet(ctxb, req)
 	if errr != nil {
@@ -614,30 +604,32 @@ func changePassword(ctx *cli.Context) er.R {
 		return er.Errorf("private passwords don't match")
 	}
 
-	currentPubPw, err := readPassword("Input current wallet public password: ")
-	if err != nil {
-		return err
-	}
+	/*
+		currentPubPw, err := readPassword("Input current wallet public password: ")
+		if err != nil {
+			return err
+		}
 
-	newPubPw, err := readPassword("Input new wallet public password: ")
-	if err != nil {
-		return err
-	}
+		newPubPw, err := readPassword("Input new wallet public password: ")
+		if err != nil {
+			return err
+		}
 
-	confirmPubPw, err := readPassword("Confirm new wallet public password: ")
-	if err != nil {
-		return err
-	}
+		confirmPubPw, err := readPassword("Confirm new wallet public password: ")
+		if err != nil {
+			return err
+		}
 
-	if !bytes.Equal(newPubPw, confirmPubPw) {
-		return er.Errorf("public passwords don't match")
-	}
-	if currentPubPw == nil {
-		currentPubPw = []byte("public")
-	}
-	if newPubPw == nil {
-		newPubPw = []byte("public")
-	}
+		if !bytes.Equal(newPubPw, confirmPubPw) {
+			return er.Errorf("public passwords don't match")
+		}
+		if currentPubPw == nil {
+			currentPubPw = []byte("public")
+		}
+		if newPubPw == nil {
+			newPubPw = []byte("public")
+		}
+	*/
 	// Should the daemon be initialized stateless? Then we expect an answer
 	// with the admin macaroon later. Because the --save_to is related to
 	// stateless init, it doesn't make sense to be set on its own.
@@ -648,45 +640,14 @@ func changePassword(ctx *cli.Context) er.R {
 	}
 
 	req := &lnrpc.ChangePasswordRequest{
-		CurrentPassword:    currentPw,
-		CurrentPubPassword: currentPubPw,
-		NewPassword:        newPw,
-		NewPubPassword:     newPubPw,
-		StatelessInit:      statelessInit,
-		NewMacaroonRootKey: ctx.Bool("new_mac_root_key"),
+		CurrentPasswordBin: currentPw,
+		NewPassphraseBin:   newPw,
 	}
 
-	response, errr := client.ChangePassword(ctxb, req)
+	_, errr := client.ChangePassword(ctxb, req)
 	if errr != nil {
 		return er.E(errr)
 	}
 
-	if statelessInit {
-		return storeOrPrintAdminMac(ctx, response.AdminMacaroon)
-	}
-
-	return nil
-}
-
-// storeOrPrintAdminMac either stores the admin macaroon to a file specified or
-// prints it to standard out, depending on the user flags set.
-func storeOrPrintAdminMac(ctx *cli.Context, adminMac []byte) er.R {
-	// The user specified the optional --save_to parameter. We'll save the
-	// macaroon to that file.
-	if ctx.IsSet("save_to") {
-		macSavePath := lncfg.CleanAndExpandPath(ctx.String("save_to"))
-		err := ioutil.WriteFile(macSavePath, adminMac, 0644)
-		if err != nil {
-			_ = os.Remove(macSavePath)
-			return er.E(err)
-		}
-		fmt.Printf("Admin macaroon saved to %s\n", macSavePath)
-		return nil
-	}
-
-	// Otherwise we just print it. The user MUST store this macaroon
-	// somewhere so we either save it to a provided file path or just print
-	// it to standard output.
-	fmt.Printf("Admin macaroon: %s\n", hex.EncodeToString(adminMac))
 	return nil
 }

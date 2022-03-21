@@ -767,7 +767,7 @@
             },
             {
               "name": "payment_request",
-              "description": "A bare-bones invoice for a payment within the Lightning Network. With the\ndetails of the invoice, the sender has all the data necessary to send a\npayment to the recipient.",
+              "description": "A bare-bones invoice for a payment within the Lightning Network. With the\ndetails of the invoice, the sender has all the data necessary to send a\npayment to the recipient. Represented as bech32 encoding.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1774,7 +1774,7 @@
             },
             {
               "name": "chan_backup",
-              "description": "Is an encrypted single-chan backup. this can be passed to\nRestoreChannelBackups, or the WalletUnlocker Init and Unlock methods in\norder to trigger the recovery protocol. When using REST, this field must be\nencoded as base64.",
+              "description": "Is an encrypted single-chan backup. this can be passed to\nRestoreChannelBackups, or the WalletUnlocker Init and Unlock methods in\norder to trigger the recovery protocol.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -2692,7 +2692,7 @@
           "fields": [
             {
               "name": "funding_txid_bytes",
-              "description": "Txid of the funding transaction. When using REST, this field must be\nencoded as base64.",
+              "description": "Txid of the funding transaction.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -3279,7 +3279,7 @@
           "fields": [
             {
               "name": "to_address",
-              "description": "",
+              "description": "Address which we will be paying to",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -3291,11 +3291,11 @@
             },
             {
               "name": "amount",
-              "description": "",
+              "description": "Number of PKT to send",
               "label": "",
-              "type": "int32",
-              "longType": "int32",
-              "fullType": "int32",
+              "type": "double",
+              "longType": "double",
+              "fullType": "double",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -3303,7 +3303,7 @@
             },
             {
               "name": "from_address",
-              "description": "",
+              "description": "Addresses which can be selected for sourcing funds from",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -3315,7 +3315,7 @@
             },
             {
               "name": "electrum_format",
-              "description": "",
+              "description": "Output an electrum format transaction",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -3531,9 +3531,9 @@
               "name": "pub_key",
               "description": "The pubkey of the node to disconnect from",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -5410,7 +5410,7 @@
             {
               "name": "seed",
               "description": "",
-              "label": "",
+              "label": "repeated",
               "type": "string",
               "longType": "string",
               "fullType": "string",
@@ -5860,9 +5860,9 @@
               "name": "node_id",
               "description": "The public key of the node at the start of the channel.",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -6014,7 +6014,7 @@
             },
             {
               "name": "r_preimage",
-              "description": "The hex-encoded preimage (32 byte) which will allow settling an incoming\nHTLC payable to this preimage. When using REST, this field must be encoded\nas base64.",
+              "description": "The 32 byte preimage which will allow settling an incoming HTLC.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -6026,7 +6026,7 @@
             },
             {
               "name": "r_hash",
-              "description": "The hash of the preimage. When using REST, this field must be encoded as\nbase64.",
+              "description": "The hash of the preimage.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -6113,7 +6113,7 @@
             },
             {
               "name": "description_hash",
-              "description": "Hash (SHA-256) of a description of the payment. Used if the description of\npayment (memo) is too long to naturally fit within the description field\nof an encoded payment request. When using REST, this field must be encoded\nas base64.",
+              "description": "Hash (SHA-256) of a description of the payment. Used if the description of\npayment (memo) is too long to naturally fit within the description field\nof an encoded payment request.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -6206,21 +6206,6 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
-            },
-            {
-              "name": "amt_paid",
-              "description": "Deprecated, use amt_paid_sat or amt_paid_msat.",
-              "label": "",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": "",
-              "options": {
-                "deprecated": true
-              }
             },
             {
               "name": "amt_paid_sat",
@@ -6668,11 +6653,11 @@
             },
             {
               "name": "pub_key",
-              "description": "",
+              "description": "The public key of the node",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -7387,7 +7372,7 @@
             },
             {
               "name": "multi_chan_backup",
-              "description": "A single encrypted blob containing all the static channel backups of the\nchannel listed above. This can be stored as a single file or blob, and\nsafely be replaced with any prior/future versions. When using REST, this\nfield must be encoded as base64.",
+              "description": "A single encrypted blob containing all the static channel backups of the\nchannel listed above. This can be stored as a single file or blob, and\nsafely be replaced with any prior/future versions.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -7710,11 +7695,11 @@
           "fields": [
             {
               "name": "pub_key",
-              "description": "The 33-byte hex-encoded compressed public of the target node",
+              "description": "The 33-byte compressed public of the target node",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -7830,7 +7815,7 @@
           "fields": [
             {
               "name": "from",
-              "description": "The sending node of the pair. When using REST, this field must be encoded as\nbase64.",
+              "description": "The sending node of the pair.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -7842,7 +7827,7 @@
             },
             {
               "name": "to",
-              "description": "The receiving node of the pair. When using REST, this field must be encoded\nas base64.",
+              "description": "The receiving node of the pair.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -7974,7 +7959,7 @@
           "fields": [
             {
               "name": "node_pubkey",
-              "description": "The pubkey of the node to open a channel with. When using REST, this field\nmust be encoded as base64.",
+              "description": "The pubkey of the node to open a channel with.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -7985,23 +7970,8 @@
               "defaultValue": ""
             },
             {
-              "name": "node_pubkey_string",
-              "description": "The hex encoded pubkey of the node to open a channel with. Deprecated now\nthat the REST gateway supports base64 encoding of bytes fields.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": "",
-              "options": {
-                "deprecated": true
-              }
-            },
-            {
               "name": "local_funding_amount",
-              "description": "The number of satoshis the wallet should commit to the channel",
+              "description": "The number of pktoshis the wallet should commit to the channel",
               "label": "",
               "type": "int64",
               "longType": "int64",
@@ -8013,7 +7983,7 @@
             },
             {
               "name": "push_sat",
-              "description": "The number of satoshis to push to the remote side as part of the initial\ncommitment state",
+              "description": "The number of pktoshis to push to the remote side as part of the initial\ncommitment state",
               "label": "",
               "type": "int64",
               "longType": "int64",
@@ -8576,9 +8546,9 @@
               "name": "payment_preimage",
               "description": "The payment preimage",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -8717,23 +8687,8 @@
           "extensions": [],
           "fields": [
             {
-              "name": "r_hash_str",
-              "description": "The hex-encoded payment hash of the invoice to be looked up. The passed\npayment hash must be exactly 32 bytes, otherwise an error is returned.\nDeprecated now that the REST gateway supports base64 encoding of bytes\nfields.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": "",
-              "options": {
-                "deprecated": true
-              }
-            },
-            {
               "name": "r_hash",
-              "description": "The payment hash of the invoice to be looked up. When using REST, this field\nmust be encoded as base64.",
+              "description": "The payment hash of the invoice to be looked up.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -9849,11 +9804,11 @@
           "fields": [
             {
               "name": "pub_key",
-              "description": "The 33-byte hex-encoded public key for the payment destination",
+              "description": "The 33-byte public key for the payment destination",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -9909,7 +9864,7 @@
             },
             {
               "name": "ignored_nodes",
-              "description": "A list of nodes to ignore during path finding. When using REST, these fields\nmust be encoded as base64.",
+              "description": "A list of nodes to ignore during path finding.",
               "label": "repeated",
               "type": "bytes",
               "longType": "bytes",
@@ -9938,9 +9893,9 @@
               "name": "source_pub_key",
               "description": "The source node where the request route should originated from. If empty,\nself is assumed.",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -9984,7 +9939,7 @@
             },
             {
               "name": "dest_custom_records",
-              "description": "An optional field that can be used to pass an arbitrary set of TLV records\nto a peer which understands the new records. This can be used to pass\napplication specific data during the payment attempt. If the destination\ndoes not support the specified recrods, and error will be returned.\nRecord types are required to be in the custom range \u003e= 65536. When using\nREST, the values must be encoded as base64.",
+              "description": "An optional field that can be used to pass an arbitrary set of TLV records\nto a peer which understands the new records. This can be used to pass\napplication specific data during the payment attempt. If the destination\ndoes not support the specified recrods, and error will be returned.\nRecord types are required to be in the custom range \u003e= 65536.",
               "label": "repeated",
               "type": "DestCustomRecordsEntry",
               "longType": "QueryRoutesRequest.DestCustomRecordsEntry",
@@ -10378,7 +10333,7 @@
             },
             {
               "name": "multi_chan_backup",
-              "description": "The channels to restore in the packed multi backup format. When using\nREST, this field must be encoded as base64.",
+              "description": "The channels to restore in the packed multi backup format.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -10996,7 +10951,7 @@
           "fields": [
             {
               "name": "dest",
-              "description": "The identity pubkey of the payment recipient. When using REST, this field\nmust be encoded as base64.",
+              "description": "The identity pubkey of the payment recipient.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -11005,21 +10960,6 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
-            },
-            {
-              "name": "dest_string",
-              "description": "The hex-encoded identity pubkey of the payment recipient. Deprecated now\nthat the REST gateway supports base64 encoding of bytes fields.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": "",
-              "options": {
-                "deprecated": true
-              }
             },
             {
               "name": "amt",
@@ -11047,7 +10987,7 @@
             },
             {
               "name": "payment_hash",
-              "description": "The hash to use within the payment's HTLC. When using REST, this field\nmust be encoded as base64.",
+              "description": "The hash to use within the payment's HTLC.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -11056,21 +10996,6 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
-            },
-            {
-              "name": "payment_hash_string",
-              "description": "The hex-encoded hash to use within the payment's HTLC. Deprecated now\nthat the REST gateway supports base64 encoding of bytes fields.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": "",
-              "options": {
-                "deprecated": true
-              }
             },
             {
               "name": "payment_request",
@@ -11146,7 +11071,7 @@
             },
             {
               "name": "dest_custom_records",
-              "description": "An optional field that can be used to pass an arbitrary set of TLV records\nto a peer which understands the new records. This can be used to pass\napplication specific data during the payment attempt. Record types are\nrequired to be in the custom range \u003e= 65536. When using REST, the values\nmust be encoded as base64.",
+              "description": "An optional field that can be used to pass an arbitrary set of TLV records\nto a peer which understands the new records. This can be used to pass\napplication specific data during the payment attempt. Record types are\nrequired to be in the custom range \u003e= 65536.",
               "label": "repeated",
               "type": "DestCustomRecordsEntry",
               "longType": "SendRequest.DestCustomRecordsEntry",
@@ -11290,7 +11215,7 @@
           "fields": [
             {
               "name": "payment_hash",
-              "description": "The payment hash to use for the HTLC. When using REST, this field must be\nencoded as base64.",
+              "description": "The payment hash to use for the HTLC.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -11299,21 +11224,6 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
-            },
-            {
-              "name": "payment_hash_string",
-              "description": "An optional hex-encoded payment hash to be used for the HTLC. Deprecated now\nthat the REST gateway supports base64 encoding of bytes fields.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": "",
-              "options": {
-                "deprecated": true
-              }
             },
             {
               "name": "route",
@@ -11388,7 +11298,19 @@
           "fields": [
             {
               "name": "msg",
-              "description": "The message to be signed. When using REST, this field must be encoded as\nbase64.",
+              "description": "The message to be signed.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "msg_bin",
+              "description": "If specified then will override msg, binary form.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -11400,7 +11322,7 @@
             },
             {
               "name": "address",
-              "description": "",
+              "description": "Address to select for signing with.",
               "label": "",
               "type": "string",
               "longType": "string",

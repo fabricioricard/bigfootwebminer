@@ -662,21 +662,10 @@ func (hn *HarnessNode) Init(ctx context.Context,
 	// it via a macaroon-authenticated rpc connection.
 	var conn *grpc.ClientConn
 	if err := wait.Predicate(func() bool {
-		// If the node has been initialized stateless, we need to pass
-		// the macaroon to the client.
-		var err er.R
-		if initReq.StatelessInit {
-			adminMac := &macaroon.Macaroon{}
-			errr := adminMac.UnmarshalBinary(response.AdminMacaroon)
-			if errr != nil {
-				return false
-			}
-			conn, err = hn.ConnectRPCWithMacaroon(adminMac)
-			return err == nil
-		}
-
 		// Normal initialization, we expect a macaroon to be in the
 		// file system.
+		var err er.R
+
 		conn, err = hn.ConnectRPC(true)
 		return err == nil
 	}, DefaultTimeout); err != nil {
@@ -706,21 +695,10 @@ func (hn *HarnessNode) InitChangePassword(ctx context.Context,
 	// it via a macaroon-authenticated rpc connection.
 	var conn *grpc.ClientConn
 	if err := wait.Predicate(func() bool {
-		// If the node has been initialized stateless, we need to pass
-		// the macaroon to the client.
-		var err er.R
-		if chngPwReq.StatelessInit {
-			adminMac := &macaroon.Macaroon{}
-			errr := adminMac.UnmarshalBinary(response.AdminMacaroon)
-			if errr != nil {
-				return false
-			}
-			conn, err = hn.ConnectRPCWithMacaroon(adminMac)
-			return err == nil
-		}
-
 		// Normal initialization, we expect a macaroon to be in the
 		// file system.
+		var err er.R
+
 		conn, err = hn.ConnectRPC(true)
 		return err == nil
 	}, DefaultTimeout); err != nil {

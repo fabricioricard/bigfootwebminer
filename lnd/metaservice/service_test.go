@@ -38,7 +38,6 @@ const (
 var (
 	testPassword = []byte("test-password")
 	testSeed     = []byte("test-seed-123456789")
-	testMac      = []byte("fakemacaroon")
 
 	testNetParams = &chaincfg.MainNetParams
 
@@ -82,14 +81,12 @@ func TestChangePasswordForNonExistingWallet(t *testing.T) {
 	ctx := context.Background()
 
 	//	changing the password to a non-existing wallet should fail
-	log.Debugf(">>>>> [1] attempt to change password for a non-existing wallet")
+	log.Debugf("[1] attempt to change password for a non-existing wallet")
 
 	newPassword := []byte("hunter2???")
 	req := &lnrpc.ChangePasswordRequest{
-		CurrentPassword:    testPassword,
-		CurrentPubPassword: testPassword,
-		NewPassword:        newPassword,
-		NewMacaroonRootKey: true,
+		CurrentPasswordBin: testPassword,
+		NewPassphraseBin:   newPassword,
 	}
 
 	_, err = metaService.ChangePassword(ctx, req)
@@ -99,46 +96,11 @@ func TestChangePasswordForNonExistingWallet(t *testing.T) {
 
 //	Test that we can successfully change the wallet's password needed to unlock
 //	it and rotate the root key for the macaroons in the same process.
+/*
 func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	t.Parallel()
 
 	log.Debugf(">>>>> running TestChangeWalletPasswordNewRootkey()")
-
-	//	create a temporary directory for the macaroon files
-	//	TODO: metaservice.changePassword() is not async but, it's waiting on a channel for
-	//		the macaroon response so, it's not possible to test macaroon stuff anymore
-	/*
-		macTestDir, err := ioutil.TempDir("", "macaroon")
-		require.NoError(t, err)
-		defer func() {
-			_ = os.RemoveAll(macTestDir)
-		}()
-
-		// Changing the password of the wallet will also try to change the
-		// password of the macaroon DB. We create a default DB here but close it
-		// immediately so the service does not fail when trying to open it.
-		store, errr := openOrCreateTestMacStore(macTestDir, &testPassword, testNetParams)
-		util.RequireNoErr(t, errr)
-
-		errr = store.Close()
-		util.RequireNoErr(t, errr)
-
-		// Create some files that will act as macaroon files that should be
-		// deleted after a password change is successful with a new root key
-		// requested.
-		var macTempFiles []string
-
-		for i := 0; i < 3; i++ {
-			file, err := ioutil.TempFile(macTestDir, "")
-			require.NoError(t, err)
-
-			macTempFiles = append(macTempFiles, file.Name())
-			err = file.Close()
-			require.NoError(t, err)
-
-			log.Debugf(">>>>> [1] macaroon file created: %s", file.Name())
-		}
-	*/
 
 	//	create a temporary directory, initialize an empty walletdb with an SPV chain
 	//	namespace, and create a configuration for the ChainService
@@ -152,11 +114,85 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	util.RequireNoErr(t, errr)
 	defer walletDb.Close()
 
-	/*
-		neutrinoDb, errr := headerfs.NewNeutrinoDBStore(walletDb, &chaincfg.MainNetParams, true)
-		util.RequireNoErr(t, errr)
-		_ = neutrinoDb
-	*/
+	config := neutrino.Config{
+		DataDir:     testDir,
+		Database:    walletDb,
+		ChainParams: *testNetParams,
+	}
+	testChainService, errr := neutrino.NewChainService(config)
+	util.RequireNoErr(t, errr)
+
+	//	create a new MetaService with our test file
+	metaService := NewMetaService(testChainService)
+	metaService.walletPath = btcwallet.NetworkDir(testDir, testNetParams)
+	metaService.walletFile = testWalletFilename
+
+	ctx := context.Background()
+
+	// Create a wallet to test changing the password.
+	loader := createTestWallet(t, testDir, testNetParams)
+
+	//	unload wallet
+	errr = loader.UnloadWallet()
+	util.RequireNoErr(t, errr)
+
+	if metaService.Wallet != nil {
+		log.Debugf("[2.5] wallet not nil")
+	}
+
+	//	changing the wallet's password using an incorrect current password should fail
+	newPassword := []byte("hunter2???")
+
+	log.Debugf("[3] attempt to change passwaord using an incorrect current password")
+	wrongReq := &lnrpc.ChangePasswordRequest{
+		CurrentPasswordBin: []byte("wrong-ofc"),
+		NewPassphraseBin:   newPassword,
+	}
+	_, err = metaService.ChangePassword(ctx, wrongReq)
+	require.Error(t, err)
+	//require.Contains(t, err.Error(), "invalid passphrase for master public key")
+	require.Contains(t, err.Error(), "unable to change wallet passphrase: ")
+
+	//	changing the wallet's password using an invalid new password should fail
+	log.Debugf("[4] attempt to change passwaord using an invalid new password")
+
+	wrongReq.NewPassphraseBin = []byte("8")
+	_, err = metaService.ChangePassword(ctx, wrongReq)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "custom password must have at least 8 characters")
+
+	//	when providing the correct wallet's current password and a valid new password,
+	//	the password change should succeed
+	log.Debugf("[5] finally change passwaord")
+
+	req := &lnrpc.ChangePasswordRequest{
+		CurrentPasswordBin: testPassword,
+		NewPassphraseBin:   newPassword,
+	}
+
+	_, errr = changePassword(metaService, testDir, req)
+	util.RequireNoErr(t, errr)
+}
+*/
+
+//	Test that we can successfully change the wallet's password needed to unlock
+//	it and rotate the root key for the macaroons in the same process.
+func TestChangeWalletPasswordWithWrongPassphrase(t *testing.T) {
+	t.Parallel()
+
+	log.Debugf(">>>>> running TestChangeWalletPasswordWithWrongPassphrase()")
+
+	//	create a temporary directory, initialize an empty walletdb with an SPV chain
+	//	namespace, and create a configuration for the ChainService
+	testDir, err := ioutil.TempDir("", "neutrino")
+	require.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(testDir)
+	}()
+
+	walletDb, errr := walletdb.Create("bdb", testDir+"/testNeutrino.db", true)
+	util.RequireNoErr(t, errr)
+	defer walletDb.Close()
 
 	config := neutrino.Config{
 		DataDir:     testDir,
@@ -165,177 +201,142 @@ func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	}
 	testChainService, errr := neutrino.NewChainService(config)
 	util.RequireNoErr(t, errr)
-	//	testChainService.Start()
-	//	defer testChainService.Stop()
 
 	//	create a new MetaService with our test file
 	metaService := NewMetaService(testChainService)
 	metaService.walletPath = btcwallet.NetworkDir(testDir, testNetParams)
 	metaService.walletFile = testWalletFilename
 
-	/*
-		metaService.netParams = testNetParams
-		metaService.chainDir = macTestDir
-		metaService.macaroonFiles = macTempFiles
-	*/
-
 	ctx := context.Background()
 
 	// Create a wallet to test changing the password.
-	createTestWallet(t, testDir, testNetParams)
+	loader := createTestWallet(t, testDir, testNetParams)
+
+	//	unload wallet
+	errr = loader.UnloadWallet()
+	util.RequireNoErr(t, errr)
 
 	//	changing the wallet's password using an incorrect current password should fail
 	newPassword := []byte("hunter2???")
 
-	log.Debugf(">>>>> [3] attempt to change passwaord using an incorrect current password")
 	wrongReq := &lnrpc.ChangePasswordRequest{
-		CurrentPassword: []byte("wrong-ofc"),
-		NewPassword:     newPassword,
+		CurrentPasswordBin: []byte("wrong-ofc"),
+		NewPassphraseBin:   newPassword,
 	}
 	_, err = metaService.ChangePassword(ctx, wrongReq)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid passphrase for master public key")
+	require.Contains(t, err.Error(), "unable to change wallet passphrase: ")
+}
 
-	//	macaroon files must still exist after an unsuccessful attempt to change password
-	/*
-		for _, tempFile := range macTempFiles {
-			_, err := os.Stat(tempFile)
-			require.False(t, os.IsNotExist(err), "missing macaroon file: %s", tempFile)
-			log.Debugf(">>>>> [4] macaroon file still exists: %s", tempFile)
-		}
-	*/
+//	Test that we can successfully change the wallet's password needed to unlock
+//	it and rotate the root key for the macaroons in the same process.
+func TestChangeWalletPasswordWithInvalidNewPassphrase(t *testing.T) {
+	t.Parallel()
 
+	log.Debugf(">>>>> running TestChangeWalletPasswordWithInvalidNewPassphrase()")
+
+	//	create a temporary directory, initialize an empty walletdb with an SPV chain
+	//	namespace, and create a configuration for the ChainService
+	testDir, err := ioutil.TempDir("", "neutrino")
+	require.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(testDir)
+	}()
+
+	walletDb, errr := walletdb.Create("bdb", testDir+"/testNeutrino.db", true)
+	util.RequireNoErr(t, errr)
+	defer walletDb.Close()
+
+	config := neutrino.Config{
+		DataDir:     testDir,
+		Database:    walletDb,
+		ChainParams: *testNetParams,
+	}
+	testChainService, errr := neutrino.NewChainService(config)
+	util.RequireNoErr(t, errr)
+
+	//	create a new MetaService with our test file
+	metaService := NewMetaService(testChainService)
+	metaService.walletPath = btcwallet.NetworkDir(testDir, testNetParams)
+	metaService.walletFile = testWalletFilename
+
+	ctx := context.Background()
+
+	// Create a wallet to test changing the password.
+	loader := createTestWallet(t, testDir, testNetParams)
+
+	//	unload wallet
+	errr = loader.UnloadWallet()
+	util.RequireNoErr(t, errr)
+
+	//	changing the wallet's password using an incorrect current password should fail
+	newPassword := []byte("hunter2???")
+
+	wrongReq := &lnrpc.ChangePasswordRequest{
+		CurrentPasswordBin: []byte("wrong-ofc"),
+		NewPassphraseBin:   newPassword,
+	}
 	//	changing the wallet's password using an invalid new password should fail
-	log.Debugf(">>>>> [5] attempt to change passwaord using an invalid new password")
+	log.Debugf("[4] attempt to change passwaord using an invalid new password")
 
-	wrongReq.NewPassword = []byte("8")
+	wrongReq.NewPassphraseBin = []byte("8")
 	_, err = metaService.ChangePassword(ctx, wrongReq)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "custom password must have at least 8 characters")
+}
+
+//	Test that we can successfully change the wallet's password needed to unlock
+//	it and rotate the root key for the macaroons in the same process.
+func TestChangeWalletPasswordNewRootkey(t *testing.T) {
+	t.Parallel()
+
+	log.Debugf(">>>>> running TestChangeWalletPasswordNewRootkey()")
+
+	//	create a temporary directory, initialize an empty walletdb with an SPV chain
+	//	namespace, and create a configuration for the ChainService
+	testDir, err := ioutil.TempDir("", "neutrino")
+	require.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(testDir)
+	}()
+
+	walletDb, errr := walletdb.Create("bdb", testDir+"/testNeutrino.db", true)
+	util.RequireNoErr(t, errr)
+	defer walletDb.Close()
+
+	config := neutrino.Config{
+		DataDir:     testDir,
+		Database:    walletDb,
+		ChainParams: *testNetParams,
+	}
+	testChainService, errr := neutrino.NewChainService(config)
+	util.RequireNoErr(t, errr)
+
+	//	create a new MetaService with our test file
+	metaService := NewMetaService(testChainService)
+	metaService.walletPath = btcwallet.NetworkDir(testDir, testNetParams)
+	metaService.walletFile = testWalletFilename
+
+	// Create a wallet to test changing the password.
+	loader := createTestWallet(t, testDir, testNetParams)
+
+	//	unload wallet
+	errr = loader.UnloadWallet()
+	util.RequireNoErr(t, errr)
 
 	//	when providing the correct wallet's current password and a valid new password,
 	//	the password change should succeed
-	log.Debugf(">>>>> [6] finally change passwaord")
+	newPassword := []byte("hunter2???")
+
+	log.Debugf("[5] finally change passwaord")
 
 	req := &lnrpc.ChangePasswordRequest{
-		CurrentPassword:    testPassword,
-		CurrentPubPassword: testPassword,
-		NewPassword:        newPassword,
-		NewMacaroonRootKey: true,
+		CurrentPasswordBin: testPassword,
+		NewPassphraseBin:   newPassword,
 	}
 
 	_, errr = changePassword(metaService, testDir, req)
 	util.RequireNoErr(t, errr)
-
-	//	macaroon files must must no exist
-	/*
-		for _, tempFile := range macTempFiles {
-			_, err := os.Stat(tempFile)
-			require.True(t, os.IsNotExist(err), "macaroon file should not exist: %s", tempFile)
-		}
-	*/
-}
-
-// TestChangeWalletPasswordStateless checks that trying to change the password
-// of an existing wallet that was initialized stateless works when when the
-// --stateless_init flat is set. Also checks that if no password is given,
-// the default password is used.
-func TestChangeWalletPasswordStateless(t *testing.T) {
-	t.Parallel()
-
-	log.Debugf(">>>>> running TestChangeWalletPasswordStateless()")
-
-	//	TODO: metaservice.changePassword() is not async but, it's waiting on a channel for
-	//		the macaroon response so, it's not possible to test macaroon stuff anymore
-	/*
-		//	create a temporary directory, initialize an empty walletdb with an SPV chain
-		//	namespace, and create a configuration for the ChainService
-		testDir, err := ioutil.TempDir("", "stateless-neutrino")
-		require.NoError(t, err)
-		defer func() {
-			_ = os.RemoveAll(testDir)
-		}()
-
-		// Changing the password of the wallet will also try to change the
-		// password of the macaroon DB. We create a default DB here but close it
-		// immediately so the service does not fail when trying to open it.
-		store, errr := openOrCreateTestMacStore(
-			testDir, &lnwallet.DefaultPrivatePassphrase, testNetParams,
-		)
-		util.RequireNoErr(t, errr)
-		util.RequireNoErr(t, store.Close())
-
-		// Create a temp file that will act as the macaroon DB file that will
-		// be deleted by changing the password.
-		tmpFile, err := ioutil.TempFile(testDir, "")
-		require.NoError(t, err)
-		tempMacFile := tmpFile.Name()
-		err = tmpFile.Close()
-		require.NoError(t, err)
-
-		// Create a file name that does not exist that will be used as a
-		// macaroon file reference. The fact that the file does not exist should
-		// not throw an error when --stateless_init is used.
-		nonExistingFile := path.Join(testDir, string(testMac))
-
-		walletDb, errr := walletdb.Create("bdb", testDir+"/testNeutrino.db", true)
-		util.RequireNoErr(t, errr)
-		defer walletDb.Close()
-
-		config := neutrino.Config{
-			DataDir:     testDir,
-			Database:    walletDb,
-			ChainParams: *testNetParams,
-		}
-		testChainService, errr := neutrino.NewChainService(config)
-		util.RequireNoErr(t, errr)
-
-		//	create a new MetaService with our test file
-		metaService := NewMetaService(testChainService)
-		metaService.walletPath = btcwallet.NetworkDir(testDir, testNetParams)
-		metaService.walletFile = testWalletFilename
-
-		metaService.netParams = testNetParams
-		metaService.chainDir = testDir
-		metaService.macaroonFiles = []string{tempMacFile, nonExistingFile}
-
-		ctx := context.Background()
-
-		// Create a wallet we can try to unlock. We use the default password
-		// so we can check that the unlocker service defaults to this when
-		// we give it an empty CurrentPassword to indicate we come from a
-		// --noencryptwallet state.
-		createTestWalletWithPw(
-			t, lnwallet.DefaultPublicPassphrase,
-			lnwallet.DefaultPrivatePassphrase, testDir, testNetParams,
-		)
-
-		// We make sure that we get a proper error message if we forget to
-		// add the --stateless_init flag but the macaroon files don't exist.
-		log.Debugf(">>>>> [3] attempt to change passwaord without --stateless_init flag")
-
-		badReq := &lnrpc.ChangePasswordRequest{
-			NewPassword:        testPassword,
-			NewMacaroonRootKey: true,
-		}
-		_, err = metaService.ChangePassword(ctx, badReq)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "if the wallet was initialized stateless")
-
-		// Prepare the correct request we are going to send to the unlocker
-		// service. We don't provide a current password to indicate there
-		// was none set before.
-		log.Debugf(">>>>> [4] finally change passwaord")
-
-		req := &lnrpc.ChangePasswordRequest{
-			NewPassword:        testPassword,
-			StatelessInit:      true,
-			NewMacaroonRootKey: true,
-		}
-
-		_, errr = changePassword(metaService, testDir, req)
-		util.RequireNoErr(t, errr)
-	*/
 }
 
 //	execute a password change
@@ -349,11 +350,6 @@ func changePassword(metaService *MetaService, macTestDir string, req *lnrpc.Chan
 		return nil, er.Errorf("could not change password: %v", err)
 	}
 
-	/*
-		if !bytes.Equal(response.AdminMacaroon, testMac) {
-			return nil, er.Errorf("mismatched macaroon: expected %x, got %x", testMac, response.AdminMacaroon)
-		}
-	*/
 	//	close the macaroon DB and try to open it and read the root key with the
 	//	new password
 	store, errr := openOrCreateTestMacStore(macTestDir, &testPassword, testNetParams)
@@ -419,11 +415,11 @@ func openOrCreateTestMacStore(tempDir string, pw *[]byte,
 	return store, nil
 }
 
-func createTestWallet(t *testing.T, dir string, netParams *chaincfg.Params) {
-	createTestWalletWithPw(t, testPassword, testPassword, dir, netParams)
+func createTestWallet(t *testing.T, dir string, netParams *chaincfg.Params) *wallet.Loader {
+	return createTestWalletWithPw(t, []byte(wallet.InsecurePubPassphrase), testPassword, dir, netParams)
 }
 
-func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string, netParams *chaincfg.Params) {
+func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string, netParams *chaincfg.Params) *wallet.Loader {
 
 	// Instruct waddrmgr to use the cranked down scrypt parameters when
 	// creating new wallet encryption keys.
@@ -446,7 +442,7 @@ func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string, netP
 	util.RequireNoErr(t, err)
 
 	realWalletPathname := wallet.WalletDbPath(netDir, testWalletFilename)
-	log.Debugf(">>>>> [1] wallet path: %s", realWalletPathname)
+	log.Debugf("[1] wallet path: %s", realWalletPathname)
 	walletFileExists := true
 	_, errr := os.Stat(realWalletPathname)
 	if err != nil {
@@ -456,8 +452,7 @@ func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string, netP
 			require.NoError(t, errr)
 		}
 	}
-	log.Debugf(">>>>> [2] after loader.CreateNewWallet() the wallet file exists: %t", walletFileExists)
+	log.Debugf("[2] after loader.CreateNewWallet() the wallet file exists: %t", walletFileExists)
 
-	err = loader.UnloadWallet()
-	util.RequireNoErr(t, err)
+	return loader
 }

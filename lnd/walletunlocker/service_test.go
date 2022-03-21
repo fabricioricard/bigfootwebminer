@@ -42,7 +42,7 @@ var (
 )
 
 func createTestWallet(t *testing.T, dir string, netParams *chaincfg.Params) {
-	createTestWalletWithPw(t, testPassword, testPassword, dir, netParams)
+	createTestWalletWithPw(t, []byte(wallet.InsecurePubPassphrase), testPassword, dir, netParams)
 }
 
 func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string,
@@ -118,10 +118,10 @@ func TestGenSeed(t *testing.T) {
 
 	// Now that the service has been created, we'll ask it to generate a
 	// new seed for us given a test passphrase.
-	aezeedPass := []byte("kek")
+	seedPass := []byte("kek")
 	genSeedReq := &lnrpc.GenSeedRequest{
-		AezeedPassphrase: aezeedPass,
-		SeedEntropy:      make([]byte, 0),
+		SeedPassphraseBin: seedPass,
+		SeedEntropy:       make([]byte, 0),
 	}
 
 	ctx := context.Background()
@@ -130,7 +130,7 @@ func TestGenSeed(t *testing.T) {
 
 	// We should then be able to take the generated mnemonic, and properly
 	// decipher both it.
-	mnemonic := strings.Join(seedResp.CipherSeedMnemonic, " ")
+	mnemonic := strings.Join(seedResp.Seed, " ")
 	_, err := seedwords.SeedFromWords(mnemonic)
 	util.RequireNoErr(t, err)
 }
@@ -190,10 +190,10 @@ func TestGenSeedInvalidEntropy(t *testing.T) {
 	// Now that the service has been created, we'll ask it to generate a
 	// new seed for us given a test passphrase. However, we'll be using an
 	// invalid set of entropy that's 55 bytes, instead of 15 bytes.
-	aezeedPass := []byte("kek")
+	seedPass := []byte("kek")
 	genSeedReq := &lnrpc.GenSeedRequest{
-		AezeedPassphrase: aezeedPass,
-		SeedEntropy:      bytes.Repeat([]byte("a"), 55),
+		SeedPassphraseBin: seedPass,
+		SeedEntropy:       bytes.Repeat([]byte("a"), 55),
 	}
 
 	// We should get an error now since the entropy source was invalid.
@@ -230,28 +230,21 @@ func TestInitWallet(t *testing.T) {
 	// channel.
 	ctx := context.Background()
 	req := &lnrpc.InitWalletRequest{
-		WalletPassword:     testPassword,
-		CipherSeedMnemonic: strings.Split(mnemonic, " "),
-		AezeedPassphrase:   pass,
-		RecoveryWindow:     int32(testRecoveryWindow),
-		StatelessInit:      true,
+		WalletPassphraseBin: testPassword,
+		WalletSeed:          strings.Split(mnemonic, " "),
+		SeedPassphraseBin:   pass,
+		RecoveryWindow:      int32(testRecoveryWindow),
 	}
 
 	errChan := make(chan er.R, 1)
 
 	go func() {
-		response, err := service.InitWallet(ctx, req)
+		_, err := service.InitWallet(ctx, req)
 		if err != nil {
 			errChan <- er.E(err)
 			return
 		}
 		log.Debugf(">>> TestInitWallet [1] InitWallet() finished with success")
-
-		if !bytes.Equal(response.AdminMacaroon, testMac) {
-			errChan <- er.Errorf("mismatched macaroon: "+
-				"expected %x, got %x", testMac,
-				response.AdminMacaroon)
-		}
 	}()
 
 	// The same user passphrase, and also the plaintext cipher seed
@@ -269,10 +262,8 @@ func TestInitWallet(t *testing.T) {
 		)
 		require.Equal(t, cipherSeed.Birthday(), msgSeed.Birthday())
 		require.Equal(t, testRecoveryWindow, msg.RecoveryWindow)
-		require.Equal(t, true, msg.StatelessInit)
 
-		// Send a fake macaroon that should be returned in the response
-		// in the async code above.
+		// Send a fake macaroon that should finish the async code above.
 		log.Debugf(">>> TestInitWallet [3] fake macaroon sent back")
 		service.MacResponseChan <- testMac
 
@@ -315,9 +306,9 @@ func TestCreateWalletInvalidEntropy(t *testing.T) {
 	// We'll attempt to init the wallet with an invalid cipher seed and
 	// passphrase.
 	req := &lnrpc.InitWalletRequest{
-		WalletPassword:     testPassword,
-		CipherSeedMnemonic: []string{"invalid", "seed"},
-		AezeedPassphrase:   []byte("fake pass"),
+		WalletPassphraseBin: testPassword,
+		WalletSeed:          []string{"invalid", "seed"},
+		SeedPassphraseBin:   []byte("fake pass"),
 	}
 
 	ctx := context.Background()
@@ -345,10 +336,8 @@ func TestUnlockWallet(t *testing.T) {
 
 	ctx := context.Background()
 	req := &lnrpc.UnlockWalletRequest{
-		WalletPassword:    testPassword,
-		WalletPubPassword: testPassword,
-		RecoveryWindow:    int32(testRecoveryWindow),
-		StatelessInit:     true,
+		WalletPassphraseBin: testPassword,
+		RecoveryWindow:      int32(testRecoveryWindow),
 	}
 
 	// Should fail to unlock non-existing wallet.
@@ -361,11 +350,11 @@ func TestUnlockWallet(t *testing.T) {
 
 	// Try unlocking this wallet with the wrong passphrase.
 	wrongReq := &lnrpc.UnlockWalletRequest{
-		WalletPassword: []byte("wrong-ofc"),
+		WalletPassphraseBin: []byte("wrong-ofc"),
 	}
 	_, err = service.UnlockWallet(ctx, wrongReq)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid passphrase for master public key")
+	require.Contains(t, err.Error(), "invalid passphrase for master private key")
 
 	// With the correct password, we should be able to unlock the wallet.
 	errChan := make(chan er.R, 1)

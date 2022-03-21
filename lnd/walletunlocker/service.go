@@ -2,18 +2,13 @@ package walletunlocker
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"strconv"
 	"strings"
 
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/lnd/chanbackup"
-	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
 	"github.com/pkt-cash/pktd/lnd/lnwallet/btcwallet"
-	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
 )
@@ -203,7 +198,17 @@ func (u *UnlockerService) GenSeed0(_ context.Context,
 		return nil, err
 	}
 
-	encipheredSeed := cipherSeed.Encrypt(in.AezeedPassphrase)
+	//	fetch seed passphrase from request
+	var seedPassphrase []byte
+
+	if len(in.SeedPassphraseBin) > 0 {
+		seedPassphrase = in.SeedPassphraseBin
+	} else {
+		if len(in.SeedPassphrase) > 0 {
+			seedPassphrase = []byte(in.SeedPassphrase)
+		}
+	}
+	encipheredSeed := cipherSeed.Encrypt(seedPassphrase)
 
 	mnemonic, err := encipheredSeed.Words("english")
 	if err != nil {
@@ -211,8 +216,7 @@ func (u *UnlockerService) GenSeed0(_ context.Context,
 	}
 
 	return &lnrpc.GenSeedResponse{
-		CipherSeedMnemonic: strings.Split(mnemonic, " "),
-		EncipheredSeed:     encipheredSeed.Bytes[:],
+		Seed: strings.Split(mnemonic, " "),
 	}, nil
 }
 
@@ -274,9 +278,19 @@ func (u *UnlockerService) InitWallet(ctx context.Context,
 func (u *UnlockerService) InitWallet0(ctx context.Context,
 	in *lnrpc.InitWalletRequest) (*lnrpc.InitWalletResponse, er.R) {
 
+	//	fetch wallet passphrase from request
+	var walletPassphrase []byte
+
+	if len(in.WalletPassphraseBin) > 0 {
+		walletPassphrase = in.WalletPassphraseBin
+	} else {
+		if len(in.WalletPassphrase) > 0 {
+			walletPassphrase = []byte(in.WalletPassphrase)
+		}
+	}
+
 	// Make sure the password meets our constraints.
-	password := in.WalletPassword
-	if err := ValidatePassword(password); err != nil {
+	if err := ValidatePassword(walletPassphrase); err != nil {
 		return nil, err
 	}
 
@@ -306,13 +320,24 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 		return nil, er.Errorf("wallet already exists")
 	}
 
-	mnemonic := strings.Join(in.CipherSeedMnemonic, " ")
+	mnemonic := strings.Join(in.WalletSeed, " ")
 	seedEnc, err := seedwords.SeedFromWords(mnemonic)
 	if err != nil {
 		return nil, err
 	}
 
-	seed, err := seedEnc.Decrypt(in.AezeedPassphrase, false)
+	//	fetch seed passphrase from request
+	var seedPassphrase []byte
+
+	if len(in.SeedPassphraseBin) > 0 {
+		seedPassphrase = in.SeedPassphraseBin
+	} else {
+		if len(in.SeedPassphrase) > 0 {
+			seedPassphrase = []byte(in.SeedPassphrase)
+		}
+	}
+
+	seed, err := seedEnc.Decrypt(seedPassphrase, false)
 	if err != nil {
 		return nil, err
 	}
@@ -321,10 +346,10 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 	// now send over the wallet password and the seed. This will allow the
 	// daemon to initialize itself and startup.
 	initMsg := &WalletInitMsg{
-		Passphrase:     password,
+		Passphrase:     walletPassphrase,
 		Seed:           seed,
 		RecoveryWindow: uint32(recoveryWindow),
-		StatelessInit:  in.StatelessInit,
+		StatelessInit:  true,
 	}
 
 	// Before we return the unlock payload, we'll check if we can extract
@@ -341,10 +366,8 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 		// its work and to get the admin macaroon. Once the response
 		// arrives, we directly forward it to the client.
 		select {
-		case adminMac := <-u.MacResponseChan:
-			return &lnrpc.InitWalletResponse{
-				AdminMacaroon: adminMac,
-			}, nil
+		case <-u.MacResponseChan:
+			return &lnrpc.InitWalletResponse{}, nil
 
 		case <-ctx.Done():
 			return nil, ErrUnlockTimeout.Default()
@@ -367,11 +390,18 @@ func (u *UnlockerService) UnlockWallet(ctx context.Context,
 func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	in *lnrpc.UnlockWalletRequest) (*lnrpc.UnlockWalletResponse, er.R) {
 
-	privpassword := in.WalletPassword
-	pubpassword := []byte(wallet.InsecurePubPassphrase)
-	if in.WalletPubPassword != nil {
-		pubpassword = in.WalletPubPassword
+	//	fetch wallet passphrase from request
+	var walletPassphrase []byte
+
+	if len(in.WalletPassphraseBin) > 0 {
+		walletPassphrase = in.WalletPassphraseBin
+	} else {
+		if len(in.WalletPassphrase) > 0 {
+			walletPassphrase = []byte(in.WalletPassphrase)
+		}
 	}
+
+	pubpassword := []byte(wallet.InsecurePubPassphrase)
 
 	recoveryWindow := uint32(in.RecoveryWindow)
 
@@ -400,7 +430,7 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 		return nil, err
 	}
 	//Also test against private password
-	err = unlockedWallet.Unlock(privpassword, nil)
+	err = unlockedWallet.Unlock(walletPassphrase, nil)
 	if err != nil {
 		//unload wallet so future unlock calls can be processed
 		loader.UnloadWallet()
@@ -409,11 +439,11 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	// We successfully opened the wallet and pass the instance back to
 	// avoid it needing to be unlocked again.
 	walletUnlockMsg := &WalletUnlockMsg{
-		Passphrase:     privpassword,
+		Passphrase:     walletPassphrase,
 		RecoveryWindow: recoveryWindow,
 		Wallet:         unlockedWallet,
 		UnloadWallet:   loader.UnloadWallet,
-		StatelessInit:  in.StatelessInit,
+		StatelessInit:  true,
 	}
 
 	// Before we return the unlock payload, we'll check if we can extract
@@ -452,77 +482,4 @@ func ValidatePassword(password []byte) er.R {
 	}
 
 	return nil
-}
-
-func (u *UnlockerService) CreateWallet(ctx context.Context, req *lnrpc.CreateWalletRequest) (*lnrpc.CreateWalletResponse, error) {
-	response := &lnrpc.CreateWalletResponse{}
-	var cipherSeed []string
-	var aezeedPass []byte
-	//Validate password
-	err := ValidatePassword(req.WalletPassword)
-	if err != nil {
-		log.Infof("Password could not be validated.")
-		return response, er.Native(err)
-	}
-	if req.CipherSeedMnemonic != nil {
-		cipherSeed = req.CipherSeedMnemonic
-		log.Infof("Using provided cipher seed mnemonic.")
-		//Check Seed Mnemonic
-		if len(req.CipherSeedMnemonic) != 15 {
-			return response, er.Native(er.New("wrong cipher seed mnemonic length: got " + strconv.Itoa(len(req.CipherSeedMnemonic)) + " words, expecting 15 words"))
-		}
-		cipherSeedString := strings.Join(cipherSeed, " ")
-		seedEnc, err := seedwords.SeedFromWords(cipherSeedString)
-		if err != nil {
-			return response, er.Native(err)
-		}
-		if seedEnc.NeedsPassphrase() && req.AezeedPass == nil {
-			return response, er.Native(er.New("This seed is encrypted aezeedPassphrase provided is empty"))
-		} 
-		aezeedPass = req.AezeedPass
-	} else {
-		log.Infof("Generating seed.")
-		if req.AezeedPass != nil {
-			aezeedPass = req.AezeedPass
-		}
-		//passphrase for encrypting seed
-		genSeedReq := &lnrpc.GenSeedRequest{
-			AezeedPassphrase: aezeedPass,
-		}
-		seedResp, err := u.GenSeed(ctx, genSeedReq)
-		if err != nil {
-			return response, er.Native(er.New("unable to generate seed: " + err.Error()))
-		}
-		cipherSeed = seedResp.CipherSeedMnemonic
-	}
-
-	statelessInit := req.StatelessInitFlag
-	var chanBackups *lnrpc.ChanBackupSnapshot
-	initWalletRequest := &lnrpc.InitWalletRequest{
-		WalletPassword:     req.WalletPassword,
-		CipherSeedMnemonic: cipherSeed,
-		AezeedPassphrase:   aezeedPass,
-		RecoveryWindow:     0,
-		ChannelBackups:     chanBackups,
-		StatelessInit:      statelessInit,
-	}
-	initWalletResponce, errr := u.InitWallet(ctx, initWalletRequest)
-	if errr != nil {
-		log.Errorf("Failed to initialize wallet.")
-		return response, errr
-	}
-	if req.StatelessInitFlag {
-		if req.SaveTo != "" {
-			macSavePath := lncfg.CleanAndExpandPath(req.SaveTo)
-			errr := ioutil.WriteFile(macSavePath, initWalletResponce.AdminMacaroon, 0644)
-			if errr != nil {
-				_ = os.Remove(macSavePath)
-				return response, errr
-			}
-		}
-	}
-	response = &lnrpc.CreateWalletResponse{
-		Seed: cipherSeed,
-	}
-	return response, nil
 }

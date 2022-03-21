@@ -12,102 +12,6 @@
       "extensions": [],
       "messages": [
         {
-          "name": "CreateWalletRequest",
-          "longName": "CreateWalletRequest",
-          "fullName": "lnrpc.CreateWalletRequest",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "wallet_password",
-              "description": "",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "cipher_seed_mnemonic",
-              "description": "",
-              "label": "repeated",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "aezeed_pass",
-              "description": "",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "stateless_init_flag",
-              "description": "",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "save_to",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "CreateWalletResponse",
-          "longName": "CreateWalletResponse",
-          "fullName": "lnrpc.CreateWalletResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "seed",
-              "description": "",
-              "label": "repeated",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
           "name": "GenSeedRequest",
           "longName": "GenSeedRequest",
           "fullName": "lnrpc.GenSeedRequest",
@@ -118,8 +22,20 @@
           "extensions": [],
           "fields": [
             {
-              "name": "aezeed_passphrase",
-              "description": "aezeed_passphrase is an optional user provided passphrase that will be used\nto encrypt the generated aezeed cipher seed. When using REST, this field\nmust be encoded as base64.",
+              "name": "seed_passphrase",
+              "description": "seed_passphrase is the optional user specified passphrase that will be used\nto encrypt the generated seed.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "seed_passphrase_bin",
+              "description": "seed_passphrase_bin overrides seed_passphrase if specified, for binary\nrepresentation of the passphrase. If using JSON then this field must be base64\nencoded.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -154,24 +70,12 @@
           "extensions": [],
           "fields": [
             {
-              "name": "cipher_seed_mnemonic",
-              "description": "cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed\ncipher seed obtained by the user. This field is optional, as if not\nprovided, then the daemon will generate a new cipher seed for the user.\nOtherwise, then the daemon will attempt to recover the wallet state linked\nto this cipher seed.",
+              "name": "seed",
+              "description": "seed is a 15-word mnemonic that encodes a secret root seed used to generate\nall private keys of the wallet.",
               "label": "repeated",
               "type": "string",
               "longType": "string",
               "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "enciphered_seed",
-              "description": "enciphered_seed are the raw aezeed cipher seed bytes. This is the raw\ncipher text before run through our mnemonic encoding scheme.",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -190,8 +94,20 @@
           "extensions": [],
           "fields": [
             {
-              "name": "wallet_password",
-              "description": "wallet_password is the passphrase that should be used to encrypt the\nwallet. This MUST be at least 8 chars in length. After creation, this\npassword is required to unlock the daemon. When using REST, this field\nmust be encoded as base64.",
+              "name": "wallet_passphrase",
+              "description": "wallet_passphrase is the passphrase that should be used to encrypt the\nwallet. This MUST be at least 8 chars in length. After creation, this\npassword is required to unlock the daemon.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "wallet_passphrase_bin",
+              "description": "If specified, will override wallet_passphrase, but is expressed in binary.\nWhen using REST, this field must be encoded as base64.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -202,8 +118,8 @@
               "defaultValue": ""
             },
             {
-              "name": "cipher_seed_mnemonic",
-              "description": "cipher_seed_mnemonic is a 24-word mnemonic that encodes a prior aezeed\ncipher seed obtained by the user. This may have been generated by the\nGenSeed method, or be an existing seed.",
+              "name": "wallet_seed",
+              "description": "wallet_seed is a 15-word wallet seed. This may have been generated by the\nGenSeed method, or be an existing seed.",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -214,8 +130,20 @@
               "defaultValue": ""
             },
             {
-              "name": "aezeed_passphrase",
-              "description": "aezeed_passphrase is an optional user provided passphrase that will be used\nto encrypt the generated aezeed cipher seed. When using REST, this field\nmust be encoded as base64.",
+              "name": "seed_passphrase",
+              "description": "seed_passphrase is an optional user provided passphrase that will be used\nto encrypt the generated seed.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "seed_passphrase_bin",
+              "description": "If specified, will override seed_passphrase, but is expressed in binary.\nWhen using REST, this field must be encoded as base64.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -244,18 +172,6 @@
               "type": "ChanBackupSnapshot",
               "longType": "ChanBackupSnapshot",
               "fullType": "lnrpc.ChanBackupSnapshot",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "stateless_init",
-              "description": "stateless_init is an optional argument instructing the daemon NOT to create\nany *.macaroon files in its filesystem. If this parameter is set, then the\nadmin macaroon returned in the response MUST be stored by the caller of the\nRPC as otherwise all access to the daemon will be lost!",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -269,23 +185,10 @@
           "fullName": "lnrpc.InitWalletResponse",
           "description": "",
           "hasExtensions": false,
-          "hasFields": true,
+          "hasFields": false,
           "hasOneofs": false,
           "extensions": [],
-          "fields": [
-            {
-              "name": "admin_macaroon",
-              "description": "The binary serialized admin macaroon that can be used to access the daemon\nafter creating the wallet. If the stateless_init parameter was set to true,\nthis is the ONLY copy of the macaroon and MUST be stored safely by the\ncaller. Otherwise a copy of this macaroon is also persisted on disk by the\ndaemon, together with other macaroon files.",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
+          "fields": []
         },
         {
           "name": "UnlockWalletRequest",
@@ -298,20 +201,20 @@
           "extensions": [],
           "fields": [
             {
-              "name": "wallet_password",
-              "description": "wallet_password should be the current valid private passphrase for the daemon. This\nwill be required to decrypt on-disk material that the daemon requires to\nfunction properly. When using REST, this field must be encoded as base64.",
+              "name": "wallet_passphrase",
+              "description": "wallet_passphrase should be the current valid private passphrase for the daemon. This\nwill be required to decrypt on-disk material that the daemon requires to\nfunction properly.",
               "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
             },
             {
-              "name": "wallet_pub_password",
-              "description": "wallet_pub_password is the pubic passphrase by default is nil for pkt",
+              "name": "wallet_passphrase_bin",
+              "description": "If specified, will override wallet_passphrase, but is expressed in binary.\nWhen using REST, this field must be encoded as base64.",
               "label": "",
               "type": "bytes",
               "longType": "bytes",
@@ -340,18 +243,6 @@
               "type": "ChanBackupSnapshot",
               "longType": "ChanBackupSnapshot",
               "fullType": "lnrpc.ChanBackupSnapshot",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "stateless_init",
-              "description": "stateless_init is an optional argument instructing the daemon NOT to create\nany *.macaroon files in its file system.",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -412,18 +303,6 @@
               "responseType": "UnlockWalletResponse",
               "responseLongType": "UnlockWalletResponse",
               "responseFullType": "lnrpc.UnlockWalletResponse",
-              "responseStreaming": false
-            },
-            {
-              "name": "CreateWallet",
-              "description": "The create command is used to initialize an lnd wallet from scratch for\nthe very first time.",
-              "requestType": "CreateWalletRequest",
-              "requestLongType": "CreateWalletRequest",
-              "requestFullType": "lnrpc.CreateWalletRequest",
-              "requestStreaming": false,
-              "responseType": "CreateWalletResponse",
-              "responseLongType": "CreateWalletResponse",
-              "responseFullType": "lnrpc.CreateWalletResponse",
               "responseStreaming": false
             }
           ]

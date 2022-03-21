@@ -608,7 +608,7 @@ func disconnectPeer(ctx *cli.Context) er.R {
 	}
 
 	req := &lnrpc.DisconnectPeerRequest{
-		PubKey: pubKey,
+		PubKey: []byte(pubKey),
 	}
 
 	lnid, err := client.DisconnectPeer(ctxb, req)
@@ -1642,7 +1642,7 @@ func getNodeInfo(ctx *cli.Context) er.R {
 	}
 
 	req := &lnrpc.NodeInfoRequest{
-		PubKey:          pubKey,
+		PubKey:          []byte(pubKey),
 		IncludeChannels: ctx.Bool("include_channels"),
 	}
 
@@ -1742,7 +1742,7 @@ func queryRoutes(ctx *cli.Context) er.R {
 	}
 
 	req := &lnrpc.QueryRoutesRequest{
-		PubKey:            dest,
+		PubKey:            []byte(dest),
 		Amt:               amt,
 		FeeLimit:          feeLimit,
 		FinalCltvDelta:    int32(ctx.Int("final_cltv_delta")),
@@ -1975,7 +1975,7 @@ func signMessage(ctx *cli.Context) er.R {
 	}
 
 	resp, err := client.SignMessage(ctxb, &lnrpc.SignMessageRequest{
-		Msg:     msg,
+		MsgBin:  msg,
 		Address: address,
 	})
 	if err != nil {
@@ -3112,7 +3112,7 @@ func createTransaction(ctx *cli.Context) er.R {
 	}
 	req := &lnrpc.CreateTransactionRequest{
 		ToAddress:      toaddress,
-		Amount:         int32(amount),
+		Amount:         float64(amount),
 		FromAddress:    fromaddresses,
 		ElectrumFormat: electrumformat,
 		ChangeAddress:  changeaddress,

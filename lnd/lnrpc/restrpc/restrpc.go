@@ -96,25 +96,31 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		description: "Initialize a wallet when starting lnd for the first time",
 
 		path: "/wallet/create",
-		req:  (*lnrpc.CreateWalletRequest)(nil),
-		res:  (*lnrpc.CreateWalletResponse)(nil),
+		req:  (*lnrpc.InitWalletRequest)(nil), // Use init wallet structure to create
+		res:  nil,
+
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-			req, ok := m.(*lnrpc.CreateWalletRequest)
+
+			//	get the request payload
+			initWalletReq, ok := m.(*lnrpc.InitWalletRequest)
 			if !ok {
-				return nil, er.New("Argument is not a CreateWalletRequest")
+				return nil, er.New("Argument is not a InitWalletRequest")
 			}
-			u, err := c.withUnlocker()
-			if err != nil {
-				return nil, err
-			}
-			resp, errr := u.CreateWallet(context.TODO(), req)
+
+			//	init wallet
+			cc, errr := c.withUnlocker()
 			if errr != nil {
-				return nil, er.E(errr)
+				return nil, errr
 			}
-			return resp, nil
+
+			_, err := cc.InitWallet(context.TODO(), initWalletReq)
+			if err != nil {
+				return nil, er.E(err)
+			}
+			return nil, nil
 		},
 
-		getHelpInfo: pkthelp.WalletUnlocker_CreateWallet,
+		getHelpInfo: pkthelp.WalletUnlocker_InitWallet,
 	},
 	//MetaService get info
 	{
@@ -260,7 +266,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wallet/changepassphrase",
 		req:  (*lnrpc.ChangePasswordRequest)(nil),
-		res:  (*lnrpc.ChangePasswordResponse)(nil),
+		res:  nil, // no response
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 			req, ok := m.(*lnrpc.ChangePasswordRequest)
 			if !ok {
@@ -287,7 +293,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wallet/balance",
 		req:  nil,
-		res:  (*lnrpc.GetAddressBalancesResponse)(nil),
+		res:  (*lnrpc.WalletBalanceResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 			if server, err := c.withRpcServer(); server != nil {
 				if l, err := server.WalletBalance(context.TODO(), nil); err != nil {
@@ -463,7 +469,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wallet/unspent/resync",
 		req:  (*lnrpc.ReSyncChainRequest)(nil),
-		res:  (*lnrpc.ReSyncChainResponse)(nil),
+		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 			req, ok := m.(*lnrpc.ReSyncChainRequest)
 			if !ok {
@@ -594,7 +600,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/meta/stop",
 		req:  nil,
-		res:  (*lnrpc.StopResponse)(nil),
+		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	invoke Lightning stop daemon command
@@ -1331,7 +1337,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		category:    subCategoryInvoice,
 		description: "Decode a payment request",
 
-		path: "/lightning/invoice/decodepayreq",
+		path: "/lightning/invoice/decodepayreq", // move to /util/payreq/decode
 		req:  (*lnrpc.PayReqString)(nil),
 		res:  (*lnrpc.PayReq)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1503,7 +1509,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wallet/networkstewardvote/set",
 		req:  (*lnrpc.SetNetworkStewardVoteRequest)(nil),
-		res:  (*lnrpc.SetNetworkStewardVoteResponse)(nil),
+		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -1632,7 +1638,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		category:    subCategoryPayment,
 		description: "Pay an invoice over lightning",
 
-		path: "/payment/payinvoice",
+		path: "/lightning/payment/payinvoice",
 		req:  (*routerrpc.SendPaymentRequest)(nil),
 		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1662,7 +1668,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		category:    subCategoryPayment,
 		description: "Send a payment over a predefined route",
 
-		path: "/lightning/payment/sendroutes",
+		path: "/lightning/payment/sendtoroute",
 		req:  (*lnrpc.SendToRouteRequest)(nil),
 		res:  (*lnrpc.SendResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -1893,7 +1899,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/lightning/payment/resetmc",
 		req:  nil,
-		res:  (*routerrpc.ResetMissionControlResponse)(nil),
+		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	invoke reset mission controle service
@@ -1955,7 +1961,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/lightning/peer/connect",
 		req:  (*lnrpc.ConnectPeerRequest)(nil),
-		res:  (*lnrpc.ConnectPeerResponse)(nil),
+		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -1989,7 +1995,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/lightning/peer/disconnect",
 		req:  (*lnrpc.DisconnectPeerRequest)(nil),
-		res:  (*lnrpc.DisconnectPeerResponse)(nil),
+		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -2183,7 +2189,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		category:    subSubCategoryLock,
 		description: "Locks or unlocks an unspent output",
 
-		path: "/wallet/unspent/lock/create",
+		path: "/wallet/unspent/lock/create", // TODO: /wallet/unspent/lock/delete
 		req:  (*lnrpc.LockUnspentRequest)(nil),
 		res:  (*lnrpc.LockUnspentResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
@@ -2287,7 +2293,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wtclient/tower/create",
 		req:  (*wtclientrpc.AddTowerRequest)(nil),
-		res:  (*wtclientrpc.AddTowerResponse)(nil),
+		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -2322,7 +2328,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wtclient/tower/remove",
 		req:  (*wtclientrpc.RemoveTowerRequest)(nil),
-		res:  (*wtclientrpc.RemoveTowerResponse)(nil),
+		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -2426,7 +2432,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		description: "Display the session stats of the watchtower client",
 
 		path: "/wtclient/tower/stats",
-		req:  (*wtclientrpc.StatsRequest)(nil),
+		req:  nil,
 		res:  (*wtclientrpc.StatsResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 

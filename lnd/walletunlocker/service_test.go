@@ -42,7 +42,7 @@ var (
 )
 
 func createTestWallet(t *testing.T, dir string, netParams *chaincfg.Params) {
-	createTestWalletWithPw(t, testPassword, testPassword, dir, netParams)
+	createTestWalletWithPw(t, []byte(wallet.InsecurePubPassphrase), testPassword, dir, netParams)
 }
 
 func createTestWalletWithPw(t *testing.T, pubPw, privPw []byte, dir string,
@@ -354,7 +354,7 @@ func TestUnlockWallet(t *testing.T) {
 	}
 	_, err = service.UnlockWallet(ctx, wrongReq)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid passphrase for master public key")
+	require.Contains(t, err.Error(), "invalid passphrase for master private key")
 
 	// With the correct password, we should be able to unlock the wallet.
 	errChan := make(chan er.R, 1)

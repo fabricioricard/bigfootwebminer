@@ -237,9 +237,9 @@ func (u *MetaService) ChangePassword(ctx context.Context,
 func (m *MetaService) ChangePassword0(ctx context.Context,
 	in *lnrpc.ChangePasswordRequest) (*lnrpc.ChangePasswordResponse, er.R) {
 
+	publicPw := []byte(wallet.InsecurePubPassphrase)
 	privatePw := in.CurrentPasswordBin
 	newPubPw := []byte(wallet.InsecurePubPassphrase)
-	publicPw := []byte(wallet.InsecurePubPassphrase)
 
 	// If the current password is blank, we'll assume the user is coming
 	// from a --noseedbackup state, so we'll use the default passwords.

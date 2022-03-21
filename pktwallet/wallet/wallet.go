@@ -1689,7 +1689,7 @@ func (w *Wallet) GetTransactions(
 						txs = txs[skip-skippedtxns:]
 						skippedtxns += int32(skip - skippedtxns)
 					}
-					
+
 					res.MinedTransactions = append(res.MinedTransactions, Block{
 						Hash:         &blockHash,
 						Height:       details[0].Block.Height,
@@ -1726,7 +1726,6 @@ func (w *Wallet) GetTransactions(
 	})
 	return &res, err
 }
-
 
 // ListUnspent returns a slice of objects representing the unspent wallet
 // transactions fitting the given criteria. The confirmations will be more than

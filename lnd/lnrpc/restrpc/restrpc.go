@@ -1638,7 +1638,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		category:    subCategoryPayment,
 		description: "Pay an invoice over lightning",
 
-		path: "/payment/payinvoice",
+		path: "/lightning/payment/payinvoice",
 		req:  (*routerrpc.SendPaymentRequest)(nil),
 		res:  nil,
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {

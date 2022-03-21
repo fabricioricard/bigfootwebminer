@@ -12,6 +12,7 @@ import (
 	"os"
 	"runtime"
 	"sort"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -1429,12 +1430,22 @@ var (
 func (r *rpcServer) SignMessage(ctx context.Context,
 	in *lnrpc.SignMessageRequest) (*lnrpc.SignMessageResponse, error) {
 
-	if in.Msg == nil {
+	//	make sure request have a non empty MsgBin or Msg
+	if (in.MsgBin == nil || len(in.MsgBin) == 0) && len(in.Msg) == 0 {
 		return nil, er.Native(er.Errorf("need a message to sign"))
 	}
 
-	in.Msg = append(signedMsgPrefix, in.Msg...)
-	src, err := r.server.nodeSigner.SignCompact(in.Msg)
+	//	if request have both MsgBin and Msg, sign only MsgBin
+	var msg []byte
+
+	if in.MsgBin != nil && len(in.MsgBin) > 0 {
+		msg = in.MsgBin
+	} else {
+		msg = []byte(in.Msg)
+	}
+
+	msg = append(signedMsgPrefix, msg...)
+	src, err := r.server.nodeSigner.SignCompact(msg)
 	if err != nil {
 		return nil, er.Native(err)
 	}
@@ -1538,7 +1549,7 @@ func (r *rpcServer) DisconnectPeer0(ctx context.Context,
 	// First we'll validate the string passed in within the request to
 	// ensure that it's a valid hex-string, and also a valid compressed
 	// public key.
-	pubKeyBytes, err := util.DecodeHex(in.PubKey)
+	pubKeyBytes, err := util.DecodeHex(string(in.PubKey))
 	if err != nil {
 		return nil, er.Errorf("unable to decode pubkey bytes: %v", err)
 	}
@@ -1807,7 +1818,7 @@ func (r *rpcServer) parseOpenChannelReq(in *lnrpc.OpenChannelRequest,
 	// key object. For all sync call, byte slices are expected to be encoded
 	// as hex strings.
 	case isSync:
-		keyBytes, err := util.DecodeHex(in.NodePubkeyString)
+		keyBytes, err := util.DecodeHex(string(in.NodePubkey))
 		if err != nil {
 			return nil, err
 		}
@@ -4093,8 +4104,7 @@ func (r *rpcServer) unmarshallSendToRouteRequest(
 
 	return &rpcPaymentRequest{
 		SendRequest: &lnrpc.SendRequest{
-			PaymentHash:       req.PaymentHash,
-			PaymentHashString: req.PaymentHashString,
+			PaymentHash: req.PaymentHash,
 		},
 		route: route,
 	}, nil
@@ -4133,20 +4143,7 @@ func (r *rpcServer) extractPaymentIntent(rpcPayReq *rpcPaymentRequest) (rpcPayme
 
 	// If a route was specified, then we can use that directly.
 	if rpcPayReq.route != nil {
-		// If the user is using the REST interface, then they'll be
-		// passing the payment hash as a hex encoded string.
-		if rpcPayReq.PaymentHashString != "" {
-			paymentHash, err := util.DecodeHex(
-				rpcPayReq.PaymentHashString,
-			)
-			if err != nil {
-				return payIntent, err
-			}
-
-			copy(payIntent.rHash[:], paymentHash)
-		} else {
-			copy(payIntent.rHash[:], rpcPayReq.PaymentHash)
-		}
+		copy(payIntent.rHash[:], rpcPayReq.PaymentHash)
 
 		payIntent.route = rpcPayReq.route
 		return payIntent, nil
@@ -4265,12 +4262,6 @@ func (r *rpcServer) extractPaymentIntent(rpcPayReq *rpcPaymentRequest) (rpcPayme
 	var pubBytes []byte
 	if len(rpcPayReq.Dest) != 0 {
 		pubBytes = rpcPayReq.Dest
-	} else {
-		var err er.R
-		pubBytes, err = util.DecodeHex(rpcPayReq.DestString)
-		if err != nil {
-			return payIntent, err
-		}
 	}
 	if len(pubBytes) != 33 {
 		return payIntent, er.New("invalid key length")
@@ -4306,22 +4297,7 @@ func (r *rpcServer) extractPaymentIntent(rpcPayReq *rpcPaymentRequest) (rpcPayme
 		payIntent.cltvDelta = uint16(r.cfg.Bitcoin.TimeLockDelta)
 	}
 
-	// If the user is manually specifying payment details, then the payment
-	// hash may be encoded as a string.
-	switch {
-	case rpcPayReq.PaymentHashString != "":
-		paymentHash, err := util.DecodeHex(
-			rpcPayReq.PaymentHashString,
-		)
-		if err != nil {
-			return payIntent, err
-		}
-
-		copy(payIntent.rHash[:], paymentHash)
-
-	default:
-		copy(payIntent.rHash[:], rpcPayReq.PaymentHash)
-	}
+	copy(payIntent.rHash[:], rpcPayReq.PaymentHash)
 
 	// Unmarshal any custom destination features.
 	payIntent.destFeatures, err = routerrpc.UnmarshalFeatures(
@@ -4795,8 +4771,8 @@ func (r *rpcServer) LookupInvoice(ctx context.Context,
 
 	// If the RHash as a raw string was provided, then decode that and use
 	// that directly. Otherwise, we use the raw bytes provided.
-	if req.RHashStr != "" {
-		rHash, err = util.DecodeHex(req.RHashStr)
+	if req.RHash != nil && len(req.RHash) > 0 {
+		rHash, err = util.DecodeHex(string(req.RHash))
 		if err != nil {
 			return nil, er.Native(err)
 		}
@@ -5057,7 +5033,7 @@ func (r *rpcServer) DescribeGraph0(ctx context.Context,
 
 		lnNode := &lnrpc.LightningNode{
 			LastUpdate: uint32(node.LastUpdate.Unix()),
-			PubKey:     hex.EncodeToString(node.PubKeyBytes[:]),
+			PubKey:     []byte(hex.EncodeToString(node.PubKeyBytes[:])),
 			Addresses:  nodeAddrs,
 			Alias:      node.Alias,
 			Color:      routing.EncodeHexColor(node.Color),
@@ -5241,7 +5217,7 @@ func (r *rpcServer) GetNodeInfo(ctx context.Context,
 
 	// First, parse the hex-encoded public key into a full in-memory public
 	// key object we can work with for querying.
-	pubKey, err := route.NewVertexFromStr(in.PubKey)
+	pubKey, err := route.NewVertexFromStr(string(in.PubKey))
 	if err != nil {
 		return nil, er.Native(err)
 	}
@@ -6670,7 +6646,7 @@ func (r *rpcServer) GetWalletSeed(ctx context.Context, req *lnrpc.GetWalletSeedR
 		return nil, er.Native(err)
 	}
 	return &lnrpc.GetWalletSeedResponse{
-		Seed: words,
+		Seed: strings.Split(words, " "),
 	}, nil
 }
 

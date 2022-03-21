@@ -2127,7 +2127,7 @@ func testUpdateChannelPolicy(net *lntest.NetworkHarness, t *harnessTest) {
 	// 5000 mSAT, as this is accepted.
 	payAmt = btcutil.Amount(5)
 	routesReq := &lnrpc.QueryRoutesRequest{
-		PubKey:         carol.PubKeyStr,
+		PubKey:         carol.PubKey[:],
 		Amt:            int64(payAmt),
 		FinalCltvDelta: defaultTimeLockDelta,
 	}
@@ -5526,7 +5526,7 @@ func testSingleHopSendToRouteCase(net *lntest.NetworkHarness, t *harnessTest,
 	// Query for routes to pay from Carol to Dave using the default CLTV
 	// config.
 	routesReq := &lnrpc.QueryRoutesRequest{
-		PubKey: dave.PubKeyStr,
+		PubKey: dave.PubKey[:],
 		Amt:    paymentAmtSat,
 	}
 	ctxt, _ = context.WithTimeout(ctxb, defaultTimeout)
@@ -5881,7 +5881,7 @@ func testMultiHopSendToRoute(net *lntest.NetworkHarness, t *harnessTest) {
 	// htlcswitch is 40.
 	const paymentAmt = 1000
 	routesReq := &lnrpc.QueryRoutesRequest{
-		PubKey:         carol.PubKeyStr,
+		PubKey:         carol.PubKey[:],
 		Amt:            paymentAmt,
 		FinalCltvDelta: chainreg.DefaultBitcoinTimeLockDelta,
 	}
@@ -6043,7 +6043,7 @@ func testSendToRouteErrorPropagation(net *lntest.NetworkHarness, t *harnessTest)
 	// Query routes from Carol to Charlie which will be an invalid route
 	// for Alice -> Bob.
 	fakeReq := &lnrpc.QueryRoutesRequest{
-		PubKey: charlie.PubKeyStr,
+		PubKey: charlie.PubKey[:],
 		Amt:    int64(1),
 	}
 	ctxt, _ = context.WithTimeout(ctxb, defaultTimeout)
@@ -8108,11 +8108,11 @@ func testGarbageCollectLinkNodes(net *lntest.NetworkHarness, t *harnessTest) {
 		t.Fatalf("unable to query for alice's channel graph: %v", errr)
 	}
 	for _, node := range channelGraph.Nodes {
-		if node.PubKey == net.Bob.PubKeyStr {
+		if string(node.PubKey) == net.Bob.PubKeyStr {
 			t.Fatalf("did not expect to find bob in the channel " +
 				"graph, but did")
 		}
-		if node.PubKey == carol.PubKeyStr {
+		if string(node.PubKey) == carol.PubKeyStr {
 			t.Fatalf("did not expect to find carol in the channel " +
 				"graph, but did")
 		}
@@ -10568,7 +10568,7 @@ func testNodeSignVerify(net *lntest.NetworkHarness, t *harnessTest) {
 	aliceMsg := []byte("alice msg")
 
 	// alice signs "alice msg" and sends her signature to bob.
-	sigReq := &lnrpc.SignMessageRequest{Msg: aliceMsg}
+	sigReq := &lnrpc.SignMessageRequest{MsgBin: aliceMsg}
 	ctxt, _ = context.WithTimeout(ctxb, defaultTimeout)
 	sigResp, err := net.Alice.SignMessage(ctxt, sigReq)
 	if err != nil {
@@ -10604,7 +10604,7 @@ func testNodeSignVerify(net *lntest.NetworkHarness, t *harnessTest) {
 	carolMsg := []byte("carol msg")
 
 	// carol signs "carol msg" and sends her signature to bob.
-	sigReq = &lnrpc.SignMessageRequest{Msg: carolMsg}
+	sigReq = &lnrpc.SignMessageRequest{MsgBin: carolMsg}
 	ctxt, _ = context.WithTimeout(ctxb, defaultTimeout)
 	sigResp, err = carol.SignMessage(ctxt, sigReq)
 	if err != nil {
@@ -12475,7 +12475,7 @@ func testQueryRoutes(net *lntest.NetworkHarness, t *harnessTest) {
 	// Query for routes to pay from Alice to Dave.
 	const paymentAmt = 1000
 	routesReq := &lnrpc.QueryRoutesRequest{
-		PubKey: dave.PubKeyStr,
+		PubKey: dave.PubKey[:],
 		Amt:    paymentAmt,
 	}
 	ctxt, _ = context.WithTimeout(ctxb, defaultTimeout)
@@ -12781,7 +12781,7 @@ func testRouteFeeCutoff(net *lntest.NetworkHarness, t *harnessTest) {
 	// payments.
 	testFeeCutoff := func(feeLimit *lnrpc.FeeLimit) {
 		queryRoutesReq := &lnrpc.QueryRoutesRequest{
-			PubKey:   dave.PubKeyStr,
+			PubKey:   dave.PubKey[:],
 			Amt:      paymentAmt,
 			FeeLimit: feeLimit,
 		}
@@ -13658,7 +13658,7 @@ func testHoldInvoicePersistence(net *lntest.NetworkHarness, t *harnessTest) {
 			}
 
 			// The preimage should NEVER be non-zero at this point.
-			if payment.PaymentPreimage != zeroPreimg.String() {
+			if string(payment.PaymentPreimage) != zeroPreimg.String() {
 				t.Fatalf("expected zero preimage, got %v",
 					payment.PaymentPreimage)
 			}
@@ -13839,7 +13839,7 @@ func testHoldInvoicePersistence(net *lntest.NetworkHarness, t *harnessTest) {
 		var p string
 		for _, resp := range paymentsResp.Payments {
 			if resp.PaymentHash == paymentHash.String() {
-				p = resp.PaymentPreimage
+				p = string(resp.PaymentPreimage)
 				break
 			}
 		}

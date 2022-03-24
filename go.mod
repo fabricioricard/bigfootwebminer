@@ -34,7 +34,7 @@ require (
 	github.com/golang/snappy v0.0.2
 	github.com/google/btree v1.0.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/gorilla/websocket v1.4.3-0.20200912193213-c3dd95aea977
+	github.com/gorilla/websocket v1.5.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0

@@ -1,8 +1,49 @@
 syntax = "proto3";
 
+/*
+import "google/protobuf/any.proto";
+*/
+
 package restrpc;
 
 option go_package = "github.com/pkt-cash/pktd/lnd/lnrpc/restrpc";
+
+//  the following message was copied from "google/protobuf/any.proto" since there's a proto
+//  error when attempting to import this file
+message Any {
+  // A URL/resource name that uniquely identifies the type of the serialized
+  // protocol buffer message. This string must contain at least
+  // one "/" character. The last segment of the URL's path must represent
+  // the fully qualified name of the type (as in
+  // `path/google.protobuf.Duration`). The name should be in a canonical form
+  // (e.g., leading "." is not accepted).
+  //
+  // In practice, teams usually precompile into the binary all types that they
+  // expect it to use in the context of Any. However, for URLs which use the
+  // scheme `http`, `https`, or no scheme, one can optionally set up a type
+  // server that maps type URLs to message definitions as follows:
+  //
+  // * If no scheme is provided, `https` is assumed.
+  // * An HTTP GET on the URL must yield a [google.protobuf.Type][]
+  //   value in binary format, or produce an error.
+  // * Applications are allowed to cache lookup results based on the
+  //   URL, or have them precompiled into a binary to avoid any
+  //   lookup. Therefore, binary compatibility needs to be preserved
+  //   on changes to types. (Use versioned type names to manage
+  //   breaking changes.)
+  //
+  // Note: this functionality is not currently available in the official
+  // protobuf release, and it is not used for type URLs beginning with
+  // type.googleapis.com.
+  //
+  // Schemes other than `http`, `https` (or the empty scheme) might be
+  // used with implementation specific semantics.
+  //
+  string type_url = 1;
+
+  // Must be a valid serialized protocol buffer of the above specified type.
+  bytes value = 2;
+}
 
 /*
  * Comments in this file will be directly parsed into the API
@@ -53,4 +94,34 @@ message RestHelpResponse{
     repeated string description = 3;
     Type request = 4;
     Type response = 5;
+}
+
+message Error {
+    string message = 1;
+}
+
+message WebSocketError {
+    uint32 http_code = 1;
+    Error error = 2;
+}
+
+message WebSocketRequest {
+    // The rest endpoint to send the request to
+    string endpoint = 1;
+    // An arbitrary string which will be reflected back in the response
+    string request_id = 2;
+    // The data to post to the REST endpoint, if any.
+    // Make sure this is the correct data structure based on the endpoint you are posting to.
+    //google.protobuf.Any payload = 3;
+    Any payload = 3;
+}
+
+message WebSocketResponse {
+    string request_id = 1;
+    bool has_more = 2;
+    oneof payload {
+        //google.protobuf.Any ok = 3;
+        Any ok = 3;
+        WebSocketError error = 4;
+    };
 }

@@ -28,12 +28,13 @@ for file in $PROTOS; do
 
   # Generate the protos.
   protoc -I/usr/local/include -I. \
+    -I="${GOPATH}/pkg/mod/github.com/gogo/protobuf@v1.3.2/protobuf" \
     --go_out=. \
     --go_opt=paths=source_relative \
     --go-grpc_out=. \
     --go-grpc_opt=paths=source_relative,require_unimplemented_servers=false \
     --doc_out=. \
-    "--doc_opt=json,${file}.doc.json" \
+    --doc_opt="json,${file}.doc.json" \
     "${file}"
 
   if [ $? -ne 0 ]

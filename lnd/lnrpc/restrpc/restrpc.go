@@ -1,6 +1,7 @@
 package restrpc
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/btcutil/er"
@@ -26,6 +28,7 @@ import (
 	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
+	"google.golang.org/protobuf/runtime/protoiface"
 )
 
 const (
@@ -2689,5 +2692,130 @@ func RestHandlers(c *RpcContext) *mux.Router {
 		http.Error(httpResponse, "404 - invalid endpoint: for help on all endpoints go to /api/v1 URI", http.StatusNotFound)
 	})
 
+	//	add a handler for websocket endpoint
+	r.Handle(URI_prefix+"/meta/websocket", http.HandlerFunc(func(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+		webSocketHandler(c, httpResponse, httpRequest)
+	}))
+
 	return r
+}
+
+var upgrader = websocket.Upgrader{}
+
+func webSocketHandler(ctx *RpcContext, httpResponse http.ResponseWriter, httpRequest *http.Request) {
+	//	upgrade raw HTTP connection to a websocket
+	conn, err := upgrader.Upgrade(httpResponse, httpRequest, nil)
+	if err != nil {
+		httpResponse.Header().Set("Content-Type", "text/plain")
+		http.Error(httpResponse, "503 - Service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+	defer conn.Close()
+
+	//	webSocket communication loop
+	for {
+		msgType, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Errorf("Fail during message reading:", err)
+			return
+		}
+
+		//	expected message is a text/jSon
+		if msgType != websocket.TextMessage {
+			err = conn.WriteMessage(websocket.TextMessage, []byte("Expecting a text/json message"))
+			if err != nil {
+				log.Errorf("Cannot write error message to webSocket client: ", err)
+				return
+			}
+			continue
+		}
+
+		//	reflect the webSocket request protobuf type
+		var webSocketReqProto proto.Message = (*WebSocketRequest)(nil)
+
+		webSocketProto := reflect.New(reflect.TypeOf(webSocketReqProto).Elem())
+		reqMessage, _ := webSocketProto.Interface().(proto.Message)
+
+		//	unmarshal the request message
+		err = jsonpb.Unmarshal(bytes.NewReader(message), reqMessage)
+		if err != nil {
+			err = conn.WriteMessage(websocket.TextMessage, []byte("Error unmarshaling the request message: "+err.Error()))
+			if err != nil {
+				log.Errorf("Cannot write error message to webSocket client: ", err)
+				return
+			}
+			continue
+		}
+
+		webSocketReq, ok := reqMessage.(*WebSocketRequest)
+		if !ok {
+			err = conn.WriteMessage(websocket.TextMessage, []byte("Request message is not a WebSocketRequest"))
+			if err != nil {
+				log.Errorf("Cannot write error message to webSocket client: ", err)
+				return
+			}
+			continue
+		}
+
+		//	based on the endpoint, find the appropriate handler for the message request
+		var endpoint = strings.TrimPrefix(webSocketReq.GetEndpoint(), URI_prefix)
+
+		for _, rpcFunc := range rpcFunctions {
+			if endpoint == rpcFunc.path {
+				var valueMessage protoiface.MessageV1 = nil
+
+				if rpcFunc.req != nil {
+					//	reflect the request value protobuf type
+					valueProto := reflect.New(reflect.TypeOf(rpcFunc.req).Elem())
+					valueMessage, _ = valueProto.Interface().(proto.Message)
+
+					//	unmarshal the request value
+					err = jsonpb.Unmarshal(bytes.NewReader(webSocketReq.Payload.Value), valueMessage)
+					if err != nil {
+						err = conn.WriteMessage(websocket.TextMessage, []byte("Error unmarshaling the request value message: "+err.Error()))
+						if err != nil {
+							log.Errorf("Cannot write error message to webSocket client: ", err)
+							return
+						}
+						break
+					}
+				}
+
+				//	invoke the RPC message handler
+				responseMessage, errr := rpcFunc.f(ctx, valueMessage)
+				if errr != nil {
+					err = conn.WriteMessage(websocket.TextMessage, []byte("Error handling the request value message: "+errr.String()))
+					if err != nil {
+						log.Errorf("Cannot write error message to webSocket client: ", err)
+						return
+					}
+					break
+				}
+				//	marshal the response message
+				marshaler := jsonpb.Marshaler{
+					OrigName:     false,
+					EnumsAsInts:  false,
+					EmitDefaults: true,
+					Indent:       "    ",
+				}
+
+				resp, err := marshaler.MarshalToString(responseMessage)
+				if err != nil {
+					err = conn.WriteMessage(websocket.TextMessage, []byte("Error marshaling the response value message: "+err.Error()))
+					if err != nil {
+						log.Errorf("Cannot write error message to webSocket client: ", err)
+						return
+					}
+					break
+				}
+
+				//	write the result message to the webSocket client
+				err = conn.WriteMessage(websocket.TextMessage, []byte(resp))
+				if err != nil {
+					log.Errorf("Cannot write error message to webSocket client: ", err)
+					return
+				}
+			}
+		}
+	}
 }

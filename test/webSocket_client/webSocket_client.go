@@ -8,16 +8,13 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
-
-type DebugLevelRequest struct {
-	Show      bool   `json:"show,omitempty"`
-	LevelSpec string `json:"level_spec,omitempty"`
-}
 
 type Any struct {
 	TypeUrl string `json:"type_url,omitempty"`
@@ -28,6 +25,15 @@ type WebSocketRequest struct {
 	Endpoint  string `json:"endpoint,omitempty"`
 	RequestId string `json:"request_id,omitempty"`
 	Payload   *Any   `json:"payload,omitempty"`
+}
+
+type WebSocketResponse struct {
+	RequestId string `json:"request_id,omitempty"`
+	HasMore   bool   `json:"has_more,omitempty"`
+	Payload   *Any   `json:"ok"`
+}
+
+type ValidResponse struct {
 }
 
 func main() {
@@ -41,6 +47,28 @@ func main() {
 	}
 	defer conn.Close()
 
+	//	send a DebugLevel command
+	err = sendDebugLevelCommand(conn)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	//	send a GetInfo command
+	err = sendGetInfoCommand(conn)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+}
+
+type DebugLevelRequest struct {
+	Show      bool   `json:"show,omitempty"`
+	LevelSpec string `json:"level_spec,omitempty"`
+}
+
+func sendDebugLevelCommand(conn *websocket.Conn) error {
+
 	//	create a debugLevel request message
 	var debugLevelReq = DebugLevelRequest{
 		Show:      true,
@@ -48,69 +76,85 @@ func main() {
 	}
 	var webSocketReq = WebSocketRequest{
 		Endpoint:  "/api/v1/meta/debuglevel",
-		RequestId: "req1234",
+		RequestId: uuid.New().String(),
 		Payload:   &Any{},
 	}
 
 	debugLevelMessage, err := json.Marshal(debugLevelReq)
 	if err != nil {
-		log.Println("Error marshling debug level message:", err)
-		return
+		return errors.New("Fail marshling debug level message: " + err.Error())
 	}
 	webSocketReq.Payload.Value = debugLevelMessage
 
 	//	marshal the request message to a JSon
 	requestMessage, err := json.Marshal(webSocketReq)
 	if err != nil {
-		log.Println("Error marshling webSocker request message:", err)
-		return
+		return errors.New("Fail marshling webSocker request message: " + err.Error())
 	}
 
 	//	write the result to the webSocket client
 	err = conn.WriteMessage(websocket.TextMessage, requestMessage)
 	if err != nil {
-		log.Println("Error writing message to pld:", err)
-		return
+		return errors.New("Fail writing message to pld:" + err.Error())
 	}
 
 	//	get response message
 	messageType, message, err := conn.ReadMessage()
 	if err != nil {
-		log.Println("Error during message reading:", err)
-		return
-	}
-	if messageType == websocket.TextMessage {
-		fmt.Printf("debugLevel command response message: %s\n", message)
+		return errors.New("Fail reading message from pld:" + err.Error())
 	}
 
+	if messageType == websocket.TextMessage {
+		//	fmt.Printf("[trace] debugLevel command response message: %s\n", message)
+
+		//	unmarshal the response message to a JSon
+		var resp WebSocketResponse
+
+		json.Unmarshal(message, &resp)
+
+		fmt.Printf("--> debugLevel response payload: %s\n", resp.Payload.Value)
+	}
+
+	return nil
+}
+
+func sendGetInfoCommand(conn *websocket.Conn) error {
+
 	//	create a getInfo request message
-	webSocketReq = WebSocketRequest{
+	var webSocketReq = WebSocketRequest{
 		Endpoint:  "/api/v1/meta/getinfo",
-		RequestId: "req2345",
+		RequestId: uuid.New().String(),
 		Payload:   &Any{},
 	}
 
 	//	marshal the request message to a JSon
-	requestMessage, err = json.Marshal(webSocketReq)
+	requestMessage, err := json.Marshal(webSocketReq)
 	if err != nil {
-		log.Println("Error marshling webSocker request message:", err)
-		return
+		return errors.New("Fail marshling webSocker request message: " + err.Error())
 	}
 
 	//	write the result to the webSocket client
 	err = conn.WriteMessage(websocket.TextMessage, requestMessage)
 	if err != nil {
-		log.Println("Error writing message to pld:", err)
-		return
+		return errors.New("Fail writing message to pld:" + err.Error())
 	}
 
 	//	get response message
-	messageType, message, err = conn.ReadMessage()
+	messageType, message, err := conn.ReadMessage()
 	if err != nil {
-		log.Println("Error during message reading:", err)
-		return
+		return errors.New("Fail reading message from pld:" + err.Error())
 	}
+
 	if messageType == websocket.TextMessage {
-		fmt.Printf("getInfo command response message: %s\n", message)
+		//	fmt.Printf("[trace] getInfo command response message: %s\n", message)
+
+		//	unmarshal the response message to a JSon
+		var resp WebSocketResponse
+
+		json.Unmarshal(message, &resp)
+
+		fmt.Printf("--> GetInfo response payload: %s\n", resp.Payload.Value)
 	}
+
+	return nil
 }

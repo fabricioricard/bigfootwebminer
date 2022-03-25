@@ -273,6 +273,129 @@ func mkrouterrpc_ResolveHoldForwardAction() Type {
         },
     }
 }
+func mkwalletrpc_WitnessType() Type {
+    return Type{
+        Name: "walletrpc_WitnessType",
+        Fields: []Field{
+            {
+                Name: "UNKNOWN_WITNESS",
+                Type: EnumVarientType,
+            },
+            {
+                Name: "COMMITMENT_TIME_LOCK",
+                Description: []string{
+                    "A witness that allows us to spend the output of a commitment transaction",
+                    "after a relative lock-time lockout.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "COMMITMENT_NO_DELAY",
+                Description: []string{
+                    "A witness that allows us to spend a settled no-delay output immediately on a",
+                    "counterparty's commitment transaction.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "COMMITMENT_REVOKE",
+                Description: []string{
+                    "A witness that allows us to sweep the settled output of a malicious",
+                    "counterparty's who broadcasts a revoked commitment transaction.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "HTLC_OFFERED_REVOKE",
+                Description: []string{
+                    "A witness that allows us to sweep an HTLC which we offered to the remote",
+                    "party in the case that they broadcast a revoked commitment state.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "HTLC_ACCEPTED_REVOKE",
+                Description: []string{
+                    "A witness that allows us to sweep an HTLC output sent to us in the case that",
+                    "the remote party broadcasts a revoked commitment state.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "HTLC_OFFERED_TIMEOUT_SECOND_LEVEL",
+                Description: []string{
+                    "A witness that allows us to sweep an HTLC output that we extended to a",
+                    "party, but was never fulfilled.  This HTLC output isn't directly on the",
+                    "commitment transaction, but is the result of a confirmed second-level HTLC",
+                    "transaction. As a result, we can only spend this after a CSV delay.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "HTLC_ACCEPTED_SUCCESS_SECOND_LEVEL",
+                Description: []string{
+                    "A witness that allows us to sweep an HTLC output that was offered to us, and",
+                    "for which we have a payment preimage. This HTLC output isn't directly on our",
+                    "commitment transaction, but is the result of confirmed second-level HTLC",
+                    "transaction. As a result, we can only spend this after a CSV delay.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "HTLC_OFFERED_REMOTE_TIMEOUT",
+                Description: []string{
+                    "A witness that allows us to sweep an HTLC that we offered to the remote",
+                    "party which lies in the commitment transaction of the remote party. We can",
+                    "spend this output after the absolute CLTV timeout of the HTLC as passed.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "HTLC_ACCEPTED_REMOTE_SUCCESS",
+                Description: []string{
+                    "A witness that allows us to sweep an HTLC that was offered to us by the",
+                    "remote party. We use this witness in the case that the remote party goes to",
+                    "chain, and we know the pre-image to the HTLC. We can sweep this without any",
+                    "additional timeout.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "HTLC_SECOND_LEVEL_REVOKE",
+                Description: []string{
+                    "A witness that allows us to sweep an HTLC from the remote party's commitment",
+                    "transaction in the case that the broadcast a revoked commitment, but then",
+                    "also immediately attempt to go to the second level to claim the HTLC.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "WITNESS_KEY_HASH",
+                Description: []string{
+                    "A witness type that allows us to spend a regular p2wkh output that's sent to",
+                    "an output which is under complete control of the backing wallet.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "NESTED_WITNESS_KEY_HASH",
+                Description: []string{
+                    "A witness type that allows us to sweep an output that sends to a nested P2SH",
+                    "script that pays to a key solely under our control.",
+                },
+                Type: EnumVarientType,
+            },
+            {
+                Name: "COMMITMENT_ANCHOR",
+                Description: []string{
+                    "A witness type that allows us to spend our anchor on the commitment",
+                    "transaction.",
+                },
+                Type: EnumVarientType,
+            },
+        },
+    }
+}
 func mklnrpc_AddressType() Type {
     return Type{
         Name: "lnrpc_AddressType",
@@ -938,129 +1061,6 @@ func mklnrpc_ResolutionType() Type {
         },
     }
 }
-func mkwalletrpc_WitnessType() Type {
-    return Type{
-        Name: "walletrpc_WitnessType",
-        Fields: []Field{
-            {
-                Name: "UNKNOWN_WITNESS",
-                Type: EnumVarientType,
-            },
-            {
-                Name: "COMMITMENT_TIME_LOCK",
-                Description: []string{
-                    "A witness that allows us to spend the output of a commitment transaction",
-                    "after a relative lock-time lockout.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "COMMITMENT_NO_DELAY",
-                Description: []string{
-                    "A witness that allows us to spend a settled no-delay output immediately on a",
-                    "counterparty's commitment transaction.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "COMMITMENT_REVOKE",
-                Description: []string{
-                    "A witness that allows us to sweep the settled output of a malicious",
-                    "counterparty's who broadcasts a revoked commitment transaction.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "HTLC_OFFERED_REVOKE",
-                Description: []string{
-                    "A witness that allows us to sweep an HTLC which we offered to the remote",
-                    "party in the case that they broadcast a revoked commitment state.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "HTLC_ACCEPTED_REVOKE",
-                Description: []string{
-                    "A witness that allows us to sweep an HTLC output sent to us in the case that",
-                    "the remote party broadcasts a revoked commitment state.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "HTLC_OFFERED_TIMEOUT_SECOND_LEVEL",
-                Description: []string{
-                    "A witness that allows us to sweep an HTLC output that we extended to a",
-                    "party, but was never fulfilled.  This HTLC output isn't directly on the",
-                    "commitment transaction, but is the result of a confirmed second-level HTLC",
-                    "transaction. As a result, we can only spend this after a CSV delay.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "HTLC_ACCEPTED_SUCCESS_SECOND_LEVEL",
-                Description: []string{
-                    "A witness that allows us to sweep an HTLC output that was offered to us, and",
-                    "for which we have a payment preimage. This HTLC output isn't directly on our",
-                    "commitment transaction, but is the result of confirmed second-level HTLC",
-                    "transaction. As a result, we can only spend this after a CSV delay.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "HTLC_OFFERED_REMOTE_TIMEOUT",
-                Description: []string{
-                    "A witness that allows us to sweep an HTLC that we offered to the remote",
-                    "party which lies in the commitment transaction of the remote party. We can",
-                    "spend this output after the absolute CLTV timeout of the HTLC as passed.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "HTLC_ACCEPTED_REMOTE_SUCCESS",
-                Description: []string{
-                    "A witness that allows us to sweep an HTLC that was offered to us by the",
-                    "remote party. We use this witness in the case that the remote party goes to",
-                    "chain, and we know the pre-image to the HTLC. We can sweep this without any",
-                    "additional timeout.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "HTLC_SECOND_LEVEL_REVOKE",
-                Description: []string{
-                    "A witness that allows us to sweep an HTLC from the remote party's commitment",
-                    "transaction in the case that the broadcast a revoked commitment, but then",
-                    "also immediately attempt to go to the second level to claim the HTLC.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "WITNESS_KEY_HASH",
-                Description: []string{
-                    "A witness type that allows us to spend a regular p2wkh output that's sent to",
-                    "an output which is under complete control of the backing wallet.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "NESTED_WITNESS_KEY_HASH",
-                Description: []string{
-                    "A witness type that allows us to sweep an output that sends to a nested P2SH",
-                    "script that pays to a key solely under our control.",
-                },
-                Type: EnumVarientType,
-            },
-            {
-                Name: "COMMITMENT_ANCHOR",
-                Description: []string{
-                    "A witness type that allows us to spend our anchor on the commitment",
-                    "transaction.",
-                },
-                Type: EnumVarientType,
-            },
-        },
-    }
-}
 func mkautopilotrpc_ModifyStatusRequest() Type {
     return Type{
         Name: "autopilotrpc_ModifyStatusRequest",
@@ -1629,73 +1629,6 @@ func mklnclipb_VersionResponse() Type {
                     "The version information for pld.",
                 },
                 Type: mkverrpc_Version(),
-            },
-        },
-    }
-}
-func mklnrpc_ChangePasswordRequest() Type {
-    return Type{
-        Name: "lnrpc_ChangePasswordRequest",
-        Fields: []Field{
-            {
-                Name: "current_passphrase",
-                Description: []string{
-                    "current_password should be the current valid passphrase used to unlock the daemon.",
-                },
-                Type: mkstring(),
-            },
-            {
-                Name: "current_password_bin",
-                Description: []string{
-                    "Binary form of current_passphrase, if specified will override current_passphrase.",
-                    "When using JSON, this field must be encoded as base64.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "new_passphrase",
-                Description: []string{
-                    "new_passphrase should be the new passphrase that will be needed to unlock the",
-                    "daemon.",
-                },
-                Type: mkstring(),
-            },
-            {
-                Name: "new_passphrase_bin",
-                Description: []string{
-                    "Binary form of new_passphrase, if specified will override new_passphrase.",
-                    "When using JSON, this field must be encoded as base64.",
-                },
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mklnrpc_ChangePasswordResponse() Type {
-    return Type{
-        Name: "lnrpc_ChangePasswordResponse",
-    }
-}
-func mklnrpc_GetInfo2Request() Type {
-    return Type{
-        Name: "lnrpc_GetInfo2Request",
-    }
-}
-func mklnrpc_GetInfo2Response() Type {
-    return Type{
-        Name: "lnrpc_GetInfo2Response",
-        Fields: []Field{
-            {
-                Name: "neutrino",
-                Type: mklnrpc_NeutrinoInfo(),
-            },
-            {
-                Name: "wallet",
-                Type: mklnrpc_WalletInfo(),
-            },
-            {
-                Name: "lightning",
-                Type: mklnrpc_GetInfoResponse(),
             },
         },
     }
@@ -2861,6 +2794,1460 @@ func mkrouterrpc_TrackPaymentRequest() Type {
                     "that show which htlcs are still in flight are suppressed.",
                 },
                 Type: mkbool(),
+            },
+        },
+    }
+}
+func mksignrpc_InputScript() Type {
+    return Type{
+        Name: "signrpc_InputScript",
+        Fields: []Field{
+            {
+                Name: "witness",
+                Description: []string{
+                    "The serializes witness stack for the specified input.",
+                },
+                Repeated: true,
+                Type: mkbytes(),
+            },
+            {
+                Name: "sig_script",
+                Description: []string{
+                    "The optional sig script for the specified witness that will only be set if",
+                    "the input specified is a nested p2sh witness program.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mksignrpc_InputScriptResp() Type {
+    return Type{
+        Name: "signrpc_InputScriptResp",
+        Fields: []Field{
+            {
+                Name: "input_scripts",
+                Description: []string{
+                    "The set of fully valid input scripts requested.",
+                },
+                Repeated: true,
+                Type: mksignrpc_InputScript(),
+            },
+        },
+    }
+}
+func mksignrpc_KeyDescriptor() Type {
+    return Type{
+        Name: "signrpc_KeyDescriptor",
+        Fields: []Field{
+            {
+                Name: "raw_key_bytes",
+                Description: []string{
+                    "The raw bytes of the key being identified. Either this or the KeyLocator",
+                    "must be specified.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "key_loc",
+                Description: []string{
+                    "The key locator that identifies which key to use for signing. Either this",
+                    "or the raw bytes of the target key must be specified.",
+                },
+                Type: mksignrpc_KeyLocator(),
+            },
+        },
+    }
+}
+func mksignrpc_KeyLocator() Type {
+    return Type{
+        Name: "signrpc_KeyLocator",
+        Fields: []Field{
+            {
+                Name: "key_family",
+                Description: []string{
+                    "The family of key being identified.",
+                },
+                Type: mkint32(),
+            },
+            {
+                Name: "key_index",
+                Description: []string{
+                    "The precise index of the key being identified.",
+                },
+                Type: mkint32(),
+            },
+        },
+    }
+}
+func mksignrpc_SharedKeyRequest() Type {
+    return Type{
+        Name: "signrpc_SharedKeyRequest",
+        Fields: []Field{
+            {
+                Name: "ephemeral_pubkey",
+                Description: []string{
+                    "The ephemeral public key to use for the DH key derivation.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "key_loc",
+                Description: []string{
+                    "Deprecated. The optional key locator of the local key that should be used.",
+                    "If this parameter is not set then the node's identity private key will be",
+                    "used.",
+                },
+                Type: mksignrpc_KeyLocator(),
+            },
+            {
+                Name: "key_desc",
+                Description: []string{
+                    "A key descriptor describes the key used for performing ECDH. Either a key",
+                    "locator or a raw public key is expected, if neither is supplied, defaults to",
+                    "the node's identity private key.",
+                },
+                Type: mksignrpc_KeyDescriptor(),
+            },
+        },
+    }
+}
+func mksignrpc_SharedKeyResponse() Type {
+    return Type{
+        Name: "signrpc_SharedKeyResponse",
+        Fields: []Field{
+            {
+                Name: "shared_key",
+                Description: []string{
+                    "The shared public key, hashed with sha256.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mksignrpc_SignDescriptor() Type {
+    return Type{
+        Name: "signrpc_SignDescriptor",
+        Fields: []Field{
+            {
+                Name: "key_desc",
+                Description: []string{
+                    "A descriptor that precisely describes *which* key to use for signing. This",
+                    "may provide the raw public key directly, or require the Signer to re-derive",
+                    "the key according to the populated derivation path.",
+                    "",
+                    "Note that if the key descriptor was obtained through walletrpc.DeriveKey,",
+                    "then the key locator MUST always be provided, since the derived keys are not",
+                    "persisted unlike with DeriveNextKey.",
+                },
+                Type: mksignrpc_KeyDescriptor(),
+            },
+            {
+                Name: "single_tweak",
+                Description: []string{
+                    "A scalar value that will be added to the private key corresponding to the",
+                    "above public key to obtain the private key to be used to sign this input.",
+                    "This value is typically derived via the following computation:",
+                    "",
+                    "derivedKey = privkey + sha256(perCommitmentPoint || pubKey) mod N",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "double_tweak",
+                Description: []string{
+                    "A private key that will be used in combination with its corresponding",
+                    "private key to derive the private key that is to be used to sign the target",
+                    "input. Within the Lightning protocol, this value is typically the",
+                    "commitment secret from a previously revoked commitment transaction. This",
+                    "value is in combination with two hash values, and the original private key",
+                    "to derive the private key to be used when signing.",
+                    "",
+                    "k = (privKey*sha256(pubKey || tweakPub) +",
+                    "tweakPriv*sha256(tweakPub || pubKey)) mod N",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "witness_script",
+                Description: []string{
+                    "The full script required to properly redeem the output.  This field will",
+                    "only be populated if a p2wsh or a p2sh output is being signed.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "output",
+                Description: []string{
+                    "A description of the output being spent. The value and script MUST be",
+                    "provided.",
+                },
+                Type: mksignrpc_TxOut(),
+            },
+            {
+                Name: "sighash",
+                Description: []string{
+                    "The target sighash type that should be used when generating the final",
+                    "sighash, and signature.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "input_index",
+                Description: []string{
+                    "The target input within the transaction that should be signed.",
+                },
+                Type: mkint32(),
+            },
+        },
+    }
+}
+func mksignrpc_SignMessageReq() Type {
+    return Type{
+        Name: "signrpc_SignMessageReq",
+        Fields: []Field{
+            {
+                Name: "msg",
+                Description: []string{
+                    "The message to be signed.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "key_loc",
+                Description: []string{
+                    "The key locator that identifies which key to use for signing.",
+                },
+                Type: mksignrpc_KeyLocator(),
+            },
+        },
+    }
+}
+func mksignrpc_SignMessageResp() Type {
+    return Type{
+        Name: "signrpc_SignMessageResp",
+        Fields: []Field{
+            {
+                Name: "signature",
+                Description: []string{
+                    "The signature for the given message in the fixed-size LN wire format.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mksignrpc_SignReq() Type {
+    return Type{
+        Name: "signrpc_SignReq",
+        Fields: []Field{
+            {
+                Name: "raw_tx_bytes",
+                Description: []string{
+                    "The raw bytes of the transaction to be signed.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "sign_descs",
+                Description: []string{
+                    "A set of sign descriptors, for each input to be signed.",
+                },
+                Repeated: true,
+                Type: mksignrpc_SignDescriptor(),
+            },
+        },
+    }
+}
+func mksignrpc_SignResp() Type {
+    return Type{
+        Name: "signrpc_SignResp",
+        Fields: []Field{
+            {
+                Name: "raw_sigs",
+                Description: []string{
+                    "A set of signatures realized in a fixed 64-byte format ordered in ascending",
+                    "input order.",
+                },
+                Repeated: true,
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mksignrpc_TxOut() Type {
+    return Type{
+        Name: "signrpc_TxOut",
+        Fields: []Field{
+            {
+                Name: "value",
+                Description: []string{
+                    "The value of the output being spent.",
+                },
+                Type: mkint64(),
+            },
+            {
+                Name: "pk_script",
+                Description: []string{
+                    "The script of the output being spent.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mksignrpc_VerifyMessageReq() Type {
+    return Type{
+        Name: "signrpc_VerifyMessageReq",
+        Fields: []Field{
+            {
+                Name: "msg",
+                Description: []string{
+                    "The message over which the signature is to be verified.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "signature",
+                Description: []string{
+                    "The fixed-size LN wire encoded signature to be verified over the given",
+                    "message.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "pubkey",
+                Description: []string{
+                    "The public key the signature has to be valid for.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mksignrpc_VerifyMessageResp() Type {
+    return Type{
+        Name: "signrpc_VerifyMessageResp",
+        Fields: []Field{
+            {
+                Name: "valid",
+                Description: []string{
+                    "Whether the signature was valid over the given message.",
+                },
+                Type: mkbool(),
+            },
+        },
+    }
+}
+func mkverrpc_Version() Type {
+    return Type{
+        Name: "verrpc_Version",
+        Fields: []Field{
+            {
+                Name: "commit",
+                Description: []string{
+                    "A verbose description of the daemon's commit.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "commit_hash",
+                Description: []string{
+                    "The SHA1 commit hash that the daemon is compiled with.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "version",
+                Description: []string{
+                    "The semantic version.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "app_major",
+                Description: []string{
+                    "The major application version.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "app_minor",
+                Description: []string{
+                    "The minor application version.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "app_patch",
+                Description: []string{
+                    "The application patch number.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "app_pre_release",
+                Description: []string{
+                    "The application pre-release modifier, possibly empty.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "build_tags",
+                Description: []string{
+                    "The list of build tags that were supplied during compilation.",
+                },
+                Repeated: true,
+                Type: mkstring(),
+            },
+            {
+                Name: "go_version",
+                Description: []string{
+                    "The version of go that compiled the executable.",
+                },
+                Type: mkstring(),
+            },
+        },
+    }
+}
+func mkverrpc_VersionRequest() Type {
+    return Type{
+        Name: "verrpc_VersionRequest",
+    }
+}
+func mkwalletrpc_AddrRequest() Type {
+    return Type{
+        Name: "walletrpc_AddrRequest",
+        Description: []string{
+            "No fields, as we always give out a p2wkh address.",
+        },
+    }
+}
+func mkwalletrpc_AddrResponse() Type {
+    return Type{
+        Name: "walletrpc_AddrResponse",
+        Fields: []Field{
+            {
+                Name: "addr",
+                Description: []string{
+                    "The address encoded using a bech32 format.",
+                },
+                Type: mkstring(),
+            },
+        },
+    }
+}
+func mkwalletrpc_BumpFeeRequest() Type {
+    return Type{
+        Name: "walletrpc_BumpFeeRequest",
+        Fields: []Field{
+            {
+                Name: "outpoint",
+                Description: []string{
+                    "The input we're attempting to bump the fee of.",
+                },
+                Type: mklnrpc_OutPoint(),
+            },
+            {
+                Name: "target_conf",
+                Description: []string{
+                    "The target number of blocks that the input should be spent within.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "sat_per_byte",
+                Description: []string{
+                    "The fee rate, expressed in sat/byte, that should be used to spend the input",
+                    "with.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "force",
+                Description: []string{
+                    "Whether this input must be force-swept. This means that it is swept even",
+                    "if it has a negative yield.",
+                },
+                Type: mkbool(),
+            },
+        },
+    }
+}
+func mkwalletrpc_BumpFeeResponse() Type {
+    return Type{
+        Name: "walletrpc_BumpFeeResponse",
+    }
+}
+func mkwalletrpc_EstimateFeeRequest() Type {
+    return Type{
+        Name: "walletrpc_EstimateFeeRequest",
+        Fields: []Field{
+            {
+                Name: "conf_target",
+                Description: []string{
+                    "The number of confirmations to shoot for when estimating the fee.",
+                },
+                Type: mkint32(),
+            },
+        },
+    }
+}
+func mkwalletrpc_EstimateFeeResponse() Type {
+    return Type{
+        Name: "walletrpc_EstimateFeeResponse",
+        Fields: []Field{
+            {
+                Name: "sat_per_kw",
+                Description: []string{
+                    "The amount of satoshis per kw that should be used in order to reach the",
+                    "confirmation target in the request.",
+                },
+                Type: mkint64(),
+            },
+        },
+    }
+}
+func mkwalletrpc_FinalizePsbtRequest() Type {
+    return Type{
+        Name: "walletrpc_FinalizePsbtRequest",
+        Fields: []Field{
+            {
+                Name: "funded_psbt",
+                Description: []string{
+                    "A PSBT that should be signed and finalized. The PSBT must contain all",
+                    "required inputs, outputs, UTXO data and partial signatures of all other",
+                    "signers.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mkwalletrpc_FinalizePsbtResponse() Type {
+    return Type{
+        Name: "walletrpc_FinalizePsbtResponse",
+        Fields: []Field{
+            {
+                Name: "signed_psbt",
+                Description: []string{
+                    "The fully signed and finalized transaction in PSBT format.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "raw_final_tx",
+                Description: []string{
+                    "The fully signed and finalized transaction in the raw wire format.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mkwalletrpc_FundPsbtRequest() Type {
+    return Type{
+        Name: "walletrpc_FundPsbtRequest",
+        Fields: []Field{
+            {
+                Name: "psbt",
+                Description: []string{
+                    "Use an existing PSBT packet as the template for the funded PSBT.",
+                    "",
+                    "The packet must contain at least one non-dust output. If one or more",
+                    "inputs are specified, no coin selection is performed. In that case every",
+                    "input must be an UTXO known to the wallet that has not been locked",
+                    "before. The sum of all inputs must be sufficiently greater than the sum",
+                    "of all outputs to pay a miner fee with the specified fee rate. A change",
+                    "output is added to the PSBT if necessary.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "raw",
+                Description: []string{
+                    "Use the outputs and optional inputs from this raw template.",
+                },
+                Type: mkwalletrpc_TxTemplate(),
+            },
+            {
+                Name: "target_conf",
+                Description: []string{
+                    "The target number of blocks that the transaction should be confirmed in.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "sat_per_vbyte",
+                Description: []string{
+                    "The fee rate, expressed in sat/vbyte, that should be used to spend the",
+                    "input with.",
+                },
+                Type: mkuint32(),
+            },
+        },
+    }
+}
+func mkwalletrpc_FundPsbtResponse() Type {
+    return Type{
+        Name: "walletrpc_FundPsbtResponse",
+        Fields: []Field{
+            {
+                Name: "funded_psbt",
+                Description: []string{
+                    "The funded but not yet signed PSBT packet.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "change_output_index",
+                Description: []string{
+                    "The index of the added change output or -1 if no change was left over.",
+                },
+                Type: mkint32(),
+            },
+            {
+                Name: "locked_utxos",
+                Description: []string{
+                    "The list of lock leases that were acquired for the inputs in the funded PSBT",
+                    "packet.",
+                },
+                Repeated: true,
+                Type: mkwalletrpc_UtxoLease(),
+            },
+        },
+    }
+}
+func mkwalletrpc_KeyReq() Type {
+    return Type{
+        Name: "walletrpc_KeyReq",
+        Fields: []Field{
+            {
+                Name: "key_finger_print",
+                Description: []string{
+                    "Is the key finger print of the root pubkey that this request is targeting.",
+                    "This allows the WalletKit to possibly serve out keys for multiple HD chains",
+                    "via public derivation.",
+                },
+                Type: mkint32(),
+            },
+            {
+                Name: "key_family",
+                Description: []string{
+                    "The target key family to derive a key from. In other contexts, this is",
+                    "known as the \"account\".",
+                },
+                Type: mkint32(),
+            },
+        },
+    }
+}
+func mkwalletrpc_LabelTransactionRequest() Type {
+    return Type{
+        Name: "walletrpc_LabelTransactionRequest",
+        Fields: []Field{
+            {
+                Name: "txid",
+                Description: []string{
+                    "The txid of the transaction to label.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "label",
+                Description: []string{
+                    "The label to add to the transaction, limited to 500 characters.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "overwrite",
+                Description: []string{
+                    "Whether to overwrite the existing label, if it is present.",
+                },
+                Type: mkbool(),
+            },
+        },
+    }
+}
+func mkwalletrpc_LabelTransactionResponse() Type {
+    return Type{
+        Name: "walletrpc_LabelTransactionResponse",
+    }
+}
+func mkwalletrpc_LeaseOutputRequest() Type {
+    return Type{
+        Name: "walletrpc_LeaseOutputRequest",
+        Fields: []Field{
+            {
+                Name: "id",
+                Description: []string{
+                    "An ID of 32 random bytes that must be unique for each distinct application",
+                    "using this RPC which will be used to bound the output lease to.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "outpoint",
+                Description: []string{
+                    "The identifying outpoint of the output being leased.",
+                },
+                Type: mklnrpc_OutPoint(),
+            },
+        },
+    }
+}
+func mkwalletrpc_LeaseOutputResponse() Type {
+    return Type{
+        Name: "walletrpc_LeaseOutputResponse",
+        Fields: []Field{
+            {
+                Name: "expiration",
+                Description: []string{
+                    "The absolute expiration of the output lease represented as a unix timestamp.",
+                },
+                Type: mkuint64(),
+            },
+        },
+    }
+}
+func mkwalletrpc_ListSweepsRequest() Type {
+    return Type{
+        Name: "walletrpc_ListSweepsRequest",
+        Fields: []Field{
+            {
+                Name: "verbose",
+                Description: []string{
+                    "Retrieve the full sweep transaction details. If false, only the sweep txids",
+                    "will be returned. Note that some sweeps that LND publishes will have been",
+                    "replaced-by-fee, so will not be included in this output.",
+                },
+                Type: mkbool(),
+            },
+        },
+    }
+}
+func mkwalletrpc_ListSweepsResponse() Type {
+    return Type{
+        Name: "walletrpc_ListSweepsResponse",
+        Fields: []Field{
+            {
+                Name: "transaction_details",
+                Type: mklnrpc_TransactionDetails(),
+            },
+            {
+                Name: "transaction_ids",
+                Type: mkwalletrpc_ListSweepsResponse_TransactionIDs(),
+            },
+        },
+    }
+}
+func mkwalletrpc_ListSweepsResponse_TransactionIDs() Type {
+    return Type{
+        Name: "walletrpc_ListSweepsResponse_TransactionIDs",
+        Fields: []Field{
+            {
+                Name: "transaction_ids",
+                Description: []string{
+                    "Reversed, hex-encoded string representing the transaction ids of the",
+                    "sweeps that our node has broadcast. Note that these transactions may",
+                    "not have confirmed yet, we record sweeps on broadcast, not confirmation.",
+                },
+                Repeated: true,
+                Type: mkstring(),
+            },
+        },
+    }
+}
+func mkwalletrpc_ListUnspentRequest() Type {
+    return Type{
+        Name: "walletrpc_ListUnspentRequest",
+        Fields: []Field{
+            {
+                Name: "min_confs",
+                Description: []string{
+                    "The minimum number of confirmations to be included.",
+                },
+                Type: mkint32(),
+            },
+            {
+                Name: "max_confs",
+                Description: []string{
+                    "The maximum number of confirmations to be included.",
+                },
+                Type: mkint32(),
+            },
+        },
+    }
+}
+func mkwalletrpc_ListUnspentResponse() Type {
+    return Type{
+        Name: "walletrpc_ListUnspentResponse",
+        Fields: []Field{
+            {
+                Name: "utxos",
+                Description: []string{
+                    "A list of utxos satisfying the specified number of confirmations.",
+                },
+                Repeated: true,
+                Type: mklnrpc_Utxo(),
+            },
+        },
+    }
+}
+func mkwalletrpc_PendingSweep() Type {
+    return Type{
+        Name: "walletrpc_PendingSweep",
+        Fields: []Field{
+            {
+                Name: "outpoint",
+                Description: []string{
+                    "The outpoint of the output we're attempting to sweep.",
+                },
+                Type: mklnrpc_OutPoint(),
+            },
+            {
+                Name: "witness_type",
+                Description: []string{
+                    "The witness type of the output we're attempting to sweep.",
+                },
+                Type: mkwalletrpc_WitnessType(),
+            },
+            {
+                Name: "amount_sat",
+                Description: []string{
+                    "The value of the output we're attempting to sweep.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "sat_per_byte",
+                Description: []string{
+                    "The fee rate we'll use to sweep the output. The fee rate is only determined",
+                    "once a sweeping transaction for the output is created, so it's possible for",
+                    "this to be 0 before this.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "broadcast_attempts",
+                Description: []string{
+                    "The number of broadcast attempts we've made to sweep the output.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "next_broadcast_height",
+                Description: []string{
+                    "The next height of the chain at which we'll attempt to broadcast the",
+                    "sweep transaction of the output.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "requested_conf_target",
+                Description: []string{
+                    "The requested confirmation target for this output.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "requested_sat_per_byte",
+                Description: []string{
+                    "The requested fee rate, expressed in sat/byte, for this output.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "force",
+                Description: []string{
+                    "Whether this input must be force-swept. This means that it is swept even",
+                    "if it has a negative yield.",
+                },
+                Type: mkbool(),
+            },
+        },
+    }
+}
+func mkwalletrpc_PendingSweepsRequest() Type {
+    return Type{
+        Name: "walletrpc_PendingSweepsRequest",
+    }
+}
+func mkwalletrpc_PendingSweepsResponse() Type {
+    return Type{
+        Name: "walletrpc_PendingSweepsResponse",
+        Fields: []Field{
+            {
+                Name: "pending_sweeps",
+                Description: []string{
+                    "The set of outputs currently being swept by lnd's central batching engine.",
+                },
+                Repeated: true,
+                Type: mkwalletrpc_PendingSweep(),
+            },
+        },
+    }
+}
+func mkwalletrpc_PublishResponse() Type {
+    return Type{
+        Name: "walletrpc_PublishResponse",
+        Fields: []Field{
+            {
+                Name: "publish_error",
+                Description: []string{
+                    "If blank, then no error occurred and the transaction was successfully",
+                    "published. If not the empty string, then a string representation of the",
+                    "broadcast error.",
+                    "",
+                    "TODO(roasbeef): map to a proper enum type",
+                },
+                Type: mkstring(),
+            },
+        },
+    }
+}
+func mkwalletrpc_ReleaseOutputRequest() Type {
+    return Type{
+        Name: "walletrpc_ReleaseOutputRequest",
+        Fields: []Field{
+            {
+                Name: "id",
+                Description: []string{
+                    "The unique ID that was used to lock the output.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "outpoint",
+                Description: []string{
+                    "The identifying outpoint of the output being released.",
+                },
+                Type: mklnrpc_OutPoint(),
+            },
+        },
+    }
+}
+func mkwalletrpc_ReleaseOutputResponse() Type {
+    return Type{
+        Name: "walletrpc_ReleaseOutputResponse",
+    }
+}
+func mkwalletrpc_SendOutputsRequest() Type {
+    return Type{
+        Name: "walletrpc_SendOutputsRequest",
+        Fields: []Field{
+            {
+                Name: "sat_per_kw",
+                Description: []string{
+                    "The number of satoshis per kilo weight that should be used when crafting",
+                    "this transaction.",
+                },
+                Type: mkint64(),
+            },
+            {
+                Name: "outputs",
+                Description: []string{
+                    "A slice of the outputs that should be created in the transaction produced.",
+                },
+                Repeated: true,
+                Type: mksignrpc_TxOut(),
+            },
+            {
+                Name: "label",
+                Description: []string{
+                    "An optional label for the transaction, limited to 500 characters.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "min_confs",
+                Description: []string{
+                    "The minimum number of confirmations each one of your outputs used for",
+                    "the transaction must satisfy.",
+                },
+                Type: mkint32(),
+            },
+            {
+                Name: "spend_unconfirmed",
+                Description: []string{
+                    "Whether unconfirmed outputs should be used as inputs for the transaction.",
+                },
+                Type: mkbool(),
+            },
+        },
+    }
+}
+func mkwalletrpc_SendOutputsResponse() Type {
+    return Type{
+        Name: "walletrpc_SendOutputsResponse",
+        Fields: []Field{
+            {
+                Name: "raw_tx",
+                Description: []string{
+                    "The serialized transaction sent out on the network.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mkwalletrpc_Transaction() Type {
+    return Type{
+        Name: "walletrpc_Transaction",
+        Fields: []Field{
+            {
+                Name: "tx_hex",
+                Description: []string{
+                    "The raw serialized transaction.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "label",
+                Description: []string{
+                    "An optional label to save with the transaction. Limited to 500 characters.",
+                },
+                Type: mkstring(),
+            },
+        },
+    }
+}
+func mkwalletrpc_TxTemplate() Type {
+    return Type{
+        Name: "walletrpc_TxTemplate",
+        Fields: []Field{
+            {
+                Name: "inputs",
+                Description: []string{
+                    "An optional list of inputs to use. Every input must be an UTXO known to the",
+                    "wallet that has not been locked before. The sum of all inputs must be",
+                    "sufficiently greater than the sum of all outputs to pay a miner fee with the",
+                    "fee rate specified in the parent message.",
+                    "",
+                    "If no inputs are specified, coin selection will be performed instead and",
+                    "inputs of sufficient value will be added to the resulting PSBT.",
+                },
+                Repeated: true,
+                Type: mklnrpc_OutPoint(),
+            },
+            {
+                Name: "outputs",
+                Description: []string{
+                    "A map of all addresses and the amounts to send to in the funded PSBT.",
+                },
+                Repeated: true,
+                Type: mkwalletrpc_TxTemplate_OutputsEntry(),
+            },
+        },
+    }
+}
+func mkwalletrpc_TxTemplate_OutputsEntry() Type {
+    return Type{
+        Name: "walletrpc_TxTemplate_OutputsEntry",
+        Fields: []Field{
+            {
+                Name: "key",
+                Type: mkstring(),
+            },
+            {
+                Name: "value",
+                Type: mkuint64(),
+            },
+        },
+    }
+}
+func mkwalletrpc_UtxoLease() Type {
+    return Type{
+        Name: "walletrpc_UtxoLease",
+        Fields: []Field{
+            {
+                Name: "id",
+                Description: []string{
+                    "A 32 byte random ID that identifies the lease.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "outpoint",
+                Description: []string{
+                    "The identifying outpoint of the output being leased.",
+                },
+                Type: mklnrpc_OutPoint(),
+            },
+            {
+                Name: "expiration",
+                Description: []string{
+                    "The absolute expiration of the output lease represented as a unix timestamp.",
+                },
+                Type: mkuint64(),
+            },
+        },
+    }
+}
+func mkwatchtowerrpc_GetInfoRequest() Type {
+    return Type{
+        Name: "watchtowerrpc_GetInfoRequest",
+    }
+}
+func mkwatchtowerrpc_GetInfoResponse() Type {
+    return Type{
+        Name: "watchtowerrpc_GetInfoResponse",
+        Fields: []Field{
+            {
+                Name: "pubkey",
+                Description: []string{
+                    "The public key of the watchtower.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "listeners",
+                Description: []string{
+                    "The listening addresses of the watchtower.",
+                },
+                Repeated: true,
+                Type: mkstring(),
+            },
+            {
+                Name: "uris",
+                Description: []string{
+                    "The URIs of the watchtower.",
+                },
+                Repeated: true,
+                Type: mkstring(),
+            },
+        },
+    }
+}
+func mkwtclientrpc_AddTowerRequest() Type {
+    return Type{
+        Name: "wtclientrpc_AddTowerRequest",
+        Fields: []Field{
+            {
+                Name: "pubkey",
+                Description: []string{
+                    "The identifying public key of the watchtower to add.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "address",
+                Description: []string{
+                    "A network address the watchtower is reachable over.",
+                },
+                Type: mkstring(),
+            },
+        },
+    }
+}
+func mkwtclientrpc_AddTowerResponse() Type {
+    return Type{
+        Name: "wtclientrpc_AddTowerResponse",
+    }
+}
+func mkwtclientrpc_GetTowerInfoRequest() Type {
+    return Type{
+        Name: "wtclientrpc_GetTowerInfoRequest",
+        Fields: []Field{
+            {
+                Name: "pubkey",
+                Description: []string{
+                    "The identifying public key of the watchtower to retrieve information for.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "include_sessions",
+                Description: []string{
+                    "Whether we should include sessions with the watchtower in the response.",
+                },
+                Type: mkbool(),
+            },
+        },
+    }
+}
+func mkwtclientrpc_ListTowersRequest() Type {
+    return Type{
+        Name: "wtclientrpc_ListTowersRequest",
+        Fields: []Field{
+            {
+                Name: "include_sessions",
+                Description: []string{
+                    "Whether we should include sessions with the watchtower in the response.",
+                },
+                Type: mkbool(),
+            },
+        },
+    }
+}
+func mkwtclientrpc_ListTowersResponse() Type {
+    return Type{
+        Name: "wtclientrpc_ListTowersResponse",
+        Fields: []Field{
+            {
+                Name: "towers",
+                Description: []string{
+                    "The list of watchtowers available for new backups.",
+                },
+                Repeated: true,
+                Type: mkwtclientrpc_Tower(),
+            },
+        },
+    }
+}
+func mkwtclientrpc_PolicyRequest() Type {
+    return Type{
+        Name: "wtclientrpc_PolicyRequest",
+    }
+}
+func mkwtclientrpc_PolicyResponse() Type {
+    return Type{
+        Name: "wtclientrpc_PolicyResponse",
+        Fields: []Field{
+            {
+                Name: "max_updates",
+                Description: []string{
+                    "The maximum number of updates each session we negotiate with watchtowers",
+                    "should allow.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "sweep_sat_per_byte",
+                Description: []string{
+                    "The fee rate, in satoshis per vbyte, that will be used by watchtowers for",
+                    "justice transactions in response to channel breaches.",
+                },
+                Type: mkuint32(),
+            },
+        },
+    }
+}
+func mkwtclientrpc_RemoveTowerRequest() Type {
+    return Type{
+        Name: "wtclientrpc_RemoveTowerRequest",
+        Fields: []Field{
+            {
+                Name: "pubkey",
+                Description: []string{
+                    "The identifying public key of the watchtower to remove.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "address",
+                Description: []string{
+                    "If set, then the record for this address will be removed, indicating that is",
+                    "is stale. Otherwise, the watchtower will no longer be used for future",
+                    "session negotiations and backups.",
+                },
+                Type: mkstring(),
+            },
+        },
+    }
+}
+func mkwtclientrpc_RemoveTowerResponse() Type {
+    return Type{
+        Name: "wtclientrpc_RemoveTowerResponse",
+    }
+}
+func mkwtclientrpc_StatsRequest() Type {
+    return Type{
+        Name: "wtclientrpc_StatsRequest",
+    }
+}
+func mkwtclientrpc_StatsResponse() Type {
+    return Type{
+        Name: "wtclientrpc_StatsResponse",
+        Fields: []Field{
+            {
+                Name: "num_backups",
+                Description: []string{
+                    "The total number of backups made to all active and exhausted watchtower",
+                    "sessions.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "num_pending_backups",
+                Description: []string{
+                    "The total number of backups that are pending to be acknowledged by all",
+                    "active and exhausted watchtower sessions.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "num_failed_backups",
+                Description: []string{
+                    "The total number of backups that all active and exhausted watchtower",
+                    "sessions have failed to acknowledge.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "num_sessions_acquired",
+                Description: []string{
+                    "The total number of new sessions made to watchtowers.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "num_sessions_exhausted",
+                Description: []string{
+                    "The total number of watchtower sessions that have been exhausted.",
+                },
+                Type: mkuint32(),
+            },
+        },
+    }
+}
+func mkwtclientrpc_Tower() Type {
+    return Type{
+        Name: "wtclientrpc_Tower",
+        Fields: []Field{
+            {
+                Name: "pubkey",
+                Description: []string{
+                    "The identifying public key of the watchtower.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "addresses",
+                Description: []string{
+                    "The list of addresses the watchtower is reachable over.",
+                },
+                Repeated: true,
+                Type: mkstring(),
+            },
+            {
+                Name: "active_session_candidate",
+                Description: []string{
+                    "Whether the watchtower is currently a candidate for new sessions.",
+                },
+                Type: mkbool(),
+            },
+            {
+                Name: "num_sessions",
+                Description: []string{
+                    "The number of sessions that have been negotiated with the watchtower.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "sessions",
+                Description: []string{
+                    "The list of sessions that have been negotiated with the watchtower.",
+                },
+                Repeated: true,
+                Type: mkwtclientrpc_TowerSession(),
+            },
+        },
+    }
+}
+func mkwtclientrpc_TowerSession() Type {
+    return Type{
+        Name: "wtclientrpc_TowerSession",
+        Fields: []Field{
+            {
+                Name: "num_backups",
+                Description: []string{
+                    "The total number of successful backups that have been made to the",
+                    "watchtower session.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "num_pending_backups",
+                Description: []string{
+                    "The total number of backups in the session that are currently pending to be",
+                    "acknowledged by the watchtower.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "max_backups",
+                Description: []string{
+                    "The maximum number of backups allowed by the watchtower session.",
+                },
+                Type: mkuint32(),
+            },
+            {
+                Name: "sweep_sat_per_byte",
+                Description: []string{
+                    "The fee rate, in satoshis per vbyte, that will be used by the watchtower for",
+                    "the justice transaction in the event of a channel breach.",
+                },
+                Type: mkuint32(),
+            },
+        },
+    }
+}
+func mklnrpc_ChangePasswordRequest() Type {
+    return Type{
+        Name: "lnrpc_ChangePasswordRequest",
+        Fields: []Field{
+            {
+                Name: "current_passphrase",
+                Description: []string{
+                    "current_password should be the current valid passphrase used to unlock the daemon.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "current_password_bin",
+                Description: []string{
+                    "Binary form of current_passphrase, if specified will override current_passphrase.",
+                    "When using JSON, this field must be encoded as base64.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "new_passphrase",
+                Description: []string{
+                    "new_passphrase should be the new passphrase that will be needed to unlock the",
+                    "daemon.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "new_passphrase_bin",
+                Description: []string{
+                    "Binary form of new_passphrase, if specified will override new_passphrase.",
+                    "When using JSON, this field must be encoded as base64.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mklnrpc_ChangePasswordResponse() Type {
+    return Type{
+        Name: "lnrpc_ChangePasswordResponse",
+    }
+}
+func mklnrpc_GetInfo2Request() Type {
+    return Type{
+        Name: "lnrpc_GetInfo2Request",
+    }
+}
+func mklnrpc_GetInfo2Response() Type {
+    return Type{
+        Name: "lnrpc_GetInfo2Response",
+        Fields: []Field{
+            {
+                Name: "neutrino",
+                Type: mklnrpc_NeutrinoInfo(),
+            },
+            {
+                Name: "wallet",
+                Type: mklnrpc_WalletInfo(),
+            },
+            {
+                Name: "lightning",
+                Type: mklnrpc_GetInfoResponse(),
             },
         },
     }
@@ -9182,1094 +10569,6 @@ func mklnrpc_WalletBalanceResponse() Type {
         },
     }
 }
-func mksignrpc_InputScript() Type {
-    return Type{
-        Name: "signrpc_InputScript",
-        Fields: []Field{
-            {
-                Name: "witness",
-                Description: []string{
-                    "The serializes witness stack for the specified input.",
-                },
-                Repeated: true,
-                Type: mkbytes(),
-            },
-            {
-                Name: "sig_script",
-                Description: []string{
-                    "The optional sig script for the specified witness that will only be set if",
-                    "the input specified is a nested p2sh witness program.",
-                },
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mksignrpc_InputScriptResp() Type {
-    return Type{
-        Name: "signrpc_InputScriptResp",
-        Fields: []Field{
-            {
-                Name: "input_scripts",
-                Description: []string{
-                    "The set of fully valid input scripts requested.",
-                },
-                Repeated: true,
-                Type: mksignrpc_InputScript(),
-            },
-        },
-    }
-}
-func mksignrpc_KeyDescriptor() Type {
-    return Type{
-        Name: "signrpc_KeyDescriptor",
-        Fields: []Field{
-            {
-                Name: "raw_key_bytes",
-                Description: []string{
-                    "The raw bytes of the key being identified. Either this or the KeyLocator",
-                    "must be specified.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "key_loc",
-                Description: []string{
-                    "The key locator that identifies which key to use for signing. Either this",
-                    "or the raw bytes of the target key must be specified.",
-                },
-                Type: mksignrpc_KeyLocator(),
-            },
-        },
-    }
-}
-func mksignrpc_KeyLocator() Type {
-    return Type{
-        Name: "signrpc_KeyLocator",
-        Fields: []Field{
-            {
-                Name: "key_family",
-                Description: []string{
-                    "The family of key being identified.",
-                },
-                Type: mkint32(),
-            },
-            {
-                Name: "key_index",
-                Description: []string{
-                    "The precise index of the key being identified.",
-                },
-                Type: mkint32(),
-            },
-        },
-    }
-}
-func mksignrpc_SharedKeyRequest() Type {
-    return Type{
-        Name: "signrpc_SharedKeyRequest",
-        Fields: []Field{
-            {
-                Name: "ephemeral_pubkey",
-                Description: []string{
-                    "The ephemeral public key to use for the DH key derivation.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "key_loc",
-                Description: []string{
-                    "Deprecated. The optional key locator of the local key that should be used.",
-                    "If this parameter is not set then the node's identity private key will be",
-                    "used.",
-                },
-                Type: mksignrpc_KeyLocator(),
-            },
-            {
-                Name: "key_desc",
-                Description: []string{
-                    "A key descriptor describes the key used for performing ECDH. Either a key",
-                    "locator or a raw public key is expected, if neither is supplied, defaults to",
-                    "the node's identity private key.",
-                },
-                Type: mksignrpc_KeyDescriptor(),
-            },
-        },
-    }
-}
-func mksignrpc_SharedKeyResponse() Type {
-    return Type{
-        Name: "signrpc_SharedKeyResponse",
-        Fields: []Field{
-            {
-                Name: "shared_key",
-                Description: []string{
-                    "The shared public key, hashed with sha256.",
-                },
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mksignrpc_SignDescriptor() Type {
-    return Type{
-        Name: "signrpc_SignDescriptor",
-        Fields: []Field{
-            {
-                Name: "key_desc",
-                Description: []string{
-                    "A descriptor that precisely describes *which* key to use for signing. This",
-                    "may provide the raw public key directly, or require the Signer to re-derive",
-                    "the key according to the populated derivation path.",
-                    "",
-                    "Note that if the key descriptor was obtained through walletrpc.DeriveKey,",
-                    "then the key locator MUST always be provided, since the derived keys are not",
-                    "persisted unlike with DeriveNextKey.",
-                },
-                Type: mksignrpc_KeyDescriptor(),
-            },
-            {
-                Name: "single_tweak",
-                Description: []string{
-                    "A scalar value that will be added to the private key corresponding to the",
-                    "above public key to obtain the private key to be used to sign this input.",
-                    "This value is typically derived via the following computation:",
-                    "",
-                    "derivedKey = privkey + sha256(perCommitmentPoint || pubKey) mod N",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "double_tweak",
-                Description: []string{
-                    "A private key that will be used in combination with its corresponding",
-                    "private key to derive the private key that is to be used to sign the target",
-                    "input. Within the Lightning protocol, this value is typically the",
-                    "commitment secret from a previously revoked commitment transaction. This",
-                    "value is in combination with two hash values, and the original private key",
-                    "to derive the private key to be used when signing.",
-                    "",
-                    "k = (privKey*sha256(pubKey || tweakPub) +",
-                    "tweakPriv*sha256(tweakPub || pubKey)) mod N",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "witness_script",
-                Description: []string{
-                    "The full script required to properly redeem the output.  This field will",
-                    "only be populated if a p2wsh or a p2sh output is being signed.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "output",
-                Description: []string{
-                    "A description of the output being spent. The value and script MUST be",
-                    "provided.",
-                },
-                Type: mksignrpc_TxOut(),
-            },
-            {
-                Name: "sighash",
-                Description: []string{
-                    "The target sighash type that should be used when generating the final",
-                    "sighash, and signature.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "input_index",
-                Description: []string{
-                    "The target input within the transaction that should be signed.",
-                },
-                Type: mkint32(),
-            },
-        },
-    }
-}
-func mksignrpc_SignMessageReq() Type {
-    return Type{
-        Name: "signrpc_SignMessageReq",
-        Fields: []Field{
-            {
-                Name: "msg",
-                Description: []string{
-                    "The message to be signed.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "key_loc",
-                Description: []string{
-                    "The key locator that identifies which key to use for signing.",
-                },
-                Type: mksignrpc_KeyLocator(),
-            },
-        },
-    }
-}
-func mksignrpc_SignMessageResp() Type {
-    return Type{
-        Name: "signrpc_SignMessageResp",
-        Fields: []Field{
-            {
-                Name: "signature",
-                Description: []string{
-                    "The signature for the given message in the fixed-size LN wire format.",
-                },
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mksignrpc_SignReq() Type {
-    return Type{
-        Name: "signrpc_SignReq",
-        Fields: []Field{
-            {
-                Name: "raw_tx_bytes",
-                Description: []string{
-                    "The raw bytes of the transaction to be signed.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "sign_descs",
-                Description: []string{
-                    "A set of sign descriptors, for each input to be signed.",
-                },
-                Repeated: true,
-                Type: mksignrpc_SignDescriptor(),
-            },
-        },
-    }
-}
-func mksignrpc_SignResp() Type {
-    return Type{
-        Name: "signrpc_SignResp",
-        Fields: []Field{
-            {
-                Name: "raw_sigs",
-                Description: []string{
-                    "A set of signatures realized in a fixed 64-byte format ordered in ascending",
-                    "input order.",
-                },
-                Repeated: true,
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mksignrpc_TxOut() Type {
-    return Type{
-        Name: "signrpc_TxOut",
-        Fields: []Field{
-            {
-                Name: "value",
-                Description: []string{
-                    "The value of the output being spent.",
-                },
-                Type: mkint64(),
-            },
-            {
-                Name: "pk_script",
-                Description: []string{
-                    "The script of the output being spent.",
-                },
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mksignrpc_VerifyMessageReq() Type {
-    return Type{
-        Name: "signrpc_VerifyMessageReq",
-        Fields: []Field{
-            {
-                Name: "msg",
-                Description: []string{
-                    "The message over which the signature is to be verified.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "signature",
-                Description: []string{
-                    "The fixed-size LN wire encoded signature to be verified over the given",
-                    "message.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "pubkey",
-                Description: []string{
-                    "The public key the signature has to be valid for.",
-                },
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mksignrpc_VerifyMessageResp() Type {
-    return Type{
-        Name: "signrpc_VerifyMessageResp",
-        Fields: []Field{
-            {
-                Name: "valid",
-                Description: []string{
-                    "Whether the signature was valid over the given message.",
-                },
-                Type: mkbool(),
-            },
-        },
-    }
-}
-func mkverrpc_Version() Type {
-    return Type{
-        Name: "verrpc_Version",
-        Fields: []Field{
-            {
-                Name: "commit",
-                Description: []string{
-                    "A verbose description of the daemon's commit.",
-                },
-                Type: mkstring(),
-            },
-            {
-                Name: "commit_hash",
-                Description: []string{
-                    "The SHA1 commit hash that the daemon is compiled with.",
-                },
-                Type: mkstring(),
-            },
-            {
-                Name: "version",
-                Description: []string{
-                    "The semantic version.",
-                },
-                Type: mkstring(),
-            },
-            {
-                Name: "app_major",
-                Description: []string{
-                    "The major application version.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "app_minor",
-                Description: []string{
-                    "The minor application version.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "app_patch",
-                Description: []string{
-                    "The application patch number.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "app_pre_release",
-                Description: []string{
-                    "The application pre-release modifier, possibly empty.",
-                },
-                Type: mkstring(),
-            },
-            {
-                Name: "build_tags",
-                Description: []string{
-                    "The list of build tags that were supplied during compilation.",
-                },
-                Repeated: true,
-                Type: mkstring(),
-            },
-            {
-                Name: "go_version",
-                Description: []string{
-                    "The version of go that compiled the executable.",
-                },
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkverrpc_VersionRequest() Type {
-    return Type{
-        Name: "verrpc_VersionRequest",
-    }
-}
-func mkwalletrpc_AddrRequest() Type {
-    return Type{
-        Name: "walletrpc_AddrRequest",
-        Description: []string{
-            "No fields, as we always give out a p2wkh address.",
-        },
-    }
-}
-func mkwalletrpc_AddrResponse() Type {
-    return Type{
-        Name: "walletrpc_AddrResponse",
-        Fields: []Field{
-            {
-                Name: "addr",
-                Description: []string{
-                    "The address encoded using a bech32 format.",
-                },
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkwalletrpc_BumpFeeRequest() Type {
-    return Type{
-        Name: "walletrpc_BumpFeeRequest",
-        Fields: []Field{
-            {
-                Name: "outpoint",
-                Description: []string{
-                    "The input we're attempting to bump the fee of.",
-                },
-                Type: mklnrpc_OutPoint(),
-            },
-            {
-                Name: "target_conf",
-                Description: []string{
-                    "The target number of blocks that the input should be spent within.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "sat_per_byte",
-                Description: []string{
-                    "The fee rate, expressed in sat/byte, that should be used to spend the input",
-                    "with.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "force",
-                Description: []string{
-                    "Whether this input must be force-swept. This means that it is swept even",
-                    "if it has a negative yield.",
-                },
-                Type: mkbool(),
-            },
-        },
-    }
-}
-func mkwalletrpc_BumpFeeResponse() Type {
-    return Type{
-        Name: "walletrpc_BumpFeeResponse",
-    }
-}
-func mkwalletrpc_EstimateFeeRequest() Type {
-    return Type{
-        Name: "walletrpc_EstimateFeeRequest",
-        Fields: []Field{
-            {
-                Name: "conf_target",
-                Description: []string{
-                    "The number of confirmations to shoot for when estimating the fee.",
-                },
-                Type: mkint32(),
-            },
-        },
-    }
-}
-func mkwalletrpc_EstimateFeeResponse() Type {
-    return Type{
-        Name: "walletrpc_EstimateFeeResponse",
-        Fields: []Field{
-            {
-                Name: "sat_per_kw",
-                Description: []string{
-                    "The amount of satoshis per kw that should be used in order to reach the",
-                    "confirmation target in the request.",
-                },
-                Type: mkint64(),
-            },
-        },
-    }
-}
-func mkwalletrpc_FinalizePsbtRequest() Type {
-    return Type{
-        Name: "walletrpc_FinalizePsbtRequest",
-        Fields: []Field{
-            {
-                Name: "funded_psbt",
-                Description: []string{
-                    "A PSBT that should be signed and finalized. The PSBT must contain all",
-                    "required inputs, outputs, UTXO data and partial signatures of all other",
-                    "signers.",
-                },
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mkwalletrpc_FinalizePsbtResponse() Type {
-    return Type{
-        Name: "walletrpc_FinalizePsbtResponse",
-        Fields: []Field{
-            {
-                Name: "signed_psbt",
-                Description: []string{
-                    "The fully signed and finalized transaction in PSBT format.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "raw_final_tx",
-                Description: []string{
-                    "The fully signed and finalized transaction in the raw wire format.",
-                },
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mkwalletrpc_FundPsbtRequest() Type {
-    return Type{
-        Name: "walletrpc_FundPsbtRequest",
-        Fields: []Field{
-            {
-                Name: "psbt",
-                Description: []string{
-                    "Use an existing PSBT packet as the template for the funded PSBT.",
-                    "",
-                    "The packet must contain at least one non-dust output. If one or more",
-                    "inputs are specified, no coin selection is performed. In that case every",
-                    "input must be an UTXO known to the wallet that has not been locked",
-                    "before. The sum of all inputs must be sufficiently greater than the sum",
-                    "of all outputs to pay a miner fee with the specified fee rate. A change",
-                    "output is added to the PSBT if necessary.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "raw",
-                Description: []string{
-                    "Use the outputs and optional inputs from this raw template.",
-                },
-                Type: mkwalletrpc_TxTemplate(),
-            },
-            {
-                Name: "target_conf",
-                Description: []string{
-                    "The target number of blocks that the transaction should be confirmed in.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "sat_per_vbyte",
-                Description: []string{
-                    "The fee rate, expressed in sat/vbyte, that should be used to spend the",
-                    "input with.",
-                },
-                Type: mkuint32(),
-            },
-        },
-    }
-}
-func mkwalletrpc_FundPsbtResponse() Type {
-    return Type{
-        Name: "walletrpc_FundPsbtResponse",
-        Fields: []Field{
-            {
-                Name: "funded_psbt",
-                Description: []string{
-                    "The funded but not yet signed PSBT packet.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "change_output_index",
-                Description: []string{
-                    "The index of the added change output or -1 if no change was left over.",
-                },
-                Type: mkint32(),
-            },
-            {
-                Name: "locked_utxos",
-                Description: []string{
-                    "The list of lock leases that were acquired for the inputs in the funded PSBT",
-                    "packet.",
-                },
-                Repeated: true,
-                Type: mkwalletrpc_UtxoLease(),
-            },
-        },
-    }
-}
-func mkwalletrpc_KeyReq() Type {
-    return Type{
-        Name: "walletrpc_KeyReq",
-        Fields: []Field{
-            {
-                Name: "key_finger_print",
-                Description: []string{
-                    "Is the key finger print of the root pubkey that this request is targeting.",
-                    "This allows the WalletKit to possibly serve out keys for multiple HD chains",
-                    "via public derivation.",
-                },
-                Type: mkint32(),
-            },
-            {
-                Name: "key_family",
-                Description: []string{
-                    "The target key family to derive a key from. In other contexts, this is",
-                    "known as the \"account\".",
-                },
-                Type: mkint32(),
-            },
-        },
-    }
-}
-func mkwalletrpc_LabelTransactionRequest() Type {
-    return Type{
-        Name: "walletrpc_LabelTransactionRequest",
-        Fields: []Field{
-            {
-                Name: "txid",
-                Description: []string{
-                    "The txid of the transaction to label.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "label",
-                Description: []string{
-                    "The label to add to the transaction, limited to 500 characters.",
-                },
-                Type: mkstring(),
-            },
-            {
-                Name: "overwrite",
-                Description: []string{
-                    "Whether to overwrite the existing label, if it is present.",
-                },
-                Type: mkbool(),
-            },
-        },
-    }
-}
-func mkwalletrpc_LabelTransactionResponse() Type {
-    return Type{
-        Name: "walletrpc_LabelTransactionResponse",
-    }
-}
-func mkwalletrpc_LeaseOutputRequest() Type {
-    return Type{
-        Name: "walletrpc_LeaseOutputRequest",
-        Fields: []Field{
-            {
-                Name: "id",
-                Description: []string{
-                    "An ID of 32 random bytes that must be unique for each distinct application",
-                    "using this RPC which will be used to bound the output lease to.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "outpoint",
-                Description: []string{
-                    "The identifying outpoint of the output being leased.",
-                },
-                Type: mklnrpc_OutPoint(),
-            },
-        },
-    }
-}
-func mkwalletrpc_LeaseOutputResponse() Type {
-    return Type{
-        Name: "walletrpc_LeaseOutputResponse",
-        Fields: []Field{
-            {
-                Name: "expiration",
-                Description: []string{
-                    "The absolute expiration of the output lease represented as a unix timestamp.",
-                },
-                Type: mkuint64(),
-            },
-        },
-    }
-}
-func mkwalletrpc_ListSweepsRequest() Type {
-    return Type{
-        Name: "walletrpc_ListSweepsRequest",
-        Fields: []Field{
-            {
-                Name: "verbose",
-                Description: []string{
-                    "Retrieve the full sweep transaction details. If false, only the sweep txids",
-                    "will be returned. Note that some sweeps that LND publishes will have been",
-                    "replaced-by-fee, so will not be included in this output.",
-                },
-                Type: mkbool(),
-            },
-        },
-    }
-}
-func mkwalletrpc_ListSweepsResponse() Type {
-    return Type{
-        Name: "walletrpc_ListSweepsResponse",
-        Fields: []Field{
-            {
-                Name: "transaction_details",
-                Type: mklnrpc_TransactionDetails(),
-            },
-            {
-                Name: "transaction_ids",
-                Type: mkwalletrpc_ListSweepsResponse_TransactionIDs(),
-            },
-        },
-    }
-}
-func mkwalletrpc_ListSweepsResponse_TransactionIDs() Type {
-    return Type{
-        Name: "walletrpc_ListSweepsResponse_TransactionIDs",
-        Fields: []Field{
-            {
-                Name: "transaction_ids",
-                Description: []string{
-                    "Reversed, hex-encoded string representing the transaction ids of the",
-                    "sweeps that our node has broadcast. Note that these transactions may",
-                    "not have confirmed yet, we record sweeps on broadcast, not confirmation.",
-                },
-                Repeated: true,
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkwalletrpc_ListUnspentRequest() Type {
-    return Type{
-        Name: "walletrpc_ListUnspentRequest",
-        Fields: []Field{
-            {
-                Name: "min_confs",
-                Description: []string{
-                    "The minimum number of confirmations to be included.",
-                },
-                Type: mkint32(),
-            },
-            {
-                Name: "max_confs",
-                Description: []string{
-                    "The maximum number of confirmations to be included.",
-                },
-                Type: mkint32(),
-            },
-        },
-    }
-}
-func mkwalletrpc_ListUnspentResponse() Type {
-    return Type{
-        Name: "walletrpc_ListUnspentResponse",
-        Fields: []Field{
-            {
-                Name: "utxos",
-                Description: []string{
-                    "A list of utxos satisfying the specified number of confirmations.",
-                },
-                Repeated: true,
-                Type: mklnrpc_Utxo(),
-            },
-        },
-    }
-}
-func mkwalletrpc_PendingSweep() Type {
-    return Type{
-        Name: "walletrpc_PendingSweep",
-        Fields: []Field{
-            {
-                Name: "outpoint",
-                Description: []string{
-                    "The outpoint of the output we're attempting to sweep.",
-                },
-                Type: mklnrpc_OutPoint(),
-            },
-            {
-                Name: "witness_type",
-                Description: []string{
-                    "The witness type of the output we're attempting to sweep.",
-                },
-                Type: mkwalletrpc_WitnessType(),
-            },
-            {
-                Name: "amount_sat",
-                Description: []string{
-                    "The value of the output we're attempting to sweep.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "sat_per_byte",
-                Description: []string{
-                    "The fee rate we'll use to sweep the output. The fee rate is only determined",
-                    "once a sweeping transaction for the output is created, so it's possible for",
-                    "this to be 0 before this.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "broadcast_attempts",
-                Description: []string{
-                    "The number of broadcast attempts we've made to sweep the output.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "next_broadcast_height",
-                Description: []string{
-                    "The next height of the chain at which we'll attempt to broadcast the",
-                    "sweep transaction of the output.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "requested_conf_target",
-                Description: []string{
-                    "The requested confirmation target for this output.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "requested_sat_per_byte",
-                Description: []string{
-                    "The requested fee rate, expressed in sat/byte, for this output.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "force",
-                Description: []string{
-                    "Whether this input must be force-swept. This means that it is swept even",
-                    "if it has a negative yield.",
-                },
-                Type: mkbool(),
-            },
-        },
-    }
-}
-func mkwalletrpc_PendingSweepsRequest() Type {
-    return Type{
-        Name: "walletrpc_PendingSweepsRequest",
-    }
-}
-func mkwalletrpc_PendingSweepsResponse() Type {
-    return Type{
-        Name: "walletrpc_PendingSweepsResponse",
-        Fields: []Field{
-            {
-                Name: "pending_sweeps",
-                Description: []string{
-                    "The set of outputs currently being swept by lnd's central batching engine.",
-                },
-                Repeated: true,
-                Type: mkwalletrpc_PendingSweep(),
-            },
-        },
-    }
-}
-func mkwalletrpc_PublishResponse() Type {
-    return Type{
-        Name: "walletrpc_PublishResponse",
-        Fields: []Field{
-            {
-                Name: "publish_error",
-                Description: []string{
-                    "If blank, then no error occurred and the transaction was successfully",
-                    "published. If not the empty string, then a string representation of the",
-                    "broadcast error.",
-                    "",
-                    "TODO(roasbeef): map to a proper enum type",
-                },
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkwalletrpc_ReleaseOutputRequest() Type {
-    return Type{
-        Name: "walletrpc_ReleaseOutputRequest",
-        Fields: []Field{
-            {
-                Name: "id",
-                Description: []string{
-                    "The unique ID that was used to lock the output.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "outpoint",
-                Description: []string{
-                    "The identifying outpoint of the output being released.",
-                },
-                Type: mklnrpc_OutPoint(),
-            },
-        },
-    }
-}
-func mkwalletrpc_ReleaseOutputResponse() Type {
-    return Type{
-        Name: "walletrpc_ReleaseOutputResponse",
-    }
-}
-func mkwalletrpc_SendOutputsRequest() Type {
-    return Type{
-        Name: "walletrpc_SendOutputsRequest",
-        Fields: []Field{
-            {
-                Name: "sat_per_kw",
-                Description: []string{
-                    "The number of satoshis per kilo weight that should be used when crafting",
-                    "this transaction.",
-                },
-                Type: mkint64(),
-            },
-            {
-                Name: "outputs",
-                Description: []string{
-                    "A slice of the outputs that should be created in the transaction produced.",
-                },
-                Repeated: true,
-                Type: mksignrpc_TxOut(),
-            },
-            {
-                Name: "label",
-                Description: []string{
-                    "An optional label for the transaction, limited to 500 characters.",
-                },
-                Type: mkstring(),
-            },
-            {
-                Name: "min_confs",
-                Description: []string{
-                    "The minimum number of confirmations each one of your outputs used for",
-                    "the transaction must satisfy.",
-                },
-                Type: mkint32(),
-            },
-            {
-                Name: "spend_unconfirmed",
-                Description: []string{
-                    "Whether unconfirmed outputs should be used as inputs for the transaction.",
-                },
-                Type: mkbool(),
-            },
-        },
-    }
-}
-func mkwalletrpc_SendOutputsResponse() Type {
-    return Type{
-        Name: "walletrpc_SendOutputsResponse",
-        Fields: []Field{
-            {
-                Name: "raw_tx",
-                Description: []string{
-                    "The serialized transaction sent out on the network.",
-                },
-                Type: mkbytes(),
-            },
-        },
-    }
-}
-func mkwalletrpc_Transaction() Type {
-    return Type{
-        Name: "walletrpc_Transaction",
-        Fields: []Field{
-            {
-                Name: "tx_hex",
-                Description: []string{
-                    "The raw serialized transaction.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "label",
-                Description: []string{
-                    "An optional label to save with the transaction. Limited to 500 characters.",
-                },
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkwalletrpc_TxTemplate() Type {
-    return Type{
-        Name: "walletrpc_TxTemplate",
-        Fields: []Field{
-            {
-                Name: "inputs",
-                Description: []string{
-                    "An optional list of inputs to use. Every input must be an UTXO known to the",
-                    "wallet that has not been locked before. The sum of all inputs must be",
-                    "sufficiently greater than the sum of all outputs to pay a miner fee with the",
-                    "fee rate specified in the parent message.",
-                    "",
-                    "If no inputs are specified, coin selection will be performed instead and",
-                    "inputs of sufficient value will be added to the resulting PSBT.",
-                },
-                Repeated: true,
-                Type: mklnrpc_OutPoint(),
-            },
-            {
-                Name: "outputs",
-                Description: []string{
-                    "A map of all addresses and the amounts to send to in the funded PSBT.",
-                },
-                Repeated: true,
-                Type: mkwalletrpc_TxTemplate_OutputsEntry(),
-            },
-        },
-    }
-}
-func mkwalletrpc_TxTemplate_OutputsEntry() Type {
-    return Type{
-        Name: "walletrpc_TxTemplate_OutputsEntry",
-        Fields: []Field{
-            {
-                Name: "key",
-                Type: mkstring(),
-            },
-            {
-                Name: "value",
-                Type: mkuint64(),
-            },
-        },
-    }
-}
-func mkwalletrpc_UtxoLease() Type {
-    return Type{
-        Name: "walletrpc_UtxoLease",
-        Fields: []Field{
-            {
-                Name: "id",
-                Description: []string{
-                    "A 32 byte random ID that identifies the lease.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "outpoint",
-                Description: []string{
-                    "The identifying outpoint of the output being leased.",
-                },
-                Type: mklnrpc_OutPoint(),
-            },
-            {
-                Name: "expiration",
-                Description: []string{
-                    "The absolute expiration of the output lease represented as a unix timestamp.",
-                },
-                Type: mkuint64(),
-            },
-        },
-    }
-}
 func mklnrpc_GenSeedRequest() Type {
     return Type{
         Name: "lnrpc_GenSeedRequest",
@@ -10448,301 +10747,13 @@ func mklnrpc_UnlockWalletResponse() Type {
         Name: "lnrpc_UnlockWalletResponse",
     }
 }
-func mkwatchtowerrpc_GetInfoRequest() Type {
+func mkrestrpc_Error() Type {
     return Type{
-        Name: "watchtowerrpc_GetInfoRequest",
-    }
-}
-func mkwatchtowerrpc_GetInfoResponse() Type {
-    return Type{
-        Name: "watchtowerrpc_GetInfoResponse",
+        Name: "restrpc_Error",
         Fields: []Field{
             {
-                Name: "pubkey",
-                Description: []string{
-                    "The public key of the watchtower.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "listeners",
-                Description: []string{
-                    "The listening addresses of the watchtower.",
-                },
-                Repeated: true,
+                Name: "message",
                 Type: mkstring(),
-            },
-            {
-                Name: "uris",
-                Description: []string{
-                    "The URIs of the watchtower.",
-                },
-                Repeated: true,
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkwtclientrpc_AddTowerRequest() Type {
-    return Type{
-        Name: "wtclientrpc_AddTowerRequest",
-        Fields: []Field{
-            {
-                Name: "pubkey",
-                Description: []string{
-                    "The identifying public key of the watchtower to add.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "address",
-                Description: []string{
-                    "A network address the watchtower is reachable over.",
-                },
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkwtclientrpc_AddTowerResponse() Type {
-    return Type{
-        Name: "wtclientrpc_AddTowerResponse",
-    }
-}
-func mkwtclientrpc_GetTowerInfoRequest() Type {
-    return Type{
-        Name: "wtclientrpc_GetTowerInfoRequest",
-        Fields: []Field{
-            {
-                Name: "pubkey",
-                Description: []string{
-                    "The identifying public key of the watchtower to retrieve information for.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "include_sessions",
-                Description: []string{
-                    "Whether we should include sessions with the watchtower in the response.",
-                },
-                Type: mkbool(),
-            },
-        },
-    }
-}
-func mkwtclientrpc_ListTowersRequest() Type {
-    return Type{
-        Name: "wtclientrpc_ListTowersRequest",
-        Fields: []Field{
-            {
-                Name: "include_sessions",
-                Description: []string{
-                    "Whether we should include sessions with the watchtower in the response.",
-                },
-                Type: mkbool(),
-            },
-        },
-    }
-}
-func mkwtclientrpc_ListTowersResponse() Type {
-    return Type{
-        Name: "wtclientrpc_ListTowersResponse",
-        Fields: []Field{
-            {
-                Name: "towers",
-                Description: []string{
-                    "The list of watchtowers available for new backups.",
-                },
-                Repeated: true,
-                Type: mkwtclientrpc_Tower(),
-            },
-        },
-    }
-}
-func mkwtclientrpc_PolicyRequest() Type {
-    return Type{
-        Name: "wtclientrpc_PolicyRequest",
-    }
-}
-func mkwtclientrpc_PolicyResponse() Type {
-    return Type{
-        Name: "wtclientrpc_PolicyResponse",
-        Fields: []Field{
-            {
-                Name: "max_updates",
-                Description: []string{
-                    "The maximum number of updates each session we negotiate with watchtowers",
-                    "should allow.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "sweep_sat_per_byte",
-                Description: []string{
-                    "The fee rate, in satoshis per vbyte, that will be used by watchtowers for",
-                    "justice transactions in response to channel breaches.",
-                },
-                Type: mkuint32(),
-            },
-        },
-    }
-}
-func mkwtclientrpc_RemoveTowerRequest() Type {
-    return Type{
-        Name: "wtclientrpc_RemoveTowerRequest",
-        Fields: []Field{
-            {
-                Name: "pubkey",
-                Description: []string{
-                    "The identifying public key of the watchtower to remove.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "address",
-                Description: []string{
-                    "If set, then the record for this address will be removed, indicating that is",
-                    "is stale. Otherwise, the watchtower will no longer be used for future",
-                    "session negotiations and backups.",
-                },
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkwtclientrpc_RemoveTowerResponse() Type {
-    return Type{
-        Name: "wtclientrpc_RemoveTowerResponse",
-    }
-}
-func mkwtclientrpc_StatsRequest() Type {
-    return Type{
-        Name: "wtclientrpc_StatsRequest",
-    }
-}
-func mkwtclientrpc_StatsResponse() Type {
-    return Type{
-        Name: "wtclientrpc_StatsResponse",
-        Fields: []Field{
-            {
-                Name: "num_backups",
-                Description: []string{
-                    "The total number of backups made to all active and exhausted watchtower",
-                    "sessions.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "num_pending_backups",
-                Description: []string{
-                    "The total number of backups that are pending to be acknowledged by all",
-                    "active and exhausted watchtower sessions.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "num_failed_backups",
-                Description: []string{
-                    "The total number of backups that all active and exhausted watchtower",
-                    "sessions have failed to acknowledge.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "num_sessions_acquired",
-                Description: []string{
-                    "The total number of new sessions made to watchtowers.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "num_sessions_exhausted",
-                Description: []string{
-                    "The total number of watchtower sessions that have been exhausted.",
-                },
-                Type: mkuint32(),
-            },
-        },
-    }
-}
-func mkwtclientrpc_Tower() Type {
-    return Type{
-        Name: "wtclientrpc_Tower",
-        Fields: []Field{
-            {
-                Name: "pubkey",
-                Description: []string{
-                    "The identifying public key of the watchtower.",
-                },
-                Type: mkbytes(),
-            },
-            {
-                Name: "addresses",
-                Description: []string{
-                    "The list of addresses the watchtower is reachable over.",
-                },
-                Repeated: true,
-                Type: mkstring(),
-            },
-            {
-                Name: "active_session_candidate",
-                Description: []string{
-                    "Whether the watchtower is currently a candidate for new sessions.",
-                },
-                Type: mkbool(),
-            },
-            {
-                Name: "num_sessions",
-                Description: []string{
-                    "The number of sessions that have been negotiated with the watchtower.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "sessions",
-                Description: []string{
-                    "The list of sessions that have been negotiated with the watchtower.",
-                },
-                Repeated: true,
-                Type: mkwtclientrpc_TowerSession(),
-            },
-        },
-    }
-}
-func mkwtclientrpc_TowerSession() Type {
-    return Type{
-        Name: "wtclientrpc_TowerSession",
-        Fields: []Field{
-            {
-                Name: "num_backups",
-                Description: []string{
-                    "The total number of successful backups that have been made to the",
-                    "watchtower session.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "num_pending_backups",
-                Description: []string{
-                    "The total number of backups in the session that are currently pending to be",
-                    "acknowledged by the watchtower.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "max_backups",
-                Description: []string{
-                    "The maximum number of backups allowed by the watchtower session.",
-                },
-                Type: mkuint32(),
-            },
-            {
-                Name: "sweep_sat_per_byte",
-                Description: []string{
-                    "The fee rate, in satoshis per vbyte, that will be used by the watchtower for",
-                    "the justice transaction in the event of a channel breach.",
-                },
-                Type: mkuint32(),
             },
         },
     }
@@ -10908,6 +10919,81 @@ func mkrestrpc_Type() Type {
         },
     }
 }
+func mkrestrpc_WebSocketError() Type {
+    return Type{
+        Name: "restrpc_WebSocketError",
+        Fields: []Field{
+            {
+                Name: "http_code",
+                Type: mkuint32(),
+            },
+            {
+                Name: "error",
+                Type: mkrestrpc_Error(),
+            },
+        },
+    }
+}
+func mkrestrpc_WebSocketRequest() Type {
+    return Type{
+        Name: "restrpc_WebSocketRequest",
+        Fields: []Field{
+            {
+                Name: "endpoint",
+                Description: []string{
+                    "The rest endpoint to send the request to",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "request_id",
+                Description: []string{
+                    "An arbitrary string which will be reflected back in the response",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "has_more",
+                Type: mkbool(),
+            },
+            {
+                Name: "payload",
+                Description: []string{
+                    "The data to post to the REST endpoint, if any.",
+                    "Make sure this is the correct data structure based on the endpoint you are posting to.",
+                    " google.protobuf.Any payload = 4;",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mkrestrpc_WebSocketResponse() Type {
+    return Type{
+        Name: "restrpc_WebSocketResponse",
+        Fields: []Field{
+            {
+                Name: "request_id",
+                Type: mkstring(),
+            },
+            {
+                Name: "has_more",
+                Type: mkbool(),
+            },
+            {
+                Name: "ok",
+                Description: []string{
+                    "google.protobuf.Any ok = 3;",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "error",
+                Type: mkrestrpc_WebSocketError(),
+            },
+        },
+    }
+}
 func Autopilot_Status() Method {
     return Method{
         Name: "Status",
@@ -11056,22 +11142,6 @@ func Invoices_SettleInvoice() Method {
         },
         Req: mkinvoicesrpc_SettleInvoiceMsg(),
         Res: mkinvoicesrpc_SettleInvoiceResp(),
-    }
-}
-func MetaService_GetInfo2() Method {
-    return Method{
-        Name: "GetInfo2",
-        Service: "MetaService",
-        Req: mklnrpc_GetInfo2Request(),
-        Res: mklnrpc_GetInfo2Response(),
-    }
-}
-func MetaService_ChangePassword() Method {
-    return Method{
-        Name: "ChangePassword",
-        Service: "MetaService",
-        Req: mklnrpc_ChangePasswordRequest(),
-        Res: mklnrpc_ChangePasswordResponse(),
     }
 }
 func Router_SendPaymentV2() Method {
@@ -11239,6 +11309,452 @@ func Router_HtlcInterceptor() Method {
         },
         Req: mkrouterrpc_ForwardHtlcInterceptResponse(),
         Res: mkrouterrpc_ForwardHtlcInterceptRequest(),
+    }
+}
+func Signer_SignOutputRaw() Method {
+    return Method{
+        Name: "SignOutputRaw",
+        Service: "Signer",
+        Description: []string{
+            "SignOutputRaw is a method that can be used to generated a signature for a",
+            "set of inputs/outputs to a transaction. Each request specifies details",
+            "concerning how the outputs should be signed, which keys they should be",
+            "signed with, and also any optional tweaks. The return value is a fixed",
+            "64-byte signature (the same format as we use on the wire in Lightning).",
+            "",
+            "If we are  unable to sign using the specified keys, then an error will be",
+            "returned.",
+        },
+        Req: mksignrpc_SignReq(),
+        Res: mksignrpc_SignResp(),
+    }
+}
+func Signer_ComputeInputScript() Method {
+    return Method{
+        Name: "ComputeInputScript",
+        Service: "Signer",
+        Description: []string{
+            "ComputeInputScript generates a complete InputIndex for the passed",
+            "transaction with the signature as defined within the passed SignDescriptor.",
+            "This method should be capable of generating the proper input script for",
+            "both regular p2wkh output and p2wkh outputs nested within a regular p2sh",
+            "output.",
+            "",
+            "Note that when using this method to sign inputs belonging to the wallet,",
+            "the only items of the SignDescriptor that need to be populated are pkScript",
+            "in the TxOut field, the value in that same field, and finally the input",
+            "index.",
+        },
+        Req: mksignrpc_SignReq(),
+        Res: mksignrpc_InputScriptResp(),
+    }
+}
+func Signer_SignMessage() Method {
+    return Method{
+        Name: "SignMessage",
+        Service: "Signer",
+        Description: []string{
+            "SignMessage signs a message with the key specified in the key locator. The",
+            "returned signature is fixed-size LN wire format encoded.",
+            "",
+            "The main difference to SignMessage in the main RPC is that a specific key is",
+            "used to sign the message instead of the node identity private key.",
+        },
+        Req: mksignrpc_SignMessageReq(),
+        Res: mksignrpc_SignMessageResp(),
+    }
+}
+func Signer_VerifyMessage() Method {
+    return Method{
+        Name: "VerifyMessage",
+        Service: "Signer",
+        Description: []string{
+            "VerifyMessage verifies a signature over a message using the public key",
+            "provided. The signature must be fixed-size LN wire format encoded.",
+            "",
+            "The main difference to VerifyMessage in the main RPC is that the public key",
+            "used to sign the message does not have to be a node known to the network.",
+        },
+        Req: mksignrpc_VerifyMessageReq(),
+        Res: mksignrpc_VerifyMessageResp(),
+    }
+}
+func Signer_DeriveSharedKey() Method {
+    return Method{
+        Name: "DeriveSharedKey",
+        Service: "Signer",
+        Description: []string{
+            "DeriveSharedKey returns a shared secret key by performing Diffie-Hellman key",
+            "derivation between the ephemeral public key in the request and the node's",
+            "key specified in the key_desc parameter. Either a key locator or a raw",
+            "public key is expected in the key_desc, if neither is supplied, defaults to",
+            "the node's identity private key:",
+            "P_shared = privKeyNode * ephemeralPubkey",
+            "The resulting shared public key is serialized in the compressed format and",
+            "hashed with sha256, resulting in the final key length of 256bit.",
+        },
+        Req: mksignrpc_SharedKeyRequest(),
+        Res: mksignrpc_SharedKeyResponse(),
+    }
+}
+func Versioner_GetVersion() Method {
+    return Method{
+        Name: "GetVersion",
+        Service: "Versioner",
+        Description: []string{
+            "pldctl: `version`",
+            "GetVersion returns the current version and build information of the running",
+            "daemon.",
+        },
+        Req: mkverrpc_VersionRequest(),
+        Res: mkverrpc_Version(),
+    }
+}
+func WalletKit_ListUnspent() Method {
+    return Method{
+        Name: "ListUnspent",
+        Service: "WalletKit",
+        Description: []string{
+            "ListUnspent returns a list of all utxos spendable by the wallet with a",
+            "number of confirmations between the specified minimum and maximum.",
+        },
+        Req: mkwalletrpc_ListUnspentRequest(),
+        Res: mkwalletrpc_ListUnspentResponse(),
+    }
+}
+func WalletKit_LeaseOutput() Method {
+    return Method{
+        Name: "LeaseOutput",
+        Service: "WalletKit",
+        Description: []string{
+            "LeaseOutput locks an output to the given ID, preventing it from being",
+            "available for any future coin selection attempts. The absolute time of the",
+            "lock's expiration is returned. The expiration of the lock can be extended by",
+            "successive invocations of this RPC. Outputs can be unlocked before their",
+            "expiration through `ReleaseOutput`.",
+        },
+        Req: mkwalletrpc_LeaseOutputRequest(),
+        Res: mkwalletrpc_LeaseOutputResponse(),
+    }
+}
+func WalletKit_ReleaseOutput() Method {
+    return Method{
+        Name: "ReleaseOutput",
+        Service: "WalletKit",
+        Description: []string{
+            "ReleaseOutput unlocks an output, allowing it to be available for coin",
+            "selection if it remains unspent. The ID should match the one used to",
+            "originally lock the output.",
+        },
+        Req: mkwalletrpc_ReleaseOutputRequest(),
+        Res: mkwalletrpc_ReleaseOutputResponse(),
+    }
+}
+func WalletKit_DeriveNextKey() Method {
+    return Method{
+        Name: "DeriveNextKey",
+        Service: "WalletKit",
+        Description: []string{
+            "DeriveNextKey attempts to derive the *next* key within the key family",
+            "(account in BIP43) specified. This method should return the next external",
+            "child within this branch.",
+        },
+        Req: mkwalletrpc_KeyReq(),
+        Res: mksignrpc_KeyDescriptor(),
+    }
+}
+func WalletKit_DeriveKey() Method {
+    return Method{
+        Name: "DeriveKey",
+        Service: "WalletKit",
+        Description: []string{
+            "DeriveKey attempts to derive an arbitrary key specified by the passed",
+            "KeyLocator.",
+        },
+        Req: mksignrpc_KeyLocator(),
+        Res: mksignrpc_KeyDescriptor(),
+    }
+}
+func WalletKit_NextAddr() Method {
+    return Method{
+        Name: "NextAddr",
+        Service: "WalletKit",
+        Description: []string{
+            "NextAddr returns the next unused address within the wallet.",
+        },
+        Req: mkwalletrpc_AddrRequest(),
+        Res: mkwalletrpc_AddrResponse(),
+    }
+}
+func WalletKit_PublishTransaction() Method {
+    return Method{
+        Name: "PublishTransaction",
+        Service: "WalletKit",
+        Description: []string{
+            "PublishTransaction attempts to publish the passed transaction to the",
+            "network. Once this returns without an error, the wallet will continually",
+            "attempt to re-broadcast the transaction on start up, until it enters the",
+            "chain.",
+        },
+        Req: mkwalletrpc_Transaction(),
+        Res: mkwalletrpc_PublishResponse(),
+    }
+}
+func WalletKit_SendOutputs() Method {
+    return Method{
+        Name: "SendOutputs",
+        Service: "WalletKit",
+        Description: []string{
+            "SendOutputs is similar to the existing sendmany call in Bitcoind, and",
+            "allows the caller to create a transaction that sends to several outputs at",
+            "once. This is ideal when wanting to batch create a set of transactions.",
+        },
+        Req: mkwalletrpc_SendOutputsRequest(),
+        Res: mkwalletrpc_SendOutputsResponse(),
+    }
+}
+func WalletKit_EstimateFee() Method {
+    return Method{
+        Name: "EstimateFee",
+        Service: "WalletKit",
+        Description: []string{
+            "EstimateFee attempts to query the internal fee estimator of the wallet to",
+            "determine the fee (in sat/kw) to attach to a transaction in order to",
+            "achieve the confirmation target.",
+        },
+        Req: mkwalletrpc_EstimateFeeRequest(),
+        Res: mkwalletrpc_EstimateFeeResponse(),
+    }
+}
+func WalletKit_PendingSweeps() Method {
+    return Method{
+        Name: "PendingSweeps",
+        Service: "WalletKit",
+        Description: []string{
+            "PendingSweeps returns lists of on-chain outputs that lnd is currently",
+            "attempting to sweep within its central batching engine. Outputs with similar",
+            "fee rates are batched together in order to sweep them within a single",
+            "transaction.",
+            "",
+            "NOTE: Some of the fields within PendingSweepsRequest are not guaranteed to",
+            "remain supported. This is an advanced API that depends on the internals of",
+            "the UtxoSweeper, so things may change.",
+        },
+        Req: mkwalletrpc_PendingSweepsRequest(),
+        Res: mkwalletrpc_PendingSweepsResponse(),
+    }
+}
+func WalletKit_BumpFee() Method {
+    return Method{
+        Name: "BumpFee",
+        Service: "WalletKit",
+        Description: []string{
+            "BumpFee bumps the fee of an arbitrary input within a transaction. This RPC",
+            "takes a different approach than bitcoind's bumpfee command. lnd has a",
+            "central batching engine in which inputs with similar fee rates are batched",
+            "together to save on transaction fees. Due to this, we cannot rely on",
+            "bumping the fee on a specific transaction, since transactions can change at",
+            "any point with the addition of new inputs. The list of inputs that",
+            "currently exist within lnd's central batching engine can be retrieved",
+            "through the PendingSweeps RPC.",
+            "",
+            "When bumping the fee of an input that currently exists within lnd's central",
+            "batching engine, a higher fee transaction will be created that replaces the",
+            "lower fee transaction through the Replace-By-Fee (RBF) policy. If it",
+            "",
+            "This RPC also serves useful when wanting to perform a Child-Pays-For-Parent",
+            "(CPFP), where the child transaction pays for its parent's fee. This can be",
+            "done by specifying an outpoint within the low fee transaction that is under",
+            "the control of the wallet.",
+            "",
+            "The fee preference can be expressed either as a specific fee rate or a delta",
+            "of blocks in which the output should be swept on-chain within. If a fee",
+            "preference is not explicitly specified, then an error is returned.",
+            "",
+            "Note that this RPC currently doesn't perform any validation checks on the",
+            "fee preference being provided. For now, the responsibility of ensuring that",
+            "the new fee preference is sufficient is delegated to the user.",
+        },
+        Req: mkwalletrpc_BumpFeeRequest(),
+        Res: mkwalletrpc_BumpFeeResponse(),
+    }
+}
+func WalletKit_ListSweeps() Method {
+    return Method{
+        Name: "ListSweeps",
+        Service: "WalletKit",
+        Description: []string{
+            "ListSweeps returns a list of the sweep transactions our node has produced.",
+            "Note that these sweeps may not be confirmed yet, as we record sweeps on",
+            "broadcast, not confirmation.",
+        },
+        Req: mkwalletrpc_ListSweepsRequest(),
+        Res: mkwalletrpc_ListSweepsResponse(),
+    }
+}
+func WalletKit_LabelTransaction() Method {
+    return Method{
+        Name: "LabelTransaction",
+        Service: "WalletKit",
+        Description: []string{
+            "LabelTransaction adds a label to a transaction. If the transaction already",
+            "has a label the call will fail unless the overwrite bool is set. This will",
+            "overwrite the exiting transaction label. Labels must not be empty, and",
+            "cannot exceed 500 characters.",
+        },
+        Req: mkwalletrpc_LabelTransactionRequest(),
+        Res: mkwalletrpc_LabelTransactionResponse(),
+    }
+}
+func WalletKit_FundPsbt() Method {
+    return Method{
+        Name: "FundPsbt",
+        Service: "WalletKit",
+        Description: []string{
+            "FundPsbt creates a fully populated PSBT that contains enough inputs to fund",
+            "the outputs specified in the template. There are two ways of specifying a",
+            "template: Either by passing in a PSBT with at least one output declared or",
+            "by passing in a raw TxTemplate message.",
+            "",
+            "If there are no inputs specified in the template, coin selection is",
+            "performed automatically. If the template does contain any inputs, it is",
+            "assumed that full coin selection happened externally and no additional",
+            "inputs are added. If the specified inputs aren't enough to fund the outputs",
+            "with the given fee rate, an error is returned.",
+            "",
+            "After either selecting or verifying the inputs, all input UTXOs are locked",
+            "with an internal app ID.",
+            "",
+            "NOTE: If this method returns without an error, it is the caller's",
+            "responsibility to either spend the locked UTXOs (by finalizing and then",
+            "publishing the transaction) or to unlock/release the locked UTXOs in case of",
+            "an error on the caller's side.",
+        },
+        Req: mkwalletrpc_FundPsbtRequest(),
+        Res: mkwalletrpc_FundPsbtResponse(),
+    }
+}
+func WalletKit_FinalizePsbt() Method {
+    return Method{
+        Name: "FinalizePsbt",
+        Service: "WalletKit",
+        Description: []string{
+            "FinalizePsbt expects a partial transaction with all inputs and outputs fully",
+            "declared and tries to sign all inputs that belong to the wallet. Lnd must be",
+            "the last signer of the transaction. That means, if there are any unsigned",
+            "non-witness inputs or inputs without UTXO information attached or inputs",
+            "without witness data that do not belong to lnd's wallet, this method will",
+            "fail. If no error is returned, the PSBT is ready to be extracted and the",
+            "final TX within to be broadcast.",
+            "",
+            "NOTE: This method does NOT publish the transaction once finalized. It is the",
+            "caller's responsibility to either publish the transaction on success or",
+            "unlock/release any locked UTXOs in case of an error in this method.",
+        },
+        Req: mkwalletrpc_FinalizePsbtRequest(),
+        Res: mkwalletrpc_FinalizePsbtResponse(),
+    }
+}
+func Watchtower_GetInfo() Method {
+    return Method{
+        Name: "GetInfo",
+        Service: "Watchtower",
+        Description: []string{
+            "lncli: tower info",
+            "GetInfo returns general information concerning the companion watchtower",
+            "including its public key and URIs where the server is currently",
+            "listening for clients.",
+        },
+        Req: mkwatchtowerrpc_GetInfoRequest(),
+        Res: mkwatchtowerrpc_GetInfoResponse(),
+    }
+}
+func WatchtowerClient_AddTower() Method {
+    return Method{
+        Name: "AddTower",
+        Service: "WatchtowerClient",
+        Description: []string{
+            "AddTower adds a new watchtower reachable at the given address and",
+            "considers it for new sessions. If the watchtower already exists, then",
+            "any new addresses included will be considered when dialing it for",
+            "session negotiations and backups.",
+        },
+        Req: mkwtclientrpc_AddTowerRequest(),
+        Res: mkwtclientrpc_AddTowerResponse(),
+    }
+}
+func WatchtowerClient_RemoveTower() Method {
+    return Method{
+        Name: "RemoveTower",
+        Service: "WatchtowerClient",
+        Description: []string{
+            "RemoveTower removes a watchtower from being considered for future session",
+            "negotiations and from being used for any subsequent backups until it's added",
+            "again. If an address is provided, then this RPC only serves as a way of",
+            "removing the address from the watchtower instead.",
+        },
+        Req: mkwtclientrpc_RemoveTowerRequest(),
+        Res: mkwtclientrpc_RemoveTowerResponse(),
+    }
+}
+func WatchtowerClient_ListTowers() Method {
+    return Method{
+        Name: "ListTowers",
+        Service: "WatchtowerClient",
+        Description: []string{
+            "ListTowers returns the list of watchtowers registered with the client.",
+        },
+        Req: mkwtclientrpc_ListTowersRequest(),
+        Res: mkwtclientrpc_ListTowersResponse(),
+    }
+}
+func WatchtowerClient_GetTowerInfo() Method {
+    return Method{
+        Name: "GetTowerInfo",
+        Service: "WatchtowerClient",
+        Description: []string{
+            "GetTowerInfo retrieves information for a registered watchtower.",
+        },
+        Req: mkwtclientrpc_GetTowerInfoRequest(),
+        Res: mkwtclientrpc_Tower(),
+    }
+}
+func WatchtowerClient_Stats() Method {
+    return Method{
+        Name: "Stats",
+        Service: "WatchtowerClient",
+        Description: []string{
+            "Stats returns the in-memory statistics of the client since startup.",
+        },
+        Req: mkwtclientrpc_StatsRequest(),
+        Res: mkwtclientrpc_StatsResponse(),
+    }
+}
+func WatchtowerClient_Policy() Method {
+    return Method{
+        Name: "Policy",
+        Service: "WatchtowerClient",
+        Description: []string{
+            "Policy returns the active watchtower client policy configuration.",
+        },
+        Req: mkwtclientrpc_PolicyRequest(),
+        Res: mkwtclientrpc_PolicyResponse(),
+    }
+}
+func MetaService_GetInfo2() Method {
+    return Method{
+        Name: "GetInfo2",
+        Service: "MetaService",
+        Req: mklnrpc_GetInfo2Request(),
+        Res: mklnrpc_GetInfo2Response(),
+    }
+}
+func MetaService_ChangePassword() Method {
+    return Method{
+        Name: "ChangePassword",
+        Service: "MetaService",
+        Req: mklnrpc_ChangePasswordRequest(),
+        Res: mklnrpc_ChangePasswordResponse(),
     }
 }
 func Lightning_WalletBalance() Method {
@@ -12219,350 +12735,6 @@ func Lightning_SendFrom() Method {
         Res: mklnrpc_SendFromResponse(),
     }
 }
-func Signer_SignOutputRaw() Method {
-    return Method{
-        Name: "SignOutputRaw",
-        Service: "Signer",
-        Description: []string{
-            "SignOutputRaw is a method that can be used to generated a signature for a",
-            "set of inputs/outputs to a transaction. Each request specifies details",
-            "concerning how the outputs should be signed, which keys they should be",
-            "signed with, and also any optional tweaks. The return value is a fixed",
-            "64-byte signature (the same format as we use on the wire in Lightning).",
-            "",
-            "If we are  unable to sign using the specified keys, then an error will be",
-            "returned.",
-        },
-        Req: mksignrpc_SignReq(),
-        Res: mksignrpc_SignResp(),
-    }
-}
-func Signer_ComputeInputScript() Method {
-    return Method{
-        Name: "ComputeInputScript",
-        Service: "Signer",
-        Description: []string{
-            "ComputeInputScript generates a complete InputIndex for the passed",
-            "transaction with the signature as defined within the passed SignDescriptor.",
-            "This method should be capable of generating the proper input script for",
-            "both regular p2wkh output and p2wkh outputs nested within a regular p2sh",
-            "output.",
-            "",
-            "Note that when using this method to sign inputs belonging to the wallet,",
-            "the only items of the SignDescriptor that need to be populated are pkScript",
-            "in the TxOut field, the value in that same field, and finally the input",
-            "index.",
-        },
-        Req: mksignrpc_SignReq(),
-        Res: mksignrpc_InputScriptResp(),
-    }
-}
-func Signer_SignMessage() Method {
-    return Method{
-        Name: "SignMessage",
-        Service: "Signer",
-        Description: []string{
-            "SignMessage signs a message with the key specified in the key locator. The",
-            "returned signature is fixed-size LN wire format encoded.",
-            "",
-            "The main difference to SignMessage in the main RPC is that a specific key is",
-            "used to sign the message instead of the node identity private key.",
-        },
-        Req: mksignrpc_SignMessageReq(),
-        Res: mksignrpc_SignMessageResp(),
-    }
-}
-func Signer_VerifyMessage() Method {
-    return Method{
-        Name: "VerifyMessage",
-        Service: "Signer",
-        Description: []string{
-            "VerifyMessage verifies a signature over a message using the public key",
-            "provided. The signature must be fixed-size LN wire format encoded.",
-            "",
-            "The main difference to VerifyMessage in the main RPC is that the public key",
-            "used to sign the message does not have to be a node known to the network.",
-        },
-        Req: mksignrpc_VerifyMessageReq(),
-        Res: mksignrpc_VerifyMessageResp(),
-    }
-}
-func Signer_DeriveSharedKey() Method {
-    return Method{
-        Name: "DeriveSharedKey",
-        Service: "Signer",
-        Description: []string{
-            "DeriveSharedKey returns a shared secret key by performing Diffie-Hellman key",
-            "derivation between the ephemeral public key in the request and the node's",
-            "key specified in the key_desc parameter. Either a key locator or a raw",
-            "public key is expected in the key_desc, if neither is supplied, defaults to",
-            "the node's identity private key:",
-            "P_shared = privKeyNode * ephemeralPubkey",
-            "The resulting shared public key is serialized in the compressed format and",
-            "hashed with sha256, resulting in the final key length of 256bit.",
-        },
-        Req: mksignrpc_SharedKeyRequest(),
-        Res: mksignrpc_SharedKeyResponse(),
-    }
-}
-func Versioner_GetVersion() Method {
-    return Method{
-        Name: "GetVersion",
-        Service: "Versioner",
-        Description: []string{
-            "pldctl: `version`",
-            "GetVersion returns the current version and build information of the running",
-            "daemon.",
-        },
-        Req: mkverrpc_VersionRequest(),
-        Res: mkverrpc_Version(),
-    }
-}
-func WalletKit_ListUnspent() Method {
-    return Method{
-        Name: "ListUnspent",
-        Service: "WalletKit",
-        Description: []string{
-            "ListUnspent returns a list of all utxos spendable by the wallet with a",
-            "number of confirmations between the specified minimum and maximum.",
-        },
-        Req: mkwalletrpc_ListUnspentRequest(),
-        Res: mkwalletrpc_ListUnspentResponse(),
-    }
-}
-func WalletKit_LeaseOutput() Method {
-    return Method{
-        Name: "LeaseOutput",
-        Service: "WalletKit",
-        Description: []string{
-            "LeaseOutput locks an output to the given ID, preventing it from being",
-            "available for any future coin selection attempts. The absolute time of the",
-            "lock's expiration is returned. The expiration of the lock can be extended by",
-            "successive invocations of this RPC. Outputs can be unlocked before their",
-            "expiration through `ReleaseOutput`.",
-        },
-        Req: mkwalletrpc_LeaseOutputRequest(),
-        Res: mkwalletrpc_LeaseOutputResponse(),
-    }
-}
-func WalletKit_ReleaseOutput() Method {
-    return Method{
-        Name: "ReleaseOutput",
-        Service: "WalletKit",
-        Description: []string{
-            "ReleaseOutput unlocks an output, allowing it to be available for coin",
-            "selection if it remains unspent. The ID should match the one used to",
-            "originally lock the output.",
-        },
-        Req: mkwalletrpc_ReleaseOutputRequest(),
-        Res: mkwalletrpc_ReleaseOutputResponse(),
-    }
-}
-func WalletKit_DeriveNextKey() Method {
-    return Method{
-        Name: "DeriveNextKey",
-        Service: "WalletKit",
-        Description: []string{
-            "DeriveNextKey attempts to derive the *next* key within the key family",
-            "(account in BIP43) specified. This method should return the next external",
-            "child within this branch.",
-        },
-        Req: mkwalletrpc_KeyReq(),
-        Res: mksignrpc_KeyDescriptor(),
-    }
-}
-func WalletKit_DeriveKey() Method {
-    return Method{
-        Name: "DeriveKey",
-        Service: "WalletKit",
-        Description: []string{
-            "DeriveKey attempts to derive an arbitrary key specified by the passed",
-            "KeyLocator.",
-        },
-        Req: mksignrpc_KeyLocator(),
-        Res: mksignrpc_KeyDescriptor(),
-    }
-}
-func WalletKit_NextAddr() Method {
-    return Method{
-        Name: "NextAddr",
-        Service: "WalletKit",
-        Description: []string{
-            "NextAddr returns the next unused address within the wallet.",
-        },
-        Req: mkwalletrpc_AddrRequest(),
-        Res: mkwalletrpc_AddrResponse(),
-    }
-}
-func WalletKit_PublishTransaction() Method {
-    return Method{
-        Name: "PublishTransaction",
-        Service: "WalletKit",
-        Description: []string{
-            "PublishTransaction attempts to publish the passed transaction to the",
-            "network. Once this returns without an error, the wallet will continually",
-            "attempt to re-broadcast the transaction on start up, until it enters the",
-            "chain.",
-        },
-        Req: mkwalletrpc_Transaction(),
-        Res: mkwalletrpc_PublishResponse(),
-    }
-}
-func WalletKit_SendOutputs() Method {
-    return Method{
-        Name: "SendOutputs",
-        Service: "WalletKit",
-        Description: []string{
-            "SendOutputs is similar to the existing sendmany call in Bitcoind, and",
-            "allows the caller to create a transaction that sends to several outputs at",
-            "once. This is ideal when wanting to batch create a set of transactions.",
-        },
-        Req: mkwalletrpc_SendOutputsRequest(),
-        Res: mkwalletrpc_SendOutputsResponse(),
-    }
-}
-func WalletKit_EstimateFee() Method {
-    return Method{
-        Name: "EstimateFee",
-        Service: "WalletKit",
-        Description: []string{
-            "EstimateFee attempts to query the internal fee estimator of the wallet to",
-            "determine the fee (in sat/kw) to attach to a transaction in order to",
-            "achieve the confirmation target.",
-        },
-        Req: mkwalletrpc_EstimateFeeRequest(),
-        Res: mkwalletrpc_EstimateFeeResponse(),
-    }
-}
-func WalletKit_PendingSweeps() Method {
-    return Method{
-        Name: "PendingSweeps",
-        Service: "WalletKit",
-        Description: []string{
-            "PendingSweeps returns lists of on-chain outputs that lnd is currently",
-            "attempting to sweep within its central batching engine. Outputs with similar",
-            "fee rates are batched together in order to sweep them within a single",
-            "transaction.",
-            "",
-            "NOTE: Some of the fields within PendingSweepsRequest are not guaranteed to",
-            "remain supported. This is an advanced API that depends on the internals of",
-            "the UtxoSweeper, so things may change.",
-        },
-        Req: mkwalletrpc_PendingSweepsRequest(),
-        Res: mkwalletrpc_PendingSweepsResponse(),
-    }
-}
-func WalletKit_BumpFee() Method {
-    return Method{
-        Name: "BumpFee",
-        Service: "WalletKit",
-        Description: []string{
-            "BumpFee bumps the fee of an arbitrary input within a transaction. This RPC",
-            "takes a different approach than bitcoind's bumpfee command. lnd has a",
-            "central batching engine in which inputs with similar fee rates are batched",
-            "together to save on transaction fees. Due to this, we cannot rely on",
-            "bumping the fee on a specific transaction, since transactions can change at",
-            "any point with the addition of new inputs. The list of inputs that",
-            "currently exist within lnd's central batching engine can be retrieved",
-            "through the PendingSweeps RPC.",
-            "",
-            "When bumping the fee of an input that currently exists within lnd's central",
-            "batching engine, a higher fee transaction will be created that replaces the",
-            "lower fee transaction through the Replace-By-Fee (RBF) policy. If it",
-            "",
-            "This RPC also serves useful when wanting to perform a Child-Pays-For-Parent",
-            "(CPFP), where the child transaction pays for its parent's fee. This can be",
-            "done by specifying an outpoint within the low fee transaction that is under",
-            "the control of the wallet.",
-            "",
-            "The fee preference can be expressed either as a specific fee rate or a delta",
-            "of blocks in which the output should be swept on-chain within. If a fee",
-            "preference is not explicitly specified, then an error is returned.",
-            "",
-            "Note that this RPC currently doesn't perform any validation checks on the",
-            "fee preference being provided. For now, the responsibility of ensuring that",
-            "the new fee preference is sufficient is delegated to the user.",
-        },
-        Req: mkwalletrpc_BumpFeeRequest(),
-        Res: mkwalletrpc_BumpFeeResponse(),
-    }
-}
-func WalletKit_ListSweeps() Method {
-    return Method{
-        Name: "ListSweeps",
-        Service: "WalletKit",
-        Description: []string{
-            "ListSweeps returns a list of the sweep transactions our node has produced.",
-            "Note that these sweeps may not be confirmed yet, as we record sweeps on",
-            "broadcast, not confirmation.",
-        },
-        Req: mkwalletrpc_ListSweepsRequest(),
-        Res: mkwalletrpc_ListSweepsResponse(),
-    }
-}
-func WalletKit_LabelTransaction() Method {
-    return Method{
-        Name: "LabelTransaction",
-        Service: "WalletKit",
-        Description: []string{
-            "LabelTransaction adds a label to a transaction. If the transaction already",
-            "has a label the call will fail unless the overwrite bool is set. This will",
-            "overwrite the exiting transaction label. Labels must not be empty, and",
-            "cannot exceed 500 characters.",
-        },
-        Req: mkwalletrpc_LabelTransactionRequest(),
-        Res: mkwalletrpc_LabelTransactionResponse(),
-    }
-}
-func WalletKit_FundPsbt() Method {
-    return Method{
-        Name: "FundPsbt",
-        Service: "WalletKit",
-        Description: []string{
-            "FundPsbt creates a fully populated PSBT that contains enough inputs to fund",
-            "the outputs specified in the template. There are two ways of specifying a",
-            "template: Either by passing in a PSBT with at least one output declared or",
-            "by passing in a raw TxTemplate message.",
-            "",
-            "If there are no inputs specified in the template, coin selection is",
-            "performed automatically. If the template does contain any inputs, it is",
-            "assumed that full coin selection happened externally and no additional",
-            "inputs are added. If the specified inputs aren't enough to fund the outputs",
-            "with the given fee rate, an error is returned.",
-            "",
-            "After either selecting or verifying the inputs, all input UTXOs are locked",
-            "with an internal app ID.",
-            "",
-            "NOTE: If this method returns without an error, it is the caller's",
-            "responsibility to either spend the locked UTXOs (by finalizing and then",
-            "publishing the transaction) or to unlock/release the locked UTXOs in case of",
-            "an error on the caller's side.",
-        },
-        Req: mkwalletrpc_FundPsbtRequest(),
-        Res: mkwalletrpc_FundPsbtResponse(),
-    }
-}
-func WalletKit_FinalizePsbt() Method {
-    return Method{
-        Name: "FinalizePsbt",
-        Service: "WalletKit",
-        Description: []string{
-            "FinalizePsbt expects a partial transaction with all inputs and outputs fully",
-            "declared and tries to sign all inputs that belong to the wallet. Lnd must be",
-            "the last signer of the transaction. That means, if there are any unsigned",
-            "non-witness inputs or inputs without UTXO information attached or inputs",
-            "without witness data that do not belong to lnd's wallet, this method will",
-            "fail. If no error is returned, the PSBT is ready to be extracted and the",
-            "final TX within to be broadcast.",
-            "",
-            "NOTE: This method does NOT publish the transaction once finalized. It is the",
-            "caller's responsibility to either publish the transaction on success or",
-            "unlock/release any locked UTXOs in case of an error in this method.",
-        },
-        Req: mkwalletrpc_FinalizePsbtRequest(),
-        Res: mkwalletrpc_FinalizePsbtResponse(),
-    }
-}
 func WalletUnlocker_GenSeed() Method {
     return Method{
         Name: "GenSeed",
@@ -12614,91 +12786,5 @@ func WalletUnlocker_UnlockWallet() Method {
         },
         Req: mklnrpc_UnlockWalletRequest(),
         Res: mklnrpc_UnlockWalletResponse(),
-    }
-}
-func Watchtower_GetInfo() Method {
-    return Method{
-        Name: "GetInfo",
-        Service: "Watchtower",
-        Description: []string{
-            "lncli: tower info",
-            "GetInfo returns general information concerning the companion watchtower",
-            "including its public key and URIs where the server is currently",
-            "listening for clients.",
-        },
-        Req: mkwatchtowerrpc_GetInfoRequest(),
-        Res: mkwatchtowerrpc_GetInfoResponse(),
-    }
-}
-func WatchtowerClient_AddTower() Method {
-    return Method{
-        Name: "AddTower",
-        Service: "WatchtowerClient",
-        Description: []string{
-            "AddTower adds a new watchtower reachable at the given address and",
-            "considers it for new sessions. If the watchtower already exists, then",
-            "any new addresses included will be considered when dialing it for",
-            "session negotiations and backups.",
-        },
-        Req: mkwtclientrpc_AddTowerRequest(),
-        Res: mkwtclientrpc_AddTowerResponse(),
-    }
-}
-func WatchtowerClient_RemoveTower() Method {
-    return Method{
-        Name: "RemoveTower",
-        Service: "WatchtowerClient",
-        Description: []string{
-            "RemoveTower removes a watchtower from being considered for future session",
-            "negotiations and from being used for any subsequent backups until it's added",
-            "again. If an address is provided, then this RPC only serves as a way of",
-            "removing the address from the watchtower instead.",
-        },
-        Req: mkwtclientrpc_RemoveTowerRequest(),
-        Res: mkwtclientrpc_RemoveTowerResponse(),
-    }
-}
-func WatchtowerClient_ListTowers() Method {
-    return Method{
-        Name: "ListTowers",
-        Service: "WatchtowerClient",
-        Description: []string{
-            "ListTowers returns the list of watchtowers registered with the client.",
-        },
-        Req: mkwtclientrpc_ListTowersRequest(),
-        Res: mkwtclientrpc_ListTowersResponse(),
-    }
-}
-func WatchtowerClient_GetTowerInfo() Method {
-    return Method{
-        Name: "GetTowerInfo",
-        Service: "WatchtowerClient",
-        Description: []string{
-            "GetTowerInfo retrieves information for a registered watchtower.",
-        },
-        Req: mkwtclientrpc_GetTowerInfoRequest(),
-        Res: mkwtclientrpc_Tower(),
-    }
-}
-func WatchtowerClient_Stats() Method {
-    return Method{
-        Name: "Stats",
-        Service: "WatchtowerClient",
-        Description: []string{
-            "Stats returns the in-memory statistics of the client since startup.",
-        },
-        Req: mkwtclientrpc_StatsRequest(),
-        Res: mkwtclientrpc_StatsResponse(),
-    }
-}
-func WatchtowerClient_Policy() Method {
-    return Method{
-        Name: "Policy",
-        Service: "WatchtowerClient",
-        Description: []string{
-            "Policy returns the active watchtower client policy configuration.",
-        },
-        Req: mkwtclientrpc_PolicyRequest(),
-        Res: mkwtclientrpc_PolicyResponse(),
     }
 }

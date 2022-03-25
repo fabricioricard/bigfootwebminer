@@ -79,7 +79,8 @@ func webSocketHandler(ctx *RpcContext, httpResponse http.ResponseWriter, httpReq
 					valueMessage, _ = valueProto.Interface().(proto.Message)
 
 					//	unmarshal the request value
-					err = jsonpb.Unmarshal(bytes.NewReader(webSocketReq.Payload.Value), valueMessage)
+					//err = jsonpb.Unmarshal(bytes.NewReader(webSocketReq.Payload.Value), valueMessage)
+					err = jsonpb.Unmarshal(bytes.NewReader(webSocketReq.Payload), valueMessage)
 					if err != nil {
 						wsConn.WriteErrorMessage(webSocketReq.GetRequestId(), "Error unmarshaling the request value message", err)
 						break
@@ -118,13 +119,21 @@ type websocketConn websocket.Conn
 func (conn *websocketConn) WriteMessage(requestId string, response []byte) {
 
 	//	valid response message
+	/*
+		var responseMsg = &WebSocketResponse{
+			RequestId: requestId,
+			Payload: &WebSocketResponse_Ok{
+				Ok: &anypb.Any{
+					TypeUrl: "ws",
+					Value:   response,
+				},
+			},
+		}
+	*/
 	var responseMsg = &WebSocketResponse{
 		RequestId: requestId,
 		Payload: &WebSocketResponse_Ok{
-			Ok: &Any{
-				TypeUrl: "ws",
-				Value:   response,
-			},
+			Ok: response,
 		},
 	}
 

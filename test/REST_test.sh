@@ -22,6 +22,7 @@ executeCommand() {
     LIGHTGRAY='\033[0;37m'
     NOCOLOR='\033[0m'
 
+    #   curl -X POST -H 'Content-Type: application/json' -d '{ "wallet_passphrase": "w4ll3tP@sswd" }' --write-out '|%{response_code}' 'localhost:8080/api/v1/wallet/unlock'
     if [ "${HTTP_METHOD}" == "GET" ]
     then
         if [ "${VERBOSE}" == 'true' ]

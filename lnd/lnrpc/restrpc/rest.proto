@@ -68,7 +68,7 @@ message WebSocketError {
     Error error = 2;
 }
 
-message WebSocketRequest {
+message WebSocketJSonRequest {
     // The rest endpoint to send the request to
     string endpoint = 1;
     // An arbitrary string which will be reflected back in the response
@@ -81,7 +81,30 @@ message WebSocketRequest {
     bytes payload = 4;
 }
 
-message WebSocketResponse {
+message WebSocketJSonResponse {
+    string request_id = 1;
+    bool has_more = 2;
+    oneof payload {
+        //google.protobuf.Any ok = 3;
+        bytes ok = 3;
+        WebSocketError error = 4;
+    };
+}
+
+message WebSocketProtobufRequest {
+    // The rest endpoint to send the request to
+    string endpoint = 1;
+    // An arbitrary string which will be reflected back in the response
+    string request_id = 2;
+
+    bool has_more = 3;
+    // The data to post to the REST endpoint, if any.
+    // Make sure this is the correct data structure based on the endpoint you are posting to.
+    //  google.protobuf.Any payload = 4;
+    bytes payload = 4;
+}
+
+message WebSocketJSonProtobufResponse {
     string request_id = 1;
     bool has_more = 2;
     oneof payload {

@@ -19,6 +19,8 @@ import (
 	"google.golang.org/protobuf/runtime/protoiface"
 )
 
+type websocketConn websocket.Conn
+
 var upgrader = websocket.Upgrader{}
 
 func webSocketHandler(ctx *RpcContext, httpResponse http.ResponseWriter, httpRequest *http.Request) {
@@ -41,98 +43,99 @@ func webSocketHandler(ctx *RpcContext, httpResponse http.ResponseWriter, httpReq
 			return
 		}
 
-		//	expected message is a text/jSon
-		if msgType != websocket.TextMessage {
-			wsConn.WriteErrorMessage("", "Expecting a text/json request message", nil)
-			continue
-		}
+		//	handle the messages according to it's type
+		switch msgType {
 
-		//	reflect the webSocket request protobuf type
-		var webSocketReqProto proto.Message = (*WebSocketRequest)(nil)
+		case websocket.TextMessage:
+			wsConn.HandleJsonMessage(ctx, message)
 
-		webSocketProto := reflect.New(reflect.TypeOf(webSocketReqProto).Elem())
-		reqMessage, _ := webSocketProto.Interface().(proto.Message)
+		case websocket.BinaryMessage:
+			wsConn.HandleProtobufMessage(ctx, message)
 
-		//	unmarshal the request message
-		err = jsonpb.Unmarshal(bytes.NewReader(message), reqMessage)
-		if err != nil {
-			wsConn.WriteErrorMessage("", "Error unmarshaling the request message", err)
-			continue
-		}
-
-		webSocketReq, ok := reqMessage.(*WebSocketRequest)
-		if !ok {
-			wsConn.WriteErrorMessage(webSocketReq.GetRequestId(), "Request message is not a WebSocketRequest", nil)
-			continue
-		}
-
-		//	based on the endpoint, find the appropriate handler for the message request
-		var endpoint = strings.TrimPrefix(webSocketReq.GetEndpoint(), URI_prefix)
-
-		for _, rpcFunc := range rpcFunctions {
-			if endpoint == rpcFunc.path {
-				var valueMessage protoiface.MessageV1 = nil
-
-				if rpcFunc.req != nil {
-					//	reflect the request value protobuf type
-					valueProto := reflect.New(reflect.TypeOf(rpcFunc.req).Elem())
-					valueMessage, _ = valueProto.Interface().(proto.Message)
-
-					//	unmarshal the request value
-					//err = jsonpb.Unmarshal(bytes.NewReader(webSocketReq.Payload.Value), valueMessage)
-					err = jsonpb.Unmarshal(bytes.NewReader(webSocketReq.Payload), valueMessage)
-					if err != nil {
-						wsConn.WriteErrorMessage(webSocketReq.GetRequestId(), "Error unmarshaling the request value message", err)
-						break
-					}
-				}
-
-				//	invoke the RPC message handler
-				responseMessage, errr := rpcFunc.f(ctx, valueMessage)
-				if errr != nil {
-					wsConn.WriteErrorMessage(webSocketReq.GetRequestId(), "Error handling the request value message", errr.Native())
-				}
-
-				//	marshal the response message
-				marshaler := jsonpb.Marshaler{
-					OrigName:     false,
-					EnumsAsInts:  false,
-					EmitDefaults: true,
-					Indent:       "    ",
-				}
-
-				resp, err := marshaler.MarshalToString(responseMessage)
-				if err != nil {
-					wsConn.WriteErrorMessage(webSocketReq.GetRequestId(), "Error marshaling the response value message", err)
-					break
-				}
-
-				//	write the result message to the webSocket client
-				wsConn.WriteMessage(webSocketReq.GetRequestId(), []byte(resp))
-			}
+		default:
+			wsConn.WriteErrorMessage("", "Expecting a text/json or binary/protobuf request message", nil)
 		}
 	}
 }
 
-type websocketConn websocket.Conn
+func (conn *websocketConn) HandleJsonMessage(ctx *RpcContext, jsonMessage []byte) {
+
+	//	reflect the webSocket request protobuf type
+	var webSocketReqProto proto.Message = (*WebSocketJSonRequest)(nil)
+
+	webSocketProto := reflect.New(reflect.TypeOf(webSocketReqProto).Elem())
+	reqMessage, _ := webSocketProto.Interface().(proto.Message)
+
+	//	unmarshal the request message
+	err := jsonpb.Unmarshal(bytes.NewReader(jsonMessage), reqMessage)
+	if err != nil {
+		conn.WriteErrorMessage("", "Error unmarshaling the request message", err)
+		return
+	}
+
+	webSocketReq, ok := reqMessage.(*WebSocketJSonRequest)
+	if !ok {
+		conn.WriteErrorMessage(webSocketReq.GetRequestId(), "Request message is not a WebSocketRequest", nil)
+		return
+	}
+
+	//	based on the endpoint, find the appropriate handler for the message request
+	var endpoint = strings.TrimPrefix(webSocketReq.GetEndpoint(), URI_prefix)
+
+	for _, rpcFunc := range rpcFunctions {
+		if endpoint == rpcFunc.path {
+			var valueMessage protoiface.MessageV1 = nil
+
+			if rpcFunc.req != nil {
+				//	reflect the request value protobuf type
+				valueProto := reflect.New(reflect.TypeOf(rpcFunc.req).Elem())
+				valueMessage, _ = valueProto.Interface().(proto.Message)
+
+				//	unmarshal the request value
+				err = jsonpb.Unmarshal(bytes.NewReader(webSocketReq.Payload), valueMessage)
+				if err != nil {
+					conn.WriteErrorMessage(webSocketReq.GetRequestId(), "Error unmarshaling the request value message", err)
+					break
+				}
+			}
+
+			//	invoke the RPC message handler
+			responseMessage, errr := rpcFunc.f(ctx, valueMessage)
+			if errr != nil {
+				conn.WriteErrorMessage(webSocketReq.GetRequestId(), "Error handling the request value message", errr.Native())
+				break
+			}
+
+			//	marshal the response message
+			marshaler := jsonpb.Marshaler{
+				OrigName:     false,
+				EnumsAsInts:  false,
+				EmitDefaults: true,
+				Indent:       "    ",
+			}
+
+			resp, err := marshaler.MarshalToString(responseMessage)
+			if err != nil {
+				conn.WriteErrorMessage(webSocketReq.GetRequestId(), "Error marshaling the response value message", err)
+				break
+			}
+
+			//	write the result message to the webSocket client
+			conn.WriteMessage(webSocketReq.GetRequestId(), []byte(resp))
+			break
+		}
+	}
+}
+
+func (conn *websocketConn) HandleProtobufMessage(ctx *RpcContext, jsonMessage []byte) {
+}
 
 func (conn *websocketConn) WriteMessage(requestId string, response []byte) {
 
 	//	valid response message
-	/*
-		var responseMsg = &WebSocketResponse{
-			RequestId: requestId,
-			Payload: &WebSocketResponse_Ok{
-				Ok: &anypb.Any{
-					TypeUrl: "ws",
-					Value:   response,
-				},
-			},
-		}
-	*/
-	var responseMsg = &WebSocketResponse{
+	var responseMsg = &WebSocketJSonResponse{
 		RequestId: requestId,
-		Payload: &WebSocketResponse_Ok{
+		Payload: &WebSocketJSonResponse_Ok{
 			Ok: response,
 		},
 	}
@@ -161,13 +164,13 @@ func (conn *websocketConn) WriteMessage(requestId string, response []byte) {
 func (conn *websocketConn) WriteErrorMessage(requestId string, errorMsg string, err error) {
 
 	//	error response message
-	var errorResponseMsg = &WebSocketResponse{
+	var errorResponseMsg = &WebSocketJSonResponse{
 		RequestId: requestId,
-		Payload:   &WebSocketResponse_Error{},
+		Payload:   &WebSocketJSonResponse_Error{},
 	}
 
 	if err == nil {
-		errorResponseMsg.Payload = &WebSocketResponse_Error{
+		errorResponseMsg.Payload = &WebSocketJSonResponse_Error{
 			Error: &WebSocketError{
 				HttpCode: 500,
 				Error: &Error{
@@ -176,7 +179,7 @@ func (conn *websocketConn) WriteErrorMessage(requestId string, errorMsg string, 
 			},
 		}
 	} else {
-		errorResponseMsg.Payload = &WebSocketResponse_Error{
+		errorResponseMsg.Payload = &WebSocketJSonResponse_Error{
 			Error: &WebSocketError{
 				HttpCode: 500,
 				Error: &Error{

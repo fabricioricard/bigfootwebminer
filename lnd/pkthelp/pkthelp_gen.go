@@ -10934,9 +10934,35 @@ func mkrestrpc_WebSocketError() Type {
         },
     }
 }
-func mkrestrpc_WebSocketRequest() Type {
+func mkrestrpc_WebSocketJSonProtobufResponse() Type {
     return Type{
-        Name: "restrpc_WebSocketRequest",
+        Name: "restrpc_WebSocketJSonProtobufResponse",
+        Fields: []Field{
+            {
+                Name: "request_id",
+                Type: mkstring(),
+            },
+            {
+                Name: "has_more",
+                Type: mkbool(),
+            },
+            {
+                Name: "ok",
+                Description: []string{
+                    "google.protobuf.Any ok = 3;",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "error",
+                Type: mkrestrpc_WebSocketError(),
+            },
+        },
+    }
+}
+func mkrestrpc_WebSocketJSonRequest() Type {
+    return Type{
+        Name: "restrpc_WebSocketJSonRequest",
         Fields: []Field{
             {
                 Name: "endpoint",
@@ -10968,9 +10994,9 @@ func mkrestrpc_WebSocketRequest() Type {
         },
     }
 }
-func mkrestrpc_WebSocketResponse() Type {
+func mkrestrpc_WebSocketJSonResponse() Type {
     return Type{
-        Name: "restrpc_WebSocketResponse",
+        Name: "restrpc_WebSocketJSonResponse",
         Fields: []Field{
             {
                 Name: "request_id",
@@ -10990,6 +11016,40 @@ func mkrestrpc_WebSocketResponse() Type {
             {
                 Name: "error",
                 Type: mkrestrpc_WebSocketError(),
+            },
+        },
+    }
+}
+func mkrestrpc_WebSocketProtobufRequest() Type {
+    return Type{
+        Name: "restrpc_WebSocketProtobufRequest",
+        Fields: []Field{
+            {
+                Name: "endpoint",
+                Description: []string{
+                    "The rest endpoint to send the request to",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "request_id",
+                Description: []string{
+                    "An arbitrary string which will be reflected back in the response",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "has_more",
+                Type: mkbool(),
+            },
+            {
+                Name: "payload",
+                Description: []string{
+                    "The data to post to the REST endpoint, if any.",
+                    "Make sure this is the correct data structure based on the endpoint you are posting to.",
+                    " google.protobuf.Any payload = 4;",
+                },
+                Type: mkbytes(),
             },
         },
     }

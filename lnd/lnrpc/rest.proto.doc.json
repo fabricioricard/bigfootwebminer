@@ -456,9 +456,69 @@
           ]
         },
         {
-          "name": "WebSocketRequest",
-          "longName": "WebSocketRequest",
-          "fullName": "restrpc.WebSocketRequest",
+          "name": "WebSocketJSonProtobufResponse",
+          "longName": "WebSocketJSonProtobufResponse",
+          "fullName": "restrpc.WebSocketJSonProtobufResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "request_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "has_more",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "ok",
+              "description": "google.protobuf.Any ok = 3;",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "payload",
+              "defaultValue": ""
+            },
+            {
+              "name": "error",
+              "description": "",
+              "label": "",
+              "type": "WebSocketError",
+              "longType": "WebSocketError",
+              "fullType": "restrpc.WebSocketError",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "payload",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "WebSocketJSonRequest",
+          "longName": "WebSocketJSonRequest",
+          "fullName": "restrpc.WebSocketJSonRequest",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -516,9 +576,9 @@
           ]
         },
         {
-          "name": "WebSocketResponse",
-          "longName": "WebSocketResponse",
-          "fullName": "restrpc.WebSocketResponse",
+          "name": "WebSocketJSonResponse",
+          "longName": "WebSocketJSonResponse",
+          "fullName": "restrpc.WebSocketJSonResponse",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -571,6 +631,66 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "payload",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "WebSocketProtobufRequest",
+          "longName": "WebSocketProtobufRequest",
+          "fullName": "restrpc.WebSocketProtobufRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "endpoint",
+              "description": "The rest endpoint to send the request to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "request_id",
+              "description": "An arbitrary string which will be reflected back in the response",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "has_more",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "payload",
+              "description": "The data to post to the REST endpoint, if any.\nMake sure this is the correct data structure based on the endpoint you are posting to.\n google.protobuf.Any payload = 4;",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

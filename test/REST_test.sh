@@ -7,6 +7,7 @@
 export  PLD_REST_SERVER='http://localhost:8080'
 export  REST_ERRORS_FILE='./rest.err'
 export  JSON_OUTPUT=''
+export  WALLET_PASSPHRASE='w4ll3tP@sswd'
 export  VERBOSE='false'
 
 #   use curl to execute a command
@@ -37,6 +38,10 @@ executeCommand() {
         fi
 
         JSON_OUTPUT=$( curl -H "Content-Type: application/json" -X POST -d "${PAYLOAD}" "${PLD_REST_SERVER}${URI}" 2>> ${REST_ERRORS_FILE} )
+        if [ "${VERBOSE}" == 'true' ]
+        then
+            echo -e "[trace] ${LIGHTGRAY}response: ${JSON_OUTPUT}${NOCOLOR}"
+        fi
     else
         echo -e "${RED}error: invalid HTTP method \"${HTTP_METHOD}\"${NOCOLOR}"
         return 1

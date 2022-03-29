@@ -237,16 +237,36 @@ func (u *MetaService) ChangePassword(ctx context.Context,
 func (m *MetaService) ChangePassword0(ctx context.Context,
 	in *lnrpc.ChangePasswordRequest) (*lnrpc.ChangePasswordResponse, er.R) {
 
-	publicPw := []byte(wallet.InsecurePubPassphrase)
-	privatePw := in.CurrentPasswordBin
-	newPubPw := []byte(wallet.InsecurePubPassphrase)
+	//	fetch current wallet passphrase from request
+	var walletPassphrase []byte
 
-	// If the current password is blank, we'll assume the user is coming
-	// from a --noseedbackup state, so we'll use the default passwords.
-	if len(privatePw) == 0 {
-		publicPw = lnwallet.DefaultPublicPassphrase
-		privatePw = lnwallet.DefaultPrivatePassphrase
+	if len(in.CurrentPasswordBin) > 0 {
+		walletPassphrase = in.CurrentPasswordBin
+	} else {
+		if len(in.CurrentPassphrase) > 0 {
+			walletPassphrase = []byte(in.CurrentPassphrase)
+		} else {
+			// If the current password is blank, we'll assume the user is coming
+			// from a --noseedbackup state, so we'll use the default passwords.
+			walletPassphrase = []byte(lnwallet.DefaultPrivatePassphrase)
+		}
 	}
+
+	//	fetch new wallet passphrase from request
+	var newWalletPassphrase []byte
+
+	if len(in.NewPassphraseBin) > 0 {
+		newWalletPassphrase = in.NewPassphraseBin
+	} else {
+		if len(in.NewPassphrase) > 0 {
+			newWalletPassphrase = []byte(in.NewPassphrase)
+		} else {
+			newWalletPassphrase = []byte(lnwallet.DefaultPrivatePassphrase)
+		}
+	}
+
+	publicPw := []byte(wallet.InsecurePubPassphrase)
+	newPubPw := []byte(wallet.InsecurePubPassphrase)
 
 	if m.Wallet == nil || m.Wallet.Locked() {
 		loader := wallet.NewLoader(m.netParams, m.walletPath, m.walletFile, m.noFreelistSync, 0)
@@ -260,11 +280,6 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 
 		if !walletExists {
 			return nil, er.New("wallet not found")
-		}
-
-		// Make sure the new password meets our constraints.
-		if err := ValidatePassword(in.NewPassphraseBin); err != nil {
-			return nil, err
 		}
 
 		// Load the existing wallet in order to proceed with the password change.
@@ -302,7 +317,7 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 	// wallet. This will be done atomically in order to prevent one
 	// passphrase change from being successful and not the other.
 	err := m.Wallet.ChangePassphrases(
-		publicPw, newPubPw, privatePw, in.NewPassphraseBin,
+		publicPw, newPubPw, walletPassphrase, newWalletPassphrase,
 	)
 	if err != nil {
 		return nil, er.Errorf("unable to change wallet passphrase: "+
@@ -325,7 +340,7 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 			return nil, err
 		}
 
-		err = macaroonService.CreateUnlock(&privatePw)
+		err = macaroonService.CreateUnlock(&walletPassphrase)
 		if err != nil {
 			closeErr := macaroonService.Close()
 			if closeErr != nil {
@@ -335,7 +350,7 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 			}
 			return nil, err
 		}
-		err = macaroonService.ChangePassword(privatePw, in.NewPassphraseBin)
+		err = macaroonService.ChangePassword(walletPassphrase, newWalletPassphrase)
 		if err != nil {
 			closeErr := macaroonService.Close()
 			if closeErr != nil {
@@ -356,14 +371,4 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 	_ = adminMac
 
 	return &lnrpc.ChangePasswordResponse{}, nil
-}
-
-// ValidatePassword assures the password meets all of our constraints.
-func ValidatePassword(password []byte) er.R {
-	// Passwords should have a length of at least 8 characters.
-	if len(password) < 8 {
-		return er.New("password must have at least 8 characters")
-	}
-
-	return nil
 }

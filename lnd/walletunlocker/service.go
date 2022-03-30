@@ -289,11 +289,6 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 		}
 	}
 
-	// Make sure the password meets our constraints.
-	if err := ValidatePassword(walletPassphrase); err != nil {
-		return nil, err
-	}
-
 	// Require that the recovery window be non-negative.
 	recoveryWindow := in.RecoveryWindow
 	if recoveryWindow < 0 {
@@ -472,14 +467,4 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	case <-ctx.Done():
 		return nil, ErrUnlockTimeout.Default()
 	}
-}
-
-// ValidatePassword assures the password meets all of our constraints.
-func ValidatePassword(password []byte) er.R {
-	// Passwords should have a length of at least 8 characters.
-	if len(password) < 8 {
-		return er.New("password must have at least 8 characters")
-	}
-
-	return nil
 }

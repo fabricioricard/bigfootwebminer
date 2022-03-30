@@ -7,38 +7,17 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"google.golang.org/protobuf/runtime/protoimpl"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc"
 )
-
-type WebSocketRequest struct {
-	Endpoint  string `json:"endpoint,omitempty"`
-	RequestId string `json:"request_id,omitempty"`
-	HasMore   bool   `json:"has_more,omitempty"`
-	Payload   []byte `json:"payload,omitempty"`
-}
-
-type WebSocketResponse struct {
-	RequestId string          `json:"request_id,omitempty"`
-	HasMore   bool            `json:"has_more,omitempty"`
-	Payload   []byte          `json:"ok,omitempty"`
-	Error     *WebSocketError `json:"error,omitempty"`
-}
-
-type WebSocketError struct {
-	HttpCode uint32 `json:"http_code,omitempty"`
-	Error    *Error `json:"error,omitempty"`
-}
-
-type Error struct {
-	Message string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-}
 
 func main() {
 	//	connect to pld webSocket URI
@@ -64,37 +43,40 @@ func main() {
 		log.Println(err.Error())
 		return
 	}
-}
 
-type DebugLevelRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
+	//	send a close socket message to server
+	err = conn.WriteMessage(websocket.CloseMessage,
+		websocket.FormatCloseMessage(websocket.CloseNormalClosure, "Client closing"),
+	)
+	if err != nil {
+		log.Fatal("Error closing the Websocket:", err)
+	}
 
-	Show      bool   `protobuf:"varint,1,opt,name=show,proto3" json:"show,omitempty"`
-	LevelSpec string `protobuf:"bytes,2,opt,name=level_spec,json=levelSpec,proto3" json:"level_spec,omitempty"`
+	//	sleep so the server can read the close message before the socket be effectively closed
+	time.Sleep(1 * time.Second)
 }
 
 func sendDebugLevelCommand(conn *websocket.Conn) error {
 
-	//	create a debugLevel request message
-	var webSocketReq = WebSocketRequest{
-		Endpoint:  "/api/v1/meta/debuglevel",
-		RequestId: uuid.New().String(),
-	}
-	var debugLevelReq = &DebugLevelRequest{
+	//	create a debugLevel payload
+	var debugLevelReq = lnrpc.DebugLevelRequest{
 		Show:      true,
 		LevelSpec: "debug",
 	}
 
-	debugLevelMessage, err := json.Marshal(debugLevelReq)
+	debugLevelPayload, err := jsoniter.Marshal(&debugLevelReq)
 	if err != nil {
 		return errors.New("Fail marshling debug level message: " + err.Error())
 	}
-	webSocketReq.Payload = debugLevelMessage
 
 	//	marshal the request message to a JSon
-	requestMessage, err := json.Marshal(webSocketReq)
+	var req = restrpc.WebSocketJSonRequest{
+		Endpoint:  "/api/v1/meta/debuglevel",
+		RequestId: uuid.New().String(),
+		Payload:   debugLevelPayload,
+	}
+
+	requestMessage, err := jsoniter.Marshal(req)
 	if err != nil {
 		return errors.New("Fail marshling webSocker request message: " + err.Error())
 	}
@@ -116,16 +98,27 @@ func sendDebugLevelCommand(conn *websocket.Conn) error {
 	if messageType == websocket.TextMessage {
 		fmt.Printf("[trace] debugLevel command response message: %s\n", message)
 
-		//	unmarshal the response message to a JSon
-		var responseMessage WebSocketResponse
+		//	unmarshal the response message
+		var resp restrpc.WebSocketJSonResponse
 
-		json.Unmarshal(message, &responseMessage)
-
-		if responseMessage.Error != nil {
-			return errors.New("Error response message received from pld: " + responseMessage.Error.Error.Message)
+		err = jsoniter.Unmarshal(message, &resp)
+		if err != nil {
+			return errors.New("Fail parsing payload message: " + err.Error())
 		}
 
-		fmt.Printf("--> debugLevel response payload: %s\n", responseMessage.Payload)
+		if resp.Error.HttpCode != 0 {
+			return errors.New("Error response message received from pld: " + resp.Error.Message)
+		}
+
+		//	unmarshal the payload within response
+		var debugLevelResp lnrpc.DebugLevelResponse
+
+		err = jsoniter.Unmarshal(resp.Payload, &debugLevelResp)
+		if err != nil {
+			return errors.New("Fail parsing payload message: " + err.Error())
+		}
+
+		fmt.Printf("--> debugLevel response payload: %s\n", resp.Payload)
 	}
 
 	return nil
@@ -133,14 +126,14 @@ func sendDebugLevelCommand(conn *websocket.Conn) error {
 
 func sendGetInfoCommand(conn *websocket.Conn) error {
 
-	//	create a getInfo request message
-	var webSocketReq = WebSocketRequest{
+	//	marshal the request message to a JSon
+	var req = restrpc.WebSocketJSonRequest{
 		Endpoint:  "/api/v1/meta/getinfo",
 		RequestId: uuid.New().String(),
+		Payload:   nil,
 	}
 
-	//	marshal the request message to a JSon
-	requestMessage, err := json.Marshal(webSocketReq)
+	requestMessage, err := jsoniter.Marshal(req)
 	if err != nil {
 		return errors.New("Fail marshling webSocker request message: " + err.Error())
 	}
@@ -158,15 +151,14 @@ func sendGetInfoCommand(conn *websocket.Conn) error {
 	}
 
 	if messageType == websocket.TextMessage {
-		//	fmt.Printf("[trace] getInfo command response message: %s\n", message)
 
 		//	unmarshal the response message to a JSon
-		var resp WebSocketResponse
+		var resp restrpc.WebSocketJSonResponse
 
-		json.Unmarshal(message, &resp)
+		jsoniter.Unmarshal(message, &resp)
 
-		if resp.Error != nil {
-			return errors.New("Error response message received from pld: " + resp.Error.Error.Message)
+		if resp.Error.HttpCode != 0 {
+			return errors.New("Error response message received from pld: " + resp.Error.Message)
 		}
 
 		fmt.Printf("--> GetInfo response payload: %s\n", resp.Payload)

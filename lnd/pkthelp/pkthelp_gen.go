@@ -10926,29 +10926,6 @@ func mkrestrpc_WebSocketError() Type {
         },
     }
 }
-func mkrestrpc_WebSocketJSonProtobufResponse() Type {
-    return Type{
-        Name: "restrpc_WebSocketJSonProtobufResponse",
-        Fields: []Field{
-            {
-                Name: "request_id",
-                Type: mkstring(),
-            },
-            {
-                Name: "has_more",
-                Type: mkbool(),
-            },
-            {
-                Name: "ok",
-                Type: mkgoogle_protobuf_Any(),
-            },
-            {
-                Name: "error",
-                Type: mkrestrpc_WebSocketError(),
-            },
-        },
-    }
-}
 func mkrestrpc_WebSocketProtobufRequest() Type {
     return Type{
         Name: "restrpc_WebSocketProtobufRequest",
@@ -10981,6 +10958,29 @@ func mkrestrpc_WebSocketProtobufRequest() Type {
                     "Make sure this is the correct data structure based on the endpoint you are posting to.",
                 },
                 Type: mkgoogle_protobuf_Any(),
+            },
+        },
+    }
+}
+func mkrestrpc_WebSocketProtobufResponse() Type {
+    return Type{
+        Name: "restrpc_WebSocketProtobufResponse",
+        Fields: []Field{
+            {
+                Name: "request_id",
+                Type: mkstring(),
+            },
+            {
+                Name: "has_more",
+                Type: mkbool(),
+            },
+            {
+                Name: "ok",
+                Type: mkgoogle_protobuf_Any(),
+            },
+            {
+                Name: "error",
+                Type: mkrestrpc_WebSocketError(),
             },
         },
     }

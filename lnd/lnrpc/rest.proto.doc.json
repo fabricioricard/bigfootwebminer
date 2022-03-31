@@ -432,66 +432,6 @@
           ]
         },
         {
-          "name": "WebSocketJSonProtobufResponse",
-          "longName": "WebSocketJSonProtobufResponse",
-          "fullName": "restrpc.WebSocketJSonProtobufResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "request_id",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "has_more",
-              "description": "",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "ok",
-              "description": "",
-              "label": "",
-              "type": "Any",
-              "longType": "google.protobuf.Any",
-              "fullType": "google.protobuf.Any",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "payload",
-              "defaultValue": ""
-            },
-            {
-              "name": "error",
-              "description": "",
-              "label": "",
-              "type": "WebSocketError",
-              "longType": "WebSocketError",
-              "fullType": "restrpc.WebSocketError",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "payload",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
           "name": "WebSocketProtobufRequest",
           "longName": "WebSocketProtobufRequest",
           "fullName": "restrpc.WebSocketProtobufRequest",
@@ -547,6 +487,66 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "WebSocketProtobufResponse",
+          "longName": "WebSocketProtobufResponse",
+          "fullName": "restrpc.WebSocketProtobufResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "request_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "has_more",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "ok",
+              "description": "",
+              "label": "",
+              "type": "Any",
+              "longType": "google.protobuf.Any",
+              "fullType": "google.protobuf.Any",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "payload",
+              "defaultValue": ""
+            },
+            {
+              "name": "error",
+              "description": "",
+              "label": "",
+              "type": "WebSocketError",
+              "longType": "WebSocketError",
+              "fullType": "restrpc.WebSocketError",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "payload",
               "defaultValue": ""
             }
           ]

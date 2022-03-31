@@ -492,7 +492,7 @@ func (x *WebSocketProtobufRequest) GetPayload() *anypb.Any {
 	return nil
 }
 
-type WebSocketJSonProtobufResponse struct {
+type WebSocketProtobufResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -500,13 +500,13 @@ type WebSocketJSonProtobufResponse struct {
 	RequestId string `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	HasMore   bool   `protobuf:"varint,2,opt,name=has_more,json=hasMore,proto3" json:"has_more,omitempty"`
 	// Types that are assignable to Payload:
-	//	*WebSocketJSonProtobufResponse_Ok
-	//	*WebSocketJSonProtobufResponse_Error
-	Payload isWebSocketJSonProtobufResponse_Payload `protobuf_oneof:"payload"`
+	//	*WebSocketProtobufResponse_Ok
+	//	*WebSocketProtobufResponse_Error
+	Payload isWebSocketProtobufResponse_Payload `protobuf_oneof:"payload"`
 }
 
-func (x *WebSocketJSonProtobufResponse) Reset() {
-	*x = WebSocketJSonProtobufResponse{}
+func (x *WebSocketProtobufResponse) Reset() {
+	*x = WebSocketProtobufResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_restrpc_rest_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -514,13 +514,13 @@ func (x *WebSocketJSonProtobufResponse) Reset() {
 	}
 }
 
-func (x *WebSocketJSonProtobufResponse) String() string {
+func (x *WebSocketProtobufResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WebSocketJSonProtobufResponse) ProtoMessage() {}
+func (*WebSocketProtobufResponse) ProtoMessage() {}
 
-func (x *WebSocketJSonProtobufResponse) ProtoReflect() protoreflect.Message {
+func (x *WebSocketProtobufResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_restrpc_rest_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -532,61 +532,61 @@ func (x *WebSocketJSonProtobufResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WebSocketJSonProtobufResponse.ProtoReflect.Descriptor instead.
-func (*WebSocketJSonProtobufResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use WebSocketProtobufResponse.ProtoReflect.Descriptor instead.
+func (*WebSocketProtobufResponse) Descriptor() ([]byte, []int) {
 	return file_restrpc_rest_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *WebSocketJSonProtobufResponse) GetRequestId() string {
+func (x *WebSocketProtobufResponse) GetRequestId() string {
 	if x != nil {
 		return x.RequestId
 	}
 	return ""
 }
 
-func (x *WebSocketJSonProtobufResponse) GetHasMore() bool {
+func (x *WebSocketProtobufResponse) GetHasMore() bool {
 	if x != nil {
 		return x.HasMore
 	}
 	return false
 }
 
-func (m *WebSocketJSonProtobufResponse) GetPayload() isWebSocketJSonProtobufResponse_Payload {
+func (m *WebSocketProtobufResponse) GetPayload() isWebSocketProtobufResponse_Payload {
 	if m != nil {
 		return m.Payload
 	}
 	return nil
 }
 
-func (x *WebSocketJSonProtobufResponse) GetOk() *anypb.Any {
-	if x, ok := x.GetPayload().(*WebSocketJSonProtobufResponse_Ok); ok {
+func (x *WebSocketProtobufResponse) GetOk() *anypb.Any {
+	if x, ok := x.GetPayload().(*WebSocketProtobufResponse_Ok); ok {
 		return x.Ok
 	}
 	return nil
 }
 
-func (x *WebSocketJSonProtobufResponse) GetError() *WebSocketError {
-	if x, ok := x.GetPayload().(*WebSocketJSonProtobufResponse_Error); ok {
+func (x *WebSocketProtobufResponse) GetError() *WebSocketError {
+	if x, ok := x.GetPayload().(*WebSocketProtobufResponse_Error); ok {
 		return x.Error
 	}
 	return nil
 }
 
-type isWebSocketJSonProtobufResponse_Payload interface {
-	isWebSocketJSonProtobufResponse_Payload()
+type isWebSocketProtobufResponse_Payload interface {
+	isWebSocketProtobufResponse_Payload()
 }
 
-type WebSocketJSonProtobufResponse_Ok struct {
+type WebSocketProtobufResponse_Ok struct {
 	Ok *anypb.Any `protobuf:"bytes,3,opt,name=ok,proto3,oneof"`
 }
 
-type WebSocketJSonProtobufResponse_Error struct {
+type WebSocketProtobufResponse_Error struct {
 	Error *WebSocketError `protobuf:"bytes,4,opt,name=error,proto3,oneof"`
 }
 
-func (*WebSocketJSonProtobufResponse_Ok) isWebSocketJSonProtobufResponse_Payload() {}
+func (*WebSocketProtobufResponse_Ok) isWebSocketProtobufResponse_Payload() {}
 
-func (*WebSocketJSonProtobufResponse_Error) isWebSocketJSonProtobufResponse_Payload() {}
+func (*WebSocketProtobufResponse_Error) isWebSocketProtobufResponse_Payload() {}
 
 var File_restrpc_rest_proto protoreflect.FileDescriptor
 
@@ -673,22 +673,22 @@ var file_restrpc_rest_proto_rawDesc = []byte{
 	0x08, 0x52, 0x07, 0x68, 0x61, 0x73, 0x4d, 0x6f, 0x72, 0x65, 0x12, 0x2e, 0x0a, 0x07, 0x70, 0x61,
 	0x79, 0x6c, 0x6f, 0x61, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x67, 0x6f,
 	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x41, 0x6e,
-	0x79, 0x52, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x22, 0xbd, 0x01, 0x0a, 0x1d, 0x57,
-	0x65, 0x62, 0x53, 0x6f, 0x63, 0x6b, 0x65, 0x74, 0x4a, 0x53, 0x6f, 0x6e, 0x50, 0x72, 0x6f, 0x74,
-	0x6f, 0x62, 0x75, 0x66, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1d, 0x0a, 0x0a,
-	0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x68,
-	0x61, 0x73, 0x5f, 0x6d, 0x6f, 0x72, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x68,
-	0x61, 0x73, 0x4d, 0x6f, 0x72, 0x65, 0x12, 0x26, 0x0a, 0x02, 0x6f, 0x6b, 0x18, 0x03, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x14, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x41, 0x6e, 0x79, 0x48, 0x00, 0x52, 0x02, 0x6f, 0x6b, 0x12, 0x2f,
-	0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e,
-	0x72, 0x65, 0x73, 0x74, 0x72, 0x70, 0x63, 0x2e, 0x57, 0x65, 0x62, 0x53, 0x6f, 0x63, 0x6b, 0x65,
-	0x74, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x48, 0x00, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x42,
-	0x09, 0x0a, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x6b, 0x74, 0x2d, 0x63, 0x61, 0x73,
-	0x68, 0x2f, 0x70, 0x6b, 0x74, 0x64, 0x2f, 0x6c, 0x6e, 0x64, 0x2f, 0x6c, 0x6e, 0x72, 0x70, 0x63,
-	0x2f, 0x72, 0x65, 0x73, 0x74, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x79, 0x52, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x22, 0xb9, 0x01, 0x0a, 0x19, 0x57,
+	0x65, 0x62, 0x53, 0x6f, 0x63, 0x6b, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x68, 0x61, 0x73, 0x5f, 0x6d,
+	0x6f, 0x72, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x68, 0x61, 0x73, 0x4d, 0x6f,
+	0x72, 0x65, 0x12, 0x26, 0x0a, 0x02, 0x6f, 0x6b, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14,
+	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x41, 0x6e, 0x79, 0x48, 0x00, 0x52, 0x02, 0x6f, 0x6b, 0x12, 0x2f, 0x0a, 0x05, 0x65, 0x72,
+	0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x72, 0x65, 0x73, 0x74,
+	0x72, 0x70, 0x63, 0x2e, 0x57, 0x65, 0x62, 0x53, 0x6f, 0x63, 0x6b, 0x65, 0x74, 0x45, 0x72, 0x72,
+	0x6f, 0x72, 0x48, 0x00, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x42, 0x09, 0x0a, 0x07, 0x70,
+	0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x6b, 0x74, 0x2d, 0x63, 0x61, 0x73, 0x68, 0x2f, 0x70, 0x6b,
+	0x74, 0x64, 0x2f, 0x6c, 0x6e, 0x64, 0x2f, 0x6c, 0x6e, 0x72, 0x70, 0x63, 0x2f, 0x72, 0x65, 0x73,
+	0x74, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -705,18 +705,18 @@ func file_restrpc_rest_proto_rawDescGZIP() []byte {
 
 var file_restrpc_rest_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_restrpc_rest_proto_goTypes = []interface{}{
-	(*RestCommandCategory)(nil),           // 0: restrpc.RestCommandCategory
-	(*RestMasterHelpResponse)(nil),        // 1: restrpc.RestMasterHelpResponse
-	(*Field)(nil),                         // 2: restrpc.Field
-	(*Type)(nil),                          // 3: restrpc.Type
-	(*RestHelpResponse)(nil),              // 4: restrpc.RestHelpResponse
-	(*WebSocketError)(nil),                // 5: restrpc.WebSocketError
-	(*WebSocketProtobufRequest)(nil),      // 6: restrpc.WebSocketProtobufRequest
-	(*WebSocketJSonProtobufResponse)(nil), // 7: restrpc.WebSocketJSonProtobufResponse
-	nil,                                   // 8: restrpc.RestCommandCategory.EndpointsEntry
-	nil,                                   // 9: restrpc.RestCommandCategory.SubcategoryEntry
-	nil,                                   // 10: restrpc.RestMasterHelpResponse.CategoryEntry
-	(*anypb.Any)(nil),                     // 11: google.protobuf.Any
+	(*RestCommandCategory)(nil),       // 0: restrpc.RestCommandCategory
+	(*RestMasterHelpResponse)(nil),    // 1: restrpc.RestMasterHelpResponse
+	(*Field)(nil),                     // 2: restrpc.Field
+	(*Type)(nil),                      // 3: restrpc.Type
+	(*RestHelpResponse)(nil),          // 4: restrpc.RestHelpResponse
+	(*WebSocketError)(nil),            // 5: restrpc.WebSocketError
+	(*WebSocketProtobufRequest)(nil),  // 6: restrpc.WebSocketProtobufRequest
+	(*WebSocketProtobufResponse)(nil), // 7: restrpc.WebSocketProtobufResponse
+	nil,                               // 8: restrpc.RestCommandCategory.EndpointsEntry
+	nil,                               // 9: restrpc.RestCommandCategory.SubcategoryEntry
+	nil,                               // 10: restrpc.RestMasterHelpResponse.CategoryEntry
+	(*anypb.Any)(nil),                 // 11: google.protobuf.Any
 }
 var file_restrpc_rest_proto_depIdxs = []int32{
 	8,  // 0: restrpc.RestCommandCategory.endpoints:type_name -> restrpc.RestCommandCategory.EndpointsEntry
@@ -727,8 +727,8 @@ var file_restrpc_rest_proto_depIdxs = []int32{
 	3,  // 5: restrpc.RestHelpResponse.request:type_name -> restrpc.Type
 	3,  // 6: restrpc.RestHelpResponse.response:type_name -> restrpc.Type
 	11, // 7: restrpc.WebSocketProtobufRequest.payload:type_name -> google.protobuf.Any
-	11, // 8: restrpc.WebSocketJSonProtobufResponse.ok:type_name -> google.protobuf.Any
-	5,  // 9: restrpc.WebSocketJSonProtobufResponse.error:type_name -> restrpc.WebSocketError
+	11, // 8: restrpc.WebSocketProtobufResponse.ok:type_name -> google.protobuf.Any
+	5,  // 9: restrpc.WebSocketProtobufResponse.error:type_name -> restrpc.WebSocketError
 	0,  // 10: restrpc.RestCommandCategory.SubcategoryEntry.value:type_name -> restrpc.RestCommandCategory
 	0,  // 11: restrpc.RestMasterHelpResponse.CategoryEntry.value:type_name -> restrpc.RestCommandCategory
 	12, // [12:12] is the sub-list for method output_type
@@ -829,7 +829,7 @@ func file_restrpc_rest_proto_init() {
 			}
 		}
 		file_restrpc_rest_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WebSocketJSonProtobufResponse); i {
+			switch v := v.(*WebSocketProtobufResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -842,8 +842,8 @@ func file_restrpc_rest_proto_init() {
 		}
 	}
 	file_restrpc_rest_proto_msgTypes[7].OneofWrappers = []interface{}{
-		(*WebSocketJSonProtobufResponse_Ok)(nil),
-		(*WebSocketJSonProtobufResponse_Error)(nil),
+		(*WebSocketProtobufResponse_Ok)(nil),
+		(*WebSocketProtobufResponse_Error)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

@@ -76,7 +76,7 @@ message WebSocketProtobufRequest {
     google.protobuf.Any payload = 4;
 }
 
-message WebSocketJSonProtobufResponse {
+message WebSocketProtobufResponse {
     string request_id = 1;
     bool has_more = 2;
     oneof payload {

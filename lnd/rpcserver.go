@@ -6663,7 +6663,6 @@ func (r *rpcServer) ChangeSeedPassphrase(ctx context.Context, req *lnrpc.ChangeS
 	} else if len(req.CurrentSeedPassphrase) > 0 {
 		currentSeedCipherPass = []byte(req.CurrentSeedPassphrase)
 	}
-	log.Debugf("[1] currentSeedCipherPass: %s", string(currentSeedCipherPass))
 
 	//	get current seed and decipher it if necessary
 	var mnemonic string
@@ -6672,7 +6671,6 @@ func (r *rpcServer) ChangeSeedPassphrase(ctx context.Context, req *lnrpc.ChangeS
 	if len(mnemonic) == 0 {
 		return nil, er.Native(er.New("Current seed is required in the request"))
 	}
-	log.Debugf("[2] mnemonic: %s", mnemonic)
 
 	currentSeedCiphered, err := seedwords.SeedFromWords(mnemonic)
 	if err != nil {
@@ -6693,7 +6691,6 @@ func (r *rpcServer) ChangeSeedPassphrase(ctx context.Context, req *lnrpc.ChangeS
 	} else if len(req.NewSeedPassphrase) > 0 {
 		newSeedCipherPass = []byte(req.NewSeedPassphrase)
 	}
-	log.Debugf("[3] newSeedCipherPass: %s", string(newSeedCipherPass))
 
 	//	cipher the seed with the new passphrase
 	newCipheredSeed := currentSeed.Encrypt(newSeedCipherPass)
@@ -6703,7 +6700,6 @@ func (r *rpcServer) ChangeSeedPassphrase(ctx context.Context, req *lnrpc.ChangeS
 	if err != nil {
 		return nil, er.Native(err)
 	}
-	log.Debugf("[4] new mnemonic seed: %s", mnemonic)
 
 	return &lnrpc.ChangeSeedPassphraseResponse{
 		Seed: strings.Split(mnemonic, " "),

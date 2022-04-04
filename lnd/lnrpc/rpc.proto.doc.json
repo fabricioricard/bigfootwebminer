@@ -1067,6 +1067,102 @@
           ]
         },
         {
+          "name": "ChangeSeedPassphraseRequest",
+          "longName": "ChangeSeedPassphraseRequest",
+          "fullName": "lnrpc.ChangeSeedPassphraseRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "current_seed_passphrase",
+              "description": "current_seed_passphrase is the optional user specified passphrase that\nencrypts the current seed.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "current_seed_passphrase_bin",
+              "description": "current_seed_passphrase_bin overrides current_seed_passphrase if specified,\nfor binary representation of the current seed passphrase. If using JSON then\nthis field must be base64 encoded.",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "current_seed",
+              "description": "current_seed is the seed whose passphrase is going to be changed",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_seed_passphrase",
+              "description": "new_seed_passphrase is the optional user specified passphrase that will be used\nto encrypt the seed.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_seed_passphrase_bin",
+              "description": "new_seed_passphrase_bin overrides new_seed_passphrase if specified, for binary\nrepresentation of the passphrase. If using JSON then this field must be base64\nencoded.",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ChangeSeedPassphraseResponse",
+          "longName": "ChangeSeedPassphraseResponse",
+          "fullName": "lnrpc.ChangeSeedPassphraseResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "seed",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "Channel",
           "longName": "Channel",
           "fullName": "lnrpc.Channel",
@@ -12649,6 +12745,18 @@
               "responseType": "GetWalletSeedResponse",
               "responseLongType": "GetWalletSeedResponse",
               "responseFullType": "lnrpc.GetWalletSeedResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "ChangeSeedPassphrase",
+              "description": "Change seed's passphrase",
+              "requestType": "ChangeSeedPassphraseRequest",
+              "requestLongType": "ChangeSeedPassphraseRequest",
+              "requestFullType": "lnrpc.ChangeSeedPassphraseRequest",
+              "requestStreaming": false,
+              "responseType": "ChangeSeedPassphraseResponse",
+              "responseLongType": "ChangeSeedPassphraseResponse",
+              "responseFullType": "lnrpc.ChangeSeedPassphraseResponse",
               "responseStreaming": false
             },
             {

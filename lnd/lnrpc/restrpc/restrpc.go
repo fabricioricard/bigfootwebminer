@@ -550,14 +550,33 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 		description: "Alter the passphrase which is used to encrypt a wallet seed",
 
 		path: "/util/seed/changepassphrase",
-		req:  nil,
-		res:  (*RestEmptyResponse)(nil),
+		req:  (*lnrpc.ChangeSeedPassphraseRequest)(nil),
+		res:  (*lnrpc.ChangeSeedPassphraseResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			return &RestEmptyResponse{}, nil
+			//	get the request payload
+			changeSeedPassphraseReq, ok := m.(*lnrpc.ChangeSeedPassphraseRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ChangeSeedPassphraseRequest")
+			}
+
+			//	invoke Lightning change seed passphrase command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var changeSeedPassphraseResp *lnrpc.ChangeSeedPassphraseResponse
+
+				changeSeedPassphraseResp, err := cc.ChangeSeedPassphrase(context.TODO(), changeSeedPassphraseReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return changeSeedPassphraseResp, nil
+				}
+			} else {
+				return nil, errr
+			}
 		},
 
-		getHelpInfo: pkthelp.WalletUnlocker_GenSeed,
+		getHelpInfo: pkthelp.Lightning_ChangeSeedPassphrase,
 	},
 	//	service debug level
 	{

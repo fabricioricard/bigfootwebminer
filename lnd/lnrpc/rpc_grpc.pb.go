@@ -358,6 +358,8 @@ type LightningClient interface {
 	StopReSync(ctx context.Context, in *StopReSyncRequest, opts ...grpc.CallOption) (*StopReSyncResponse, error)
 	//Get the wallet seed words for this wallet
 	GetWalletSeed(ctx context.Context, in *GetWalletSeedRequest, opts ...grpc.CallOption) (*GetWalletSeedResponse, error)
+	//  Change seed's passphrase
+	ChangeSeedPassphrase(ctx context.Context, in *ChangeSeedPassphraseRequest, opts ...grpc.CallOption) (*ChangeSeedPassphraseResponse, error)
 	//Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application
 	GetSecret(ctx context.Context, in *GetSecretRequest, opts ...grpc.CallOption) (*GetSecretResponse, error)
 	//Imports a WIF-encoded private key to the 'imported' account.
@@ -1166,6 +1168,15 @@ func (c *lightningClient) GetWalletSeed(ctx context.Context, in *GetWalletSeedRe
 	return out, nil
 }
 
+func (c *lightningClient) ChangeSeedPassphrase(ctx context.Context, in *ChangeSeedPassphraseRequest, opts ...grpc.CallOption) (*ChangeSeedPassphraseResponse, error) {
+	out := new(ChangeSeedPassphraseResponse)
+	err := c.cc.Invoke(ctx, "/lnrpc.Lightning/ChangeSeedPassphrase", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *lightningClient) GetSecret(ctx context.Context, in *GetSecretRequest, opts ...grpc.CallOption) (*GetSecretResponse, error) {
 	out := new(GetSecretResponse)
 	err := c.cc.Invoke(ctx, "/lnrpc.Lightning/GetSecret", in, out, opts...)
@@ -1618,6 +1629,8 @@ type LightningServer interface {
 	StopReSync(context.Context, *StopReSyncRequest) (*StopReSyncResponse, error)
 	//Get the wallet seed words for this wallet
 	GetWalletSeed(context.Context, *GetWalletSeedRequest) (*GetWalletSeedResponse, error)
+	//  Change seed's passphrase
+	ChangeSeedPassphrase(context.Context, *ChangeSeedPassphraseRequest) (*ChangeSeedPassphraseResponse, error)
 	//Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application
 	GetSecret(context.Context, *GetSecretRequest) (*GetSecretResponse, error)
 	//Imports a WIF-encoded private key to the 'imported' account.
@@ -1821,6 +1834,9 @@ func (UnimplementedLightningServer) StopReSync(context.Context, *StopReSyncReque
 }
 func (UnimplementedLightningServer) GetWalletSeed(context.Context, *GetWalletSeedRequest) (*GetWalletSeedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWalletSeed not implemented")
+}
+func (UnimplementedLightningServer) ChangeSeedPassphrase(context.Context, *ChangeSeedPassphraseRequest) (*ChangeSeedPassphraseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeSeedPassphrase not implemented")
 }
 func (UnimplementedLightningServer) GetSecret(context.Context, *GetSecretRequest) (*GetSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSecret not implemented")
@@ -2962,6 +2978,24 @@ func _Lightning_GetWalletSeed_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Lightning_ChangeSeedPassphrase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeSeedPassphraseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningServer).ChangeSeedPassphrase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lnrpc.Lightning/ChangeSeedPassphrase",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningServer).ChangeSeedPassphrase(ctx, req.(*ChangeSeedPassphraseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Lightning_GetSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSecretRequest)
 	if err := dec(in); err != nil {
@@ -3372,6 +3406,10 @@ var Lightning_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWalletSeed",
 			Handler:    _Lightning_GetWalletSeed_Handler,
+		},
+		{
+			MethodName: "ChangeSeedPassphrase",
+			Handler:    _Lightning_ChangeSeedPassphrase_Handler,
 		},
 		{
 			MethodName: "GetSecret",

@@ -116,6 +116,20 @@ getCommandResult() {
     fi
 }
 
+#   send a command to change a seed's paaphrase
+changeSeedPassphrase() {
+    local SEED_PASSPHRASE="${1}"
+
+    executeCommand 'genseed' 'POST' '/api/v1/util/seed/create' "{ \"seed_passphrase_bin\": \"${SEED_PASSPHRASE}\" }"
+    WALLET_SEED="$( getCommandResult '.seed' )"
+    showCommandResult 'new wallet enciphered seed' "${WALLET_SEED}"
+
+    executeCommand 'changepassphrase' 'POST' '/api/v1/util/seed/changepassphrase' "{ \"current_seed_passphrase_bin\": \"${SEED_PASSPHRASE}\", \"current_seed\": ${WALLET_SEED}, \"new_seed_passphrase_bin\": \"${SEED_PASSPHRASE}\" }"
+    showCommandResult 'result' ''
+
+    echo "[info] changepassphrase: command successfully executed"
+}
+
 #   send a command to create a wallet
 createWallet() {
     local PASSPHRASE="${1}"
@@ -186,17 +200,29 @@ do
     shift
 done
 
-#
-#   create wallet test
-#
-
 #   clean things up by removing previous wallet
 rm -rf ~/.pktwallet
 rm -rf ${PLD_OUTPUT_FILE} ${REST_ERRORS_FILE}
 
+#
+#   change seed passphrase test
+#
+
+#   start pld deamon, create a seed, change it's passphrase and stop the deamon
+echo
+echo ">>> scenario 01 - change seed passphrase"
+
+startPldDeamon
+changeSeedPassphrase ${SEED_PASSPHRASE}
+stopPldDeamon
+
+#
+#   create wallet test
+#
+
 #   start pld deamon, create a wallet and stop the deamon
 echo
-echo ">>> scenario 01 - create a new wallet"
+echo ">>> scenario 02 - create a new wallet"
 
 startPldDeamon
 createWallet "${WALLET_PASSPHRASE}"
@@ -208,7 +234,7 @@ stopPldDeamon
 
 #   start pld deamon, unlock a wallet and stop the deamon
 echo
-echo ">>> scenario 02 - unlock the wallet"
+echo ">>> scenario 03 - unlock the wallet"
 
 startPldDeamon
 unlockWallet "${WALLET_PASSPHRASE}"
@@ -222,7 +248,7 @@ stopPldDeamon
 export  NEW_WALLET_PASSPHRASE='n3wP$sphrz'
 
 echo
-echo ">>> scenario 03 - change wallet passphrase and unlock the wallet"
+echo ">>> scenario 04 - change wallet passphrase and unlock the wallet"
 
 startPldDeamon
 changePassphrase "${WALLET_PASSPHRASE}" "${NEW_WALLET_PASSPHRASE}"
@@ -235,7 +261,7 @@ stopPldDeamon
 
 #   start pld deamon, unlock a wallet again and stop the deamon
 echo
-echo ">>> scenario 04 - unlock the wallet with the new passphrase "
+echo ">>> scenario 05 - unlock the wallet with the new passphrase "
 
 startPldDeamon
 unlockWallet "${NEW_WALLET_PASSPHRASE}"

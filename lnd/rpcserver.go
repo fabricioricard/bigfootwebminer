@@ -71,6 +71,7 @@ import (
 	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
+	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txauthor"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txrules"
 	"github.com/pkt-cash/pktd/txscript"
@@ -6647,6 +6648,65 @@ func (r *rpcServer) GetWalletSeed(ctx context.Context, req *lnrpc.GetWalletSeedR
 	}
 	return &lnrpc.GetWalletSeedResponse{
 		Seed: strings.Split(words, " "),
+	}, nil
+}
+
+//	ChangeSeedPassphrase
+func (r *rpcServer) ChangeSeedPassphrase(ctx context.Context, req *lnrpc.ChangeSeedPassphraseRequest) (*lnrpc.ChangeSeedPassphraseResponse, error) {
+
+	//	get current seed passphrase from request
+	//	if both bin and string passphrases are present, the bin have precedence
+	var currentSeedCipherPass []byte
+
+	if len(req.CurrentSeedPassphraseBin) > 0 {
+		currentSeedCipherPass = req.CurrentSeedPassphraseBin
+	} else if len(req.CurrentSeedPassphrase) > 0 {
+		currentSeedCipherPass = []byte(req.CurrentSeedPassphrase)
+	}
+	log.Debugf("[1] currentSeedCipherPass: %s", string(currentSeedCipherPass))
+
+	//	get current seed and decipher it if necessary
+	var mnemonic string
+
+	mnemonic = strings.Join(req.CurrentSeed, " ")
+	if len(mnemonic) == 0 {
+		return nil, er.Native(er.New("Current seed is required in the request"))
+	}
+	log.Debugf("[2] mnemonic: %s", mnemonic)
+
+	currentSeedCiphered, err := seedwords.SeedFromWords(mnemonic)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+
+	currentSeed, err := currentSeedCiphered.Decrypt(currentSeedCipherPass, false)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+
+	//	get new seed passphrase from request
+	//	if both bin and string passphrases are present, the bin have precedence
+	var newSeedCipherPass []byte
+
+	if len(req.NewSeedPassphraseBin) > 0 {
+		newSeedCipherPass = req.NewSeedPassphraseBin
+	} else if len(req.NewSeedPassphrase) > 0 {
+		newSeedCipherPass = []byte(req.NewSeedPassphrase)
+	}
+	log.Debugf("[3] newSeedCipherPass: %s", string(newSeedCipherPass))
+
+	//	cipher the seed with the new passphrase
+	newCipheredSeed := currentSeed.Encrypt(newSeedCipherPass)
+
+	//	get the mnemonic for the new ciphered seed
+	mnemonic, err = newCipheredSeed.Words("english")
+	if err != nil {
+		return nil, er.Native(err)
+	}
+	log.Debugf("[4] new mnemonic seed: %s", mnemonic)
+
+	return &lnrpc.ChangeSeedPassphraseResponse{
+		Seed: strings.Split(mnemonic, " "),
 	}, nil
 }
 

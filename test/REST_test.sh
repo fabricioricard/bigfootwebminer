@@ -137,6 +137,16 @@ showCommandResult 'subsystems' '.subSystems'
 executeCommand 'version' 'GET' '/api/v1/meta/version'
 showCommandResult 'result' ''
 
+executeCommand 'changepassphrase' 'POST' '/api/v1/util/seed/changepassphrase' '{ "current_seed_passphrase_bin": "cGFzc3dvcmQ=", "current_seed": [  "regret",  "dose",  "anxiety",  "switch",  "soccer",  "half",  "brother",  "foil",  "steel",  "patrol",  "sorry",  "alarm",  "loop",  "solar",  "apology"], "new_seed_passphrase_bin": "cGFzc3dvcmQ=" }'
+showCommandResult 'result' ''
+executeCommand 'changepassphrase' 'POST' '/api/v1/util/seed/changepassphrase' '{ "current_seed_passphrase_bin": "cGFzc3dvcmQ=", "current_seed": [  "regret",  "dose",  "anxiety",  "switch",  "soccer",  "half",  "brother",  "foil",  "steel",  "patrol",  "sorry",  "alarm",  "loop",  "solar",  "apology"], "new_seed_passphrase": "password" }'
+showCommandResult 'result' ''
+executeCommand 'changepassphrase' 'POST' '/api/v1/util/seed/changepassphrase' '{ "current_seed_passphrase_bin": "cGFzc3dvcmQ=", "current_seed": [  "regret",  "dose",  "anxiety",  "switch",  "soccer",  "half",  "brother",  "foil",  "steel",  "patrol",  "sorry",  "alarm",  "loop",  "solar",  "apology"], "new_seed_passphrase": "n3wP4sswd" }'
+showCommandResult 'result' ''
+#curl -X POST -H 'Content-Type: application/json' -d '{ "current_seed_passphrase_bin": "cGFzc3dvcmQ=", "current_seed": [ "festival", "rough", "knock", "annual", "accuse", "taste", "produce", "scrap", "auto", "royal", "lend", "elegant", "rib", "west", "apple" ], "new_seed_passphrase_bin": "ccGFzc3dvcmQ=" }' 'localhost:8080/api/v1/util/seed/changepassphrase'
+echo "++++++++++++++++++++++++++++++++"
+exit 0
+
 #
 #   fetch a public key for the channels tests
 #

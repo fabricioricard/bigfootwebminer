@@ -119,6 +119,7 @@ type Wallet struct {
 	lockState          chan bool
 	changePassphrase   chan changePassphraseRequest
 	changePassphrases  chan changePassphrasesRequest
+	checkPassphrases   chan checkPassphrasesRequest
 
 	NtfnServer *NotificationServer
 
@@ -716,6 +717,12 @@ type (
 		err                    chan er.R
 	}
 
+	checkPassphrasesRequest struct {
+		publicPassphrase  []byte
+		privatePassphrase []byte
+		err               chan er.R
+	}
+
 	// heldUnlock is a tool to prevent the wallet from automatically
 	// locking after some timeout before an operation which needed
 	// the unlocked wallet has finished.  Any aquired heldUnlock
@@ -776,6 +783,15 @@ out:
 					addrmgrNs, req.privateOld, req.privateNew,
 					true, &waddrmgr.DefaultScryptOptions,
 				)
+			})
+			req.err <- err
+			continue
+
+		case req := <-w.checkPassphrases:
+			err := walletdb.View(w.db, func(tx walletdb.ReadTx) er.R {
+				addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
+
+				return w.Manager.CheckPaaphrase(addrmgrNs, req.privatePassphrase)
 			})
 			req.err <- err
 			continue
@@ -902,6 +918,19 @@ func (w *Wallet) ChangePassphrases(publicOld, publicNew, privateOld,
 		privateNew: privateNew,
 		err:        err,
 	}
+	return <-err
+}
+
+//	CheckPassphrases verifies the public and private passphrase of the wallet
+func (w *Wallet) CheckPassphrases(publicPw, walletPassphrase []byte) er.R {
+
+	err := make(chan er.R, 1)
+	w.checkPassphrases <- checkPassphrasesRequest{
+		publicPassphrase:  publicPw,
+		privatePassphrase: walletPassphrase,
+		err:               err,
+	}
+
 	return <-err
 }
 
@@ -3351,6 +3380,7 @@ func Open(db walletdb.DB, pubPass []byte, cbs *waddrmgr.OpenCallbacks,
 		lockState:          make(chan bool),
 		changePassphrase:   make(chan changePassphraseRequest),
 		changePassphrases:  make(chan changePassphrasesRequest),
+		checkPassphrases:   make(chan checkPassphrasesRequest),
 		chainParams:        params,
 		quit:               make(chan struct{}),
 		watch:              watcher.New(),

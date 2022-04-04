@@ -4228,6 +4228,39 @@ func mklnrpc_ChangePasswordResponse() Type {
         Name: "lnrpc_ChangePasswordResponse",
     }
 }
+func mklnrpc_CheckPasswordRequest() Type {
+    return Type{
+        Name: "lnrpc_CheckPasswordRequest",
+        Fields: []Field{
+            {
+                Name: "wallet_passphrase",
+                Description: []string{
+                    "current_password should be the current valid passphrase used to unlock the daemon.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "wallet_password_bin",
+                Description: []string{
+                    "Binary form of current_passphrase, if specified will override current_passphrase.",
+                    "When using JSON, this field must be encoded as base64.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mklnrpc_CheckPasswordResponse() Type {
+    return Type{
+        Name: "lnrpc_CheckPasswordResponse",
+        Fields: []Field{
+            {
+                Name: "valid_passphrase",
+                Type: mkbool(),
+            },
+        },
+    }
+}
 func mklnrpc_GetInfo2Request() Type {
     return Type{
         Name: "lnrpc_GetInfo2Request",
@@ -11735,6 +11768,14 @@ func MetaService_ChangePassword() Method {
         Service: "MetaService",
         Req: mklnrpc_ChangePasswordRequest(),
         Res: mklnrpc_ChangePasswordResponse(),
+    }
+}
+func MetaService_CheckPassword() Method {
+    return Method{
+        Name: "CheckPassword",
+        Service: "MetaService",
+        Req: mklnrpc_CheckPasswordRequest(),
+        Res: mklnrpc_CheckPasswordResponse(),
     }
 }
 func Lightning_WalletBalance() Method {

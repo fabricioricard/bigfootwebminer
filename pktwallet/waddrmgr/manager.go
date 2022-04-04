@@ -1148,6 +1148,27 @@ func (m *Manager) Unlock(ns walletdb.ReadBucket, passphrase []byte) er.R {
 	return nil
 }
 
+//	just check is the passphrase is corret for the wallet
+//	This function will return an error if invoked on a watching-only address
+//	manager.
+func (m *Manager) CheckPaaphrase(ns walletdb.ReadBucket, passphrase []byte) er.R {
+	// A watching-only address manager can't be unlocked.
+	if m.watchingOnly {
+		return ErrWatchingOnly.Default()
+	}
+
+	saltedPassphrase := append(m.privPassphraseSalt[:], passphrase...)
+	hashedPassphrase := sha512.Sum512(saltedPassphrase)
+	zero.Bytes(saltedPassphrase)
+
+	if hashedPassphrase != m.hashedPrivPassphrase {
+		str := "invalid passphrase for master private key"
+		return managerError(ErrWrongPassphrase, str, nil)
+	}
+
+	return nil
+}
+
 // ValidateAccountName validates the given account name and returns an error, if any.
 func ValidateAccountName(name string) er.R {
 	if name == "" {

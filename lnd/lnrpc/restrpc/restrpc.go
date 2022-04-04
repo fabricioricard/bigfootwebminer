@@ -285,6 +285,40 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.MetaService_ChangePassword,
 	},
+	//MetaService check wallet password
+	{
+		category:    categoryWallet,
+		description: "Check the wallet's password",
+
+		path: "/wallet/checkpassphrase",
+		req:  (*lnrpc.CheckPasswordRequest)(nil),
+		res:  (*lnrpc.CheckPasswordResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			checkPasswordReq, ok := m.(*lnrpc.CheckPasswordRequest)
+			if !ok {
+				return nil, er.New("Argument is not a CheckPasswordRequest")
+			}
+
+			//	check the passphrase
+			var checkPasswordResp *lnrpc.CheckPasswordResponse
+
+			meta, errr := c.withMetaServer()
+			if errr != nil {
+				return nil, errr
+			}
+
+			checkPasswordResp, err := meta.CheckPassword(context.TODO(), checkPasswordReq)
+			if err != nil {
+				return nil, er.E(err)
+			}
+
+			return checkPasswordResp, nil
+		},
+
+		getHelpInfo: pkthelp.MetaService_CheckPassword,
+	},
 	//Wallet balance
 	//requires unlocked wallet -> access to rpcServer
 	{

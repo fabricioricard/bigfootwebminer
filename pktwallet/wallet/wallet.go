@@ -119,7 +119,7 @@ type Wallet struct {
 	lockState          chan bool
 	changePassphrase   chan changePassphraseRequest
 	changePassphrases  chan changePassphrasesRequest
-	checkPassphrases   chan checkPassphrasesRequest
+	checkPassphrase    chan checkPassphrasesRequest
 
 	NtfnServer *NotificationServer
 
@@ -787,11 +787,11 @@ out:
 			req.err <- err
 			continue
 
-		case req := <-w.checkPassphrases:
+		case req := <-w.checkPassphrase:
 			err := walletdb.View(w.db, func(tx walletdb.ReadTx) er.R {
 				addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
 
-				return w.Manager.CheckPaaphrase(addrmgrNs, req.privatePassphrase)
+				return w.Manager.CheckPassphrase(addrmgrNs, req.privatePassphrase)
 			})
 			req.err <- err
 			continue
@@ -922,10 +922,10 @@ func (w *Wallet) ChangePassphrases(publicOld, publicNew, privateOld,
 }
 
 //	CheckPassphrases verifies the public and private passphrase of the wallet
-func (w *Wallet) CheckPassphrases(publicPw, walletPassphrase []byte) er.R {
+func (w *Wallet) CheckPassphrase(publicPw, walletPassphrase []byte) er.R {
 
 	err := make(chan er.R, 1)
-	w.checkPassphrases <- checkPassphrasesRequest{
+	w.checkPassphrase <- checkPassphrasesRequest{
 		publicPassphrase:  publicPw,
 		privatePassphrase: walletPassphrase,
 		err:               err,
@@ -3380,7 +3380,7 @@ func Open(db walletdb.DB, pubPass []byte, cbs *waddrmgr.OpenCallbacks,
 		lockState:          make(chan bool),
 		changePassphrase:   make(chan changePassphraseRequest),
 		changePassphrases:  make(chan changePassphrasesRequest),
-		checkPassphrases:   make(chan checkPassphrasesRequest),
+		checkPassphrase:    make(chan checkPassphrasesRequest),
 		chainParams:        params,
 		quit:               make(chan struct{}),
 		watch:              watcher.New(),

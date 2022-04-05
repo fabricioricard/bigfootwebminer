@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/btcutil/er"
@@ -268,61 +269,55 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 	publicPw := []byte(wallet.InsecurePubPassphrase)
 	newPubPw := []byte(wallet.InsecurePubPassphrase)
 
-	/*
-		if m.Wallet == nil || m.Wallet.Locked() {
-			loader := wallet.NewLoader(m.netParams, m.walletPath, m.walletFile, m.noFreelistSync, 0)
+	if m.Wallet == nil || m.Wallet.Locked() {
+		loader := wallet.NewLoader(m.netParams, m.walletPath, m.walletFile, m.noFreelistSync, 0)
 
-			// First, we'll make sure the wallet exists for the specific chain and
-			// network.
-			walletExists, err := loader.WalletExists()
+		// First, we'll make sure the wallet exists for the specific chain and
+		// network.
+		walletExists, err := loader.WalletExists()
+		if err != nil {
+			return nil, err
+		}
+
+		if !walletExists {
+			return nil, er.New("wallet not found")
+		}
+
+		// Load the existing wallet in order to proceed with the password change.
+		w, err := loader.OpenExistingWallet(publicPw, false)
+		if err != nil {
+			return nil, err
+		}
+		m.Wallet = w
+		// Now that we've opened the wallet, we need to close it in case of an
+		// error. But not if we succeed, then the caller must close it.
+		orderlyReturn := false
+		defer func() {
+			if !orderlyReturn {
+				_ = loader.UnloadWallet()
+			}
+		}()
+
+		// Before we actually change the password, we need to check if all flags
+		// were set correctly. The content of the previously generated macaroon
+		// files will become invalid after we generate a new root key. So we try
+		// to delete them here and they will be recreated during normal startup
+		// later. If they are missing, this is only an error if the
+		// stateless_init flag was not set.
+
+		//	since we don't have macarrons anymore, 'stateless_init' will always be true
+		for _, file := range m.macaroonFiles {
+			err := os.Remove(file)
 			if err != nil {
-				return nil, err
+				return nil, er.Errorf("could not remove macaroon file: %v", err)
 			}
-
-			if !walletExists {
-				return nil, er.New("wallet not found")
-			}
-
-			// Load the existing wallet in order to proceed with the password change.
-			w, err := loader.OpenExistingWallet(publicPw, false)
-			if err != nil {
-				return nil, err
-			}
-			m.Wallet = w
-			// Now that we've opened the wallet, we need to close it in case of an
-			// error. But not if we succeed, then the caller must close it.
-			orderlyReturn := false
-			defer func() {
-				if !orderlyReturn {
-					_ = loader.UnloadWallet()
-				}
-			}()
-
-			// Before we actually change the password, we need to check if all flags
-			// were set correctly. The content of the previously generated macaroon
-			// files will become invalid after we generate a new root key. So we try
-			// to delete them here and they will be recreated during normal startup
-			// later. If they are missing, this is only an error if the
-			// stateless_init flag was not set.
-
-			//	since we don't have macarrons anymore, 'stateless_init' will always be true
-			for _, file := range m.macaroonFiles {
-				err := os.Remove(file)
-				if err != nil {
-					return nil, er.Errorf("could not remove macaroon file: %v", err)
-				}
-			}
-		} //wallet is locked
-	*/
-	err := m.LoadWallet(publicPw)
-	if err != nil {
-		return nil, err
-	}
+		}
+	} //wallet is locked
 
 	// Attempt to change both the public and private passphrases for the
 	// wallet. This will be done atomically in order to prevent one
 	// passphrase change from being successful and not the other.
-	err = m.Wallet.ChangePassphrases(
+	err := m.Wallet.ChangePassphrases(
 		publicPw, newPubPw, walletPassphrase, newWalletPassphrase,
 	)
 	if err != nil {
@@ -407,70 +402,51 @@ func (m *MetaService) CheckPassword0(ctx context.Context, req *lnrpc.CheckPasswo
 
 	publicPw := []byte(wallet.InsecurePubPassphrase)
 
-	err := m.LoadWallet(publicPw)
-	if err != nil {
-		return nil, err
+	//	if wallet is locked, temporary unlock it just to check the passphrase
+	var walletAux *wallet.Wallet = m.Wallet
+
+	if walletAux == nil || walletAux.Locked() {
+		loader := wallet.NewLoader(m.netParams, m.walletPath, m.walletFile, m.noFreelistSync, 0)
+
+		// First, we'll make sure the wallet exists for the specific chain and network.
+		walletExists, err := loader.WalletExists()
+		if err != nil {
+			return nil, err
+		}
+
+		if !walletExists {
+			return nil, er.New("wallet not found")
+		}
+
+		// Load the existing wallet in order to proceed with the password change.
+		walletAux, err = loader.OpenExistingWallet(publicPw, false)
+		if err != nil {
+			return nil, err
+		}
+		log.Info("Wallet temporary opened with success")
+
+		// Now that we've opened the wallet, we need to close it before exit
+		defer func() {
+			if walletAux != m.Wallet {
+				_ = loader.UnloadWallet()
+				log.Info("Wallet unloaded with success")
+			}
+		}()
 	}
 
 	//	attempt to check the private passphrases for the wallet.
-	err = m.Wallet.CheckPassphrases(publicPw, walletPassphrase)
+	err := walletAux.CheckPassphrase(publicPw, walletPassphrase)
 	if err != nil {
+		if !strings.HasSuffix(err.Message(), "invalid passphrase for master private key") {
+			return nil, err
+		}
+
 		return &lnrpc.CheckPasswordResponse{
 			ValidPassphrase: false,
-		}, err
+		}, nil
 	}
 
 	return &lnrpc.CheckPasswordResponse{
 		ValidPassphrase: true,
 	}, nil
-}
-
-func (m *MetaService) LoadWallet(publicPw []byte) er.R {
-
-	if m.Wallet == nil || m.Wallet.Locked() {
-		loader := wallet.NewLoader(m.netParams, m.walletPath, m.walletFile, m.noFreelistSync, 0)
-
-		// First, we'll make sure the wallet exists for the specific chain and
-		// network.
-		walletExists, err := loader.WalletExists()
-		if err != nil {
-			return err
-		}
-
-		if !walletExists {
-			return er.New("wallet not found")
-		}
-
-		// Load the existing wallet in order to proceed with the password change.
-		w, err := loader.OpenExistingWallet(publicPw, false)
-		if err != nil {
-			return err
-		}
-		m.Wallet = w
-		// Now that we've opened the wallet, we need to close it in case of an
-		// error. But not if we succeed, then the caller must close it.
-		orderlyReturn := false
-		defer func() {
-			if !orderlyReturn {
-				_ = loader.UnloadWallet()
-			}
-		}()
-
-		// Before we actually change the password, we need to check if all flags
-		// were set correctly. The content of the previously generated macaroon
-		// files will become invalid after we generate a new root key. So we try
-		// to delete them here and they will be recreated during normal startup
-		// later. If they are missing, this is only an error if the
-		// stateless_init flag was not set.
-
-		//	since we don't have macarrons anymore, 'stateless_init' will always be true
-		for _, file := range m.macaroonFiles {
-			err := os.Remove(file)
-			if err != nil {
-				return er.Errorf("could not remove macaroon file: %v", err)
-			}
-		}
-	} //wallet is locked
-
-	return nil
 }

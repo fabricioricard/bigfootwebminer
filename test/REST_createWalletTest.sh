@@ -5,6 +5,7 @@
 ################################################################################
 
 export  PKT_HOME="$( pwd )"
+export  PKT_WALLET_DIR="${HOME}/.pktwallet"
 export  PLD="${PKT_HOME}/bin/pld"
 export  PLD_OPTIONS=""
 export  PLD_OUTPUT_FILE="./pld.out"
@@ -165,6 +166,16 @@ changePassphrase() {
     echo "[info] changePassphrase: command successfully executed"
 }
 
+#   send a command to check wallet's passphrase
+checkPassphrase() {
+    local PASSPHRASE="${1}"
+
+    executeCommand 'checkPassphrase' 'POST' '/api/v1/wallet/checkpassphrase' "{ \"wallet_passphrase\": \"${PASSPHRASE}\" }"
+    showCommandResult 'result' '.validPassphrase'
+
+    echo "[info] checkPassphrase: command successfully executed"
+}
+
 #   splash screen
 echo ">>>>> Testing pld create wallet REST endpoints"
 
@@ -200,8 +211,18 @@ do
     shift
 done
 
-#   clean things up by removing previous wallet
-rm -rf ~/.pktwallet
+#   save previous wallet and start a new one just for the tests
+if [ -d "${PKT_WALLET_DIR}.bkp" ]
+then
+    YELLOW='\033[0;33m'
+    NOCOLOR='\033[0m'
+
+    echo "[warning] ${YELLOW}Wallet backup directory \"${PKT_WALLET_DIR}.bkp\" already exists !${NOCOLOR}"
+    exit -1
+else
+    mv "${PKT_WALLET_DIR}" "${PKT_WALLET_DIR}.bkp"
+fi
+
 rm -rf ${PLD_OUTPUT_FILE} ${REST_ERRORS_FILE}
 
 #
@@ -217,12 +238,24 @@ changeSeedPassphrase ${SEED_PASSPHRASE}
 stopPldDeamon
 
 #
+#   check wallet's passphrase before wallet creation test
+#
+
+#   start pld deamon, check passphrase stop the deamon
+echo
+echo ">>> scenario 02 - check wallet's passphrase before wallet creation"
+
+startPldDeamon
+checkPassphrase "${WALLET_PASSPHRASE}"
+stopPldDeamon
+
+#
 #   create wallet test
 #
 
 #   start pld deamon, create a wallet and stop the deamon
 echo
-echo ">>> scenario 02 - create a new wallet"
+echo ">>> scenario 03 - create a new wallet"
 
 startPldDeamon
 createWallet "${WALLET_PASSPHRASE}"
@@ -234,7 +267,7 @@ stopPldDeamon
 
 #   start pld deamon, unlock a wallet and stop the deamon
 echo
-echo ">>> scenario 03 - unlock the wallet"
+echo ">>> scenario 04 - unlock the wallet"
 
 startPldDeamon
 unlockWallet "${WALLET_PASSPHRASE}"
@@ -248,7 +281,7 @@ stopPldDeamon
 export  NEW_WALLET_PASSPHRASE='n3wP$sphrz'
 
 echo
-echo ">>> scenario 04 - change wallet passphrase and unlock the wallet"
+echo ">>> scenario 05 - change wallet passphrase and unlock the wallet"
 
 startPldDeamon
 changePassphrase "${WALLET_PASSPHRASE}" "${NEW_WALLET_PASSPHRASE}"
@@ -256,15 +289,23 @@ unlockWallet "${NEW_WALLET_PASSPHRASE}"
 stopPldDeamon
 
 #
-#   unlock wallet test
+#   check the old and new passwords before and after unlock wallet test
 #
 
 #   start pld deamon, unlock a wallet again and stop the deamon
 echo
-echo ">>> scenario 05 - unlock the wallet with the new passphrase "
+echo ">>> scenario 06 - check the old and new passwords before and after unlock wallet with the new passphrase "
 
 startPldDeamon
+checkPassphrase "${WALLET_PASSPHRASE}"
+checkPassphrase "${NEW_WALLET_PASSPHRASE}"
 unlockWallet "${NEW_WALLET_PASSPHRASE}"
+checkPassphrase "${WALLET_PASSPHRASE}"
+checkPassphrase "${NEW_WALLET_PASSPHRASE}"
 stopPldDeamon
 
 rm -rf ${REST_ERRORS_FILE}
+
+#   restore saved wallet
+rm -rf "${PKT_WALLET_DIR}"
+mv "${PKT_WALLET_DIR}.bkp" "${PKT_WALLET_DIR}"

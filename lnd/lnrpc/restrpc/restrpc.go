@@ -578,7 +578,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.WalletUnlocker_GenSeed,
 	},
-	//	TODO: Change Passphrase service
+	//	Change Passphrase service
 	{
 		category:    subCategorySeed,
 		description: "Alter the passphrase which is used to encrypt a wallet seed",
@@ -766,35 +766,6 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.Lightning_CloseChannel,
 	},
-	//	TODO: service closeallchannels
-	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This is done in the client ide (pldctl)
-	/*
-		{
-			category:    categoryChannels,
-			description: "Close all existing channels",
-
-			path: "/channels/closeall",
-			req:  nil,
-			res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-
-				//	close all channels
-				cc, errr := c.withRpcServer()
-				if cc != nil {
-					var recoveryInfo *lnrpc.GetRecoveryInfoResponse
-
-					recoveryInfo, err := cc.GetRecoveryInfo(context.TODO(), nil)
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return recoveryInfo, nil
-					}
-				} else {
-					return nil, errr
-				}
-			},
-		},
-	*/
 	//	service abandonchannel
 	{
 		category:    subcategoryChannel,

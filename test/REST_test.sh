@@ -598,8 +598,7 @@ echo
 
 #   fetch a transaction ID for the neutrino tests
 TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
-executeCommand 'sendmany' 'POST' '/api/v1/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
-showCommandResult 'result' ''
+executeCommand 'sendmany' 'POST' '/wallet/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": ${AMOUNT} } }"
 showCommandResult 'transaction ID' '.txid'
 TXID="$( getCommandResult '.txid' | tr -d '\"' )"
 
@@ -650,107 +649,150 @@ showCommandResult 'result' '.seed'
 echo "----------"
 echo
 
-showCommandResult 'result' ''
-echo "++++++++++++++++++++++++++++++++"
-exit 0
-
-
-
 #
-#   test commands to manage payments
+#   test commands of "Wallet/Address" group
 #
 
-executeCommand 'sendmany' 'POST' '/api/v1/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
-TXID="$( getCommandResult '.txid' | tr -d '\"' )"
-echo -e "    >>> transaction ID: ${TXID}"
+echo -e ">>> Group ${CYAN}[wallet/address]${NOCOLOR} Management of individual wallet addresses"
+echo
 
-executeCommand 'sendcoins' 'POST' '/api/v1/transaction/sendcoins' "{ \"addr\": \"${TARGET_WALLET}\", \"amount\": 10000000 }"
-showCommandResult 'transaction ID' '.txid'
+executeCommand 'getaddressbalances' 'POST' '/wallet/address/balances' '{  }'
+echo -e "\t#addresses: $( echo ${JSON_OUTPUT} | jq '.addrs | length' )"
 
-executeCommand 'listunspent' 'POST' '/api/v1/transaction/listunspent' '{ "minConfs": 1, "maxConfs": 100 }'
-showCommandResult '#utxos' '.utxos | length'
-
-executeCommand 'listchaintrns' 'POST' '/api/v1/transaction' '{ "startHeight": 1000000, "endHeight": 1347381 }'
-showCommandResult '#transactions' '.transactions | length'
-
-executeCommand 'setnetworkstewardvote' 'POST' '/api/v1/transaction/setnetworkstewardvote' '{ "voteAgainst": "0", "voteFor": "1" }'
+executeCommand 'newaddress' 'POST' '/wallet/address/create' '{  }'
 showCommandResult 'result' ''
 
-executeCommand 'getnetworkstewardvote' 'GET' '/api/v1/transaction/getnetworkstewardvote'
-showCommandResult 'vote against' '.voteAgainst'
-showCommandResult 'vote for' '.voteFor'
+#executeCommand 'dumpprivkey' 'POST' '/wallet/address/dumpprivkey' '{ "address": "pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz" }'
+executeCommand 'dumpprivkey' 'POST' '/wallet/address/dumpprivkey' "{ \"address\": \"${TARGET_WALLET}\" }"
+showCommandResult 'result' ''
+#    echo -e "\tprivate key: $( echo ${JSON_OUTPUT} | jq '.private_key' )"
+
+#   we don't want to start a full rescan so, adding a 'xx' sufix to the Wallet PK to force an error
+WALLET_PRIVKEY='cVgcgWwQpwzViWmG7dGyvf545ra6AdT4tV29UtQfE8okvPuznFZi'
+executeCommand 'importprivkey' 'POST' '/wallet/address/import' "{ \"privateKey\": \"${WALLET_PRIVKEY}xx\", \"rescan\": true }"
+showCommandResult 'result' ''
+#    echo -e "\taddress: $( echo ${JSON_OUTPUT} | jq '.address' )"
+
+executeCommand 'signmessage' 'POST' '/wallet/address/signmessage' '{ "msg": "testing pld REST endpoints" }'
+showCommandResult 'result' ''
+#    echo -e "\tsignature: $( echo ${JSON_OUTPUT} | jq '.signature' )"
 
 echo "----------"
 echo
 
-showCommandResult 'result' ''
-echo "++++++++++++++++++++++++++++++++"
-exit 0
+#
+#   test commands of "Wallet/NetworkStewardVote" group
+#
 
-################################################################################
-#   test commands to manage the wallet
-################################################################################
-executeCommand 'newaddress' 'POST' '/api/v1/lightning/getnewaddress' '{  }'
-showCommandResult 'result' ''
+echo -e ">>> Group ${CYAN}[wallet/networkstewardvote]${NOCOLOR} Control how this wallet votes on PKT Network Steward"
+echo
 
-executeCommand 'getaddressbalances' 'POST' '/api/v1/wallet/addresses/balances' '{  }'
-echo -e "\t#addresses: $( echo ${JSON_OUTPUT} | jq '.addrs | length' )"
+executeCommand 'getnetworkstewardvote' 'GET' '/wallet/networkstewardvote'
+showCommandResult 'vote against' '.voteAgainst'
+showCommandResult 'vote for' '.voteFor'
 
-#executeCommand 'signmessage' 'pkt1q0tgwuwcg4tmwegmevdfz3g6tw838upqcq8xt8u message'
-executeCommand 'signmessage' 'POST' '/api/v1/lightning/signmessage' '{ "msg": "testing pld REST endpoints" }'
-showCommandResult 'result' ''
-#    echo -e "\tsignature: $( echo ${JSON_OUTPUT} | jq '.signature' )"
-
-executeCommand 'resync' 'POST' '/api/v1/lightning/resync' '{  }'
+executeCommand 'setnetworkstewardvote' 'POST' '/wallet/networkstewardvote/set' '{ "voteAgainst": "0", "voteFor": "1" }'
 showCommandResult 'result' ''
 
-executeCommand 'stopresync' 'GET' '/api/v1/lightning/stopresync' ''
-showCommandResult 'result' ''
-#    echo -e "\tstop sync: $( echo ${JSON_OUTPUT} | jq '.value' )"
+echo "----------"
+echo
 
-executeCommand 'importprivkey' 'POST' '/api/v1/lightning/importprivkey' '{ "privateKey": "cVgcgWwQpwzViWmG7dGyvf545ra6AdT4tV29UtQfE8okvPuznFZi", "rescan": true }'
-showCommandResult 'result' ''
-#    echo -e "\taddress: $( echo ${JSON_OUTPUT} | jq '.address' )"
+#
+#   test commands of "Wallet/Transaction" group
+#
 
-executeCommand 'listlockunspent' 'GET' '/api/v1/lightning/listlockunspent'
-showCommandResult 'result' ''
-#    echo -e "\t#lock unspent: $( echo ${JSON_OUTPUT} | jq '.locked_unspent | length' )"
-
-executeCommand 'lockunspent' 'POST' '/api/v1/lightning/lockunspent' '{ "lockname": "secure vault", "unlock": false, "transactions": [ { "txid": "934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f" } ] }' ''
-showCommandResult 'result' ''
-
-executeCommand 'createtransaction' 'POST' '/api/v1/lightning/createtransaction' '{ "toAddress": "pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz", "amount": 100000 }'
-showCommandResult 'result' ''
-#    echo -e "\ttransaction: $( echo ${JSON_OUTPUT} | jq '.transaction' )"
-
-#executeCommand 'dumpprivkey' 'pkt1q0tgwuwcg4tmwegmevdfz3g6tw838upqcq8xt8u'
-executeCommand 'dumpprivkey' 'POST' '/api/v1/lightning/dumpprivkey' '{ "address": "pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz" }'
-showCommandResult 'result' ''
-#    echo -e "\tprivate key: $( echo ${JSON_OUTPUT} | jq '.private_key' )"
-
-#executeCommand 'getnewaddress' 'POST' '/api/v1/lightning/getnewaddress' '{  }'
-#showCommandResult 'result' ''
-#    echo -e "\taddress: $( echo ${JSON_OUTPUT} | jq '.address' )"
+echo -e ">>> Group ${CYAN}[wallet/transaction]${NOCOLOR} Create and manage on-chain transactions with the wallet"
+echo
 
 #executeCommand 'gettransaction' '934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f'
-executeCommand 'gettransaction' 'POST' '/api/v1/lightning/gettransaction' ''
+executeCommand 'gettransaction' 'POST' '/wallet/transaction' ''
 showCommandResult 'result' ''
 #    echo -e "\tamount: $( echo ${JSON_OUTPUT} | jq '.transaction.amount' )"
 #    echo -e "\tfee: $( echo ${JSON_OUTPUT} | jq '.transaction.fee' )"
 
-executeCommand 'gettransactions' 'POST' '/api/v1/lightning/gettransactions' ''
+TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
+AMOUNT="10000"
+executeCommand 'createtransaction' 'POST' '/wallet/transaction/create' "{ \"toAddress\": \"${TARGET_WALLET}\", \"amount\": ${AMOUNT} }"
+showCommandResult 'result' ''
+#    echo -e "\ttransaction: $( echo ${JSON_OUTPUT} | jq '.transaction' )"
+
+executeCommand 'query' 'POST' '/wallet/transaction/query' '{  }'
 showCommandResult 'result' ''
 
-executeCommand 'sendfrom' 'POST' '/api/v1/lightning/sendfrom' '{  }'
+executeCommand 'sendcoins' 'POST' '/wallet/transaction/sendcoins' "{ \"addr\": \"${TARGET_WALLET}\", \"amount\": ${AMOUNT} }"
+showCommandResult 'transaction ID' '.txid'
+
+executeCommand 'sendfrom' 'POST' '/wallet/transaction/sendfrom' '{  }'
 showCommandResult 'result' ''
 
-################################################################################
-#   test commands to manage watch tower
-################################################################################
+executeCommand 'sendmany' 'POST' '/wallet/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": ${AMOUNT} } }"
+showCommandResult 'result' ''
+showCommandResult 'transaction ID' '.txid'
+TXID="$( getCommandResult '.txid' | tr -d '\"' )"
 
-#executeCommand 'wtclient' 'towers'
+echo "----------"
+echo
 
-#   test commands to stop pld daemon
-executeCommand 'stop' 'GET' '/api/v1/meta/stop'
+#
+#   test commands of "Wallet/Unspent" group
+#
+
+echo -e ">>> Group ${CYAN}[wallet/unspent]${NOCOLOR} Detected unspent transactions associated with one of our wallet addresses"
+echo
+
+executeCommand 'listunspent' 'POST' '/wallet/unspent' '{ "minConfs": 1, "maxConfs": 100 }'
+showCommandResult '#utxos' '.utxos | length'
+
+executeCommand 'resync' 'POST' '/wallet/unspent/resync' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'stopresync' 'GET' '/wallet/unspent/stopresync' ''
+showCommandResult 'result' ''
+#    echo -e "\tstop sync: $( echo ${JSON_OUTPUT} | jq '.value' )"
+
+#
+#   test commands of "Wallet/Unspent/Lock" group
+#
+
+echo -e ">>> Group ${CYAN}[wallet/unspent/lock]${NOCOLOR} Manipulation of unspent outputs which are 'locked' and therefore will not be used to source funds for any transaction"
+echo
+
+executeCommand 'listlockunspent' 'GET' '/wallet/unspent/lock'
+showCommandResult 'result' ''
+#    echo -e "\t#lock unspent: $( echo ${JSON_OUTPUT} | jq '.locked_unspent | length' )"
+
+executeCommand 'lockunspent' 'POST' '/wallet/unspent/lock/create' '{ "lockname": "secure vault", "unlock": false, "transactions": [ { "txid": "934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f" } ] }' ''
+showCommandResult 'result' ''
+
+echo "----------"
+echo
+
+#
+#   test commands of "Wtclient/Tower" group
+#
+
+echo -e ">>> Group ${CYAN}[wtclient/tower]${NOCOLOR} Interact with the watchtower client"
+echo
+
+executeCommand 'show' 'POST' '/wtclient/tower' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/create' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/getinfo' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/policy' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/remove' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/stats' '{  }'
+showCommandResult 'result' ''
+
+echo "----------"
+echo
 
 rm -rf ${REST_ERRORS_FILE}

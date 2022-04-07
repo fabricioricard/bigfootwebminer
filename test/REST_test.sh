@@ -29,7 +29,6 @@ executeCommand() {
     JSON_OUTPUT=""
     HTTP_RESPONSE_CODE=""
 
-    #   curl -X POST -H 'Content-Type: application/json' -d '{ "wallet_passphrase": "w4ll3tP@sswd" }' --write-out '|%{response_code}' 'localhost:8080/api/v1/wallet/unlock'
     if [ "${HTTP_METHOD}" == "GET" ]
     then
         if [ "${VERBOSE}" == 'true' ]
@@ -60,7 +59,6 @@ executeCommand() {
         echo -e "[trace] ${LIGHTGRAY}response: ${JSON_OUTPUT}${NOCOLOR}"
     fi
 
-#    if [ $? -eq 0 ]
     if [ "${HTTP_RESPONSE_CODE}" == "200" ]
     then
         echo -e ">>> ${CYAN}[${COMMAND}]${NOCOLOR}: ${GREEN}command successfully executed${NOCOLOR}"
@@ -85,7 +83,7 @@ showCommandResult() {
         else
             RESULT=$( echo "${JSON_OUTPUT}" | jq "${FILTER}" )
         fi
-        echo -e "    >>> ${TITLE}: ${RESULT}"
+        echo -e "    >>> ${TITLE}: ${LIGHTGRAYNOCOLOR}${RESULT}${NOCOLOR}"
     fi
 }
 
@@ -371,6 +369,7 @@ showCommandResult 'subsystems' '.subSystems'
 executeCommand 'getinfo' 'GET' '/meta/getinfo'
 showCommandResult '#neutrino peers' '.neutrino.peers | length'
 
+#   this needs be the last of all tests
 #executeCommand 'stop' 'GET' '/meta/stop'
 #showCommandResult 'result' ''
 
@@ -390,6 +389,7 @@ echo
 executeCommand 'changepassphrase' 'POST' '/util/seed/changepassphrase' '{ "current_seed_passphrase_bin": "cGFzc3dvcmQ=", "current_seed": [ "plastic",  "hollow",  "mansion",  "keep",  "into",  "cloth",  "awesome",  "salmon",  "reopen",  "inner",  "replace",  "dice",  "life",  "example",  "around" ], "new_seed_passphrase": "password" }'
 showCommandResult 'new ciphered seed' '.seed'
 
+#   this test is meant to fail, since seed creation can only be ordered before wallet's creation
 executeCommand 'genseed' 'POST' '/util/seed/create' '{ "seed_passphrase_bin": "cGFzc3dvcmQ=" }'
 showCommandResult 'ciphered seed' '.seed'
 
@@ -405,10 +405,9 @@ echo
 
 #   fetch a public key for the channels tests
 executeCommand 'describegraph' 'POST' '/lightning/graph' '{ "includeUnannounced": true }'
+showCommandResult 'public key' '.nodes | .[0] | .pubKey'
 PUBLIC_KEY="$( getCommandResult '.nodes | .[0] | .pubKey ' | tr -d '\"' | cut --characters=3- )"
-echo -e "    >>> using public key: ${PUBLIC_KEY}"
 
-                  "": "Update the channel policy for all channels, or a single channel"
 AMOUNT="100000"
 executeCommand 'openchannel' 'POST' '/lightning/channel/open' "{ \"node_pubkey\": \"${PUBLIC_KEY}\", \"local_funding_amount\": ${AMOUNT} }"
 showCommandResult 'result' ''
@@ -475,10 +474,11 @@ echo
 echo -e ">>> Group ${CYAN}[lightning/graph]${NOCOLOR} Information about the global known Lightning Network"
 echo
 
+#   fetch a public key for the graph tests
 executeCommand 'describegraph' 'POST' '/lightning/graph' '{ "includeUnannounced": true }'
 showCommandResult 'last update' '.nodes | .[0] | .lastUpdate '
+showCommandResult 'public key' '.nodes | .[0] | .pubKey'
 PUBLIC_KEY="$( getCommandResult '.nodes | .[0] | .pubKey ' | tr -d '\"' )"
-echo -e "    >>> public key: ${PUBLIC_KEY}"
 
 executeCommand 'getnodemetrics' 'POST' '/lightning/graph/nodemetrics' '{ "types": [ 0, 1 ] }'
 showCommandResult 'betweenness centrality' '.betweennessCentrality'
@@ -502,10 +502,10 @@ echo -e ">>> Group ${CYAN}[lightning/invoice]${NOCOLOR} Management of invoices w
 echo
 
 executeCommand 'addinvoice' 'POST' '/lightning/invoice/create' '{ "memo": "xpto", "value": 10, "expiry": 3600 }'
+showCommandResult 'rHash' '.rHash'
+showCommandResult 'payment request' '.paymentRequest'
 RHASH="$( getCommandResult '.rHash' | tr -d '\"' )"
 PAYREQ="$( getCommandResult '.paymentRequest' | tr -d '\"' )"
-echo -e "    >>> rHash: ${RHASH}"
-echo -e "    >>> payment request: ${PAYREQ}"
 
 executeCommand 'lookupinvoice' 'POST' '/lightning/invoice/lookup' "{ \"rHash\": \"${RHASH}\" }"
 showCommandResult 'last update' '.lastUpdate'
@@ -533,7 +533,6 @@ echo
 executeCommand 'sendpayment' 'POST' '/lightning/payment/send' "{ \"paymentHash\": \"${RHASH}\", \"amt\": 100000, \"dest\": \"${TARGET_WALLET}\" }"
 showCommandResult 'result' ''
 
-#executeCommand 'payinvoice' 'lnpkt100u1p3q4r85pp5kecz6ckl97wwe2nnqn6lq5lju30z9sc8uaeacamudxv52kykgdnqdqqcqzpgsp5fa0tpf3j3ecppn3tvmc50n6w7pl6dcs7zvus82splfjs2qevwkxq9qy9qsq4sfdxwzrku87zaphgh6wa3rtc2a8g7rmg6a2dp4myk3qa8c7409sv205xxfsc2n0mzmemcg92ukg7x6q7xlkp5ca9gdwvsqmtpuazccpw25hg9'
 executeCommand 'payinvoice' 'POST' '/lightning/payment/payinvoice' "{ \"paymentHash\": \"${RHASH}\", \"amt\": 100000, \"dest\": \"${TARGET_WALLET}\" }"
 showCommandResult 'result' ''
 
@@ -546,9 +545,6 @@ showCommandResult '#payments' '.payments | length'
 executeCommand 'trackpayment' 'POST' '/lightning/payment/track' '{ "indexOffset": 1, "maxPayments": 10, "includeIncomplete": true }'
 showCommandResult '#payments' '.payments | length'
 
-#PUBKEY="02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e"
-#AMOUNT="100000"
-#executeCommand 'queryroutes' 'POST' '/api/v1/payment/queryroutes' '02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e 1'
 executeCommand 'queryroutes' 'POST' '/lightning/payment/queryroutes' "{  }"
 showCommandResult 'result' ''
 
@@ -557,11 +553,10 @@ showCommandResult '#forwarding events' '.forwardingEvents | length'
 
 executeCommand 'querymc' 'GET' '/lightning/payment/querymc'
 showCommandResult 'result' ''
-#    echo -e "\t#pairs: $( echo ${JSON_OUTPUT} | jq '.pairs | length' )"
 
 FROM_NODE="01020304"
 TO_NODE="02030405"
-#AMOUNT="100000"
+AMOUNT="100000"
 executeCommand 'queryprob' 'POST' '/lightning/payment/queryprob' "{ \"fromNode\": \"${FROM_NODE}\", \"toNode\": \"${TO_NODE}\", \"amtMsat\": \"${AMOUNT}\" }"
 showCommandResult 'result' ''
 
@@ -575,21 +570,82 @@ echo "----------"
 echo
 
 #
-#   test commands of "Lightning/Invoice" group
+#   test commands of "Lightning/Peer" group
 #
 
 echo -e ">>> Group ${CYAN}[lightning/peer]${NOCOLOR} Connections to other nodes in the Lightning Network"
 echo
 
-executeCommand 'connect' 'POST' '/lightning/peer/connect' '{ "addr": { "pubkey": "272648127365482", "host": "192.168.40.1:8080" } }'
+executeCommand 'connect' 'POST' '/lightning/peer/connect' "{ \"addr\": { \"pubkey\": \"${PUBLIC_KEY}\", \"host\": \"192.168.40.1:8080\" } }"
 showCommandResult 'result' ''
 
-executeCommand 'disconnect' 'POST' '/lightning/peer/disconnect' '{  }'
+executeCommand 'disconnect' 'POST' '/lightning/peer/disconnect' "{ \"pubkey\": \"${PUBLIC_KEY}\" }"
 showCommandResult 'result' ''
 
 executeCommand 'listpeers' 'GET' '/lightning/peer'
 showCommandResult 'result' ''
 showCommandResult '#peers' '.peers | length'
+
+echo "----------"
+echo
+
+#
+#   test commands of "Neutrino" group
+#
+
+echo -e ">>> Group ${CYAN}[neutrino]${NOCOLOR} Management of the Neutrino interface which is used to communicate with the p2p nodes in the network"
+echo
+
+#   fetch a transaction ID for the neutrino tests
+TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
+executeCommand 'sendmany' 'POST' '/api/v1/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
+showCommandResult 'result' ''
+showCommandResult 'transaction ID' '.txid'
+TXID="$( getCommandResult '.txid' | tr -d '\"' )"
+
+executeCommand 'bcasttransaction' 'POST' '/neutrino/bcasttransaction' "{ \"tx\": \"${TXID}\" }"
+showCommandResult 'result' ''
+#    echo -e "\ttransaction hash: $( echo ${JSON_OUTPUT} | jq '.txn_hash' )"
+
+executeCommand 'estimatefee' 'POST' '/neutrino/estimatefee' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
+showCommandResult 'fee sat' '.feeSat'
+
+echo "----------"
+echo
+
+#
+#   test commands of "Wallet" group
+#
+
+echo -e ">>> Group ${CYAN}[wallet]${NOCOLOR} APIs for management of on-chain (non-Lightning) payments, seed export and recovery, and on-chain transaction detection"
+echo
+
+executeCommand 'walletbalance' 'GET' '/wallet/balance'
+echo -e "\ttotal balance: $( echo ${JSON_OUTPUT} | jq '.totalBalance' )"
+
+#   we don't want to change the wallet's passphrase here, since this test is being made by REST_createWalletTest.sh script
+#executeCommand 'changePassphrase' 'POST' '/wallet/changepassphrase' "{ \"current_passphrase\": \"${PASSPHRASE}\", \"new_passphrase\": \"${NEW_PASSPHRASE}\" }"
+#showCommandResult 'result' ''
+
+WALLET_PASSPHRASE='w4ll3tP@sswd'
+executeCommand 'checkPassphrase' 'POST' '/wallet/checkpassphrase' "{ \"wallet_passphrase\": \"${WALLET_PASSPHRASE}\" }"
+showCommandResult 'result' '.validPassphrase'
+
+#   this test is meant to fail, since wallet is supposed to have been created already
+WALLET_SEED='[ "plastic",  "hollow",  "mansion",  "keep",  "into",  "cloth",  "awesome",  "salmon",  "reopen",  "inner",  "replace",  "dice",  "life",  "example",  "around" ]'
+SEED_PASSPHRASE='cGFzc3dvcmQ='
+executeCommand 'create_wallet' 'POST' '/wallet/create' "{ \"wallet_passphrase\": \"${PASSPHRASE}\", \"wallet_seed\": ${WALLET_SEED}, \"seed_passphrase_bin\": \"${SEED_PASSPHRASE}\" }"
+showCommandResult 'result' ''
+
+executeCommand 'getsecret' 'POST' '/wallet/getsecret' '{ "name": "Isaac Assimov" }'
+showCommandResult 'result' '.secret'
+
+executeCommand 'getwalletseed' 'GET' '/wallet/seed'
+showCommandResult 'result' '.seed'
+
+#   we don't want to unlock the wallet here, since this test is being made by REST_createWalletTest.sh script
+#executeCommand 'unlock_wallet' 'POST' '/wallet/unlock' "{ \"wallet_passphrase\": \"${WALLET_PASSPHRASE}\" }"
+#showCommandResult 'result' ''
 
 echo "----------"
 echo
@@ -600,15 +656,9 @@ exit 0
 
 
 
-
 #
 #   test commands to manage payments
 #
-
-TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
-
-executeCommand 'estimatefee' 'POST' '/api/v1/transaction/estimatefee' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
-showCommandResult 'fee sat' '.feeSat'
 
 executeCommand 'sendmany' 'POST' '/api/v1/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
 TXID="$( getCommandResult '.txid' | tr -d '\"' )"
@@ -630,10 +680,6 @@ executeCommand 'getnetworkstewardvote' 'GET' '/api/v1/transaction/getnetworkstew
 showCommandResult 'vote against' '.voteAgainst'
 showCommandResult 'vote for' '.voteFor'
 
-executeCommand 'bcasttransaction' 'POST' '/api/v1/transaction/bcast' "{ \"tx\": \"${TXID}\" }"
-showCommandResult 'result' ''
-#    echo -e "\ttransaction hash: $( echo ${JSON_OUTPUT} | jq '.txn_hash' )"
-
 echo "----------"
 echo
 
@@ -646,9 +692,6 @@ exit 0
 ################################################################################
 executeCommand 'newaddress' 'POST' '/api/v1/lightning/getnewaddress' '{  }'
 showCommandResult 'result' ''
-
-executeCommand 'walletbalance' 'GET' '/api/v1/lightning/walletbalance'
-echo -e "\ttotal balance: $( echo ${JSON_OUTPUT} | jq '.totalBalance' )"
 
 executeCommand 'getaddressbalances' 'POST' '/api/v1/wallet/addresses/balances' '{  }'
 echo -e "\t#addresses: $( echo ${JSON_OUTPUT} | jq '.addrs | length' )"
@@ -664,14 +707,6 @@ showCommandResult 'result' ''
 executeCommand 'stopresync' 'GET' '/api/v1/lightning/stopresync' ''
 showCommandResult 'result' ''
 #    echo -e "\tstop sync: $( echo ${JSON_OUTPUT} | jq '.value' )"
-
-executeCommand 'getwalletseed' 'POST' '/api/v1/lightning/getwalletseed' '{  }'
-showCommandResult 'result' ''
-#    echo -e "\twallet seed: $( echo ${JSON_OUTPUT} | jq '.seed' )"
-
-executeCommand 'getsecret' 'POST' '/api/v1/lightning/getsecret' '{ "name": "Isaac Assimov" }'
-showCommandResult 'result' ''
-#    echo -e "\tsecret: $( echo ${JSON_OUTPUT} | jq '.secret' )"
 
 executeCommand 'importprivkey' 'POST' '/api/v1/lightning/importprivkey' '{ "privateKey": "cVgcgWwQpwzViWmG7dGyvf545ra6AdT4tV29UtQfE8okvPuznFZi", "rescan": true }'
 showCommandResult 'result' ''

@@ -83,6 +83,66 @@
           "fields": []
         },
         {
+          "name": "CheckPasswordRequest",
+          "longName": "CheckPasswordRequest",
+          "fullName": "lnrpc.CheckPasswordRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "wallet_passphrase",
+              "description": "current_password should be the current valid passphrase used to unlock the daemon.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "wallet_password_bin",
+              "description": "Binary form of current_passphrase, if specified will override current_passphrase.\nWhen using JSON, this field must be encoded as base64.",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckPasswordResponse",
+          "longName": "CheckPasswordResponse",
+          "fullName": "lnrpc.CheckPasswordResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "valid_passphrase",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetInfo2Request",
           "longName": "GetInfo2Request",
           "fullName": "lnrpc.GetInfo2Request",
@@ -171,6 +231,18 @@
               "responseType": "ChangePasswordResponse",
               "responseLongType": "ChangePasswordResponse",
               "responseFullType": "lnrpc.ChangePasswordResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "CheckPassword",
+              "description": "lncli: `checkPassword`\nCheckPassword verify that the password in the request is valid for the wallet.",
+              "requestType": "CheckPasswordRequest",
+              "requestLongType": "CheckPasswordRequest",
+              "requestFullType": "lnrpc.CheckPasswordRequest",
+              "requestStreaming": false,
+              "responseType": "CheckPasswordResponse",
+              "responseLongType": "CheckPasswordResponse",
+              "responseFullType": "lnrpc.CheckPasswordResponse",
               "responseStreaming": false
             }
           ]

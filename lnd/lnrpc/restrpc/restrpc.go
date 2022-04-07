@@ -73,7 +73,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wallet/unlock",
 		req:  (*lnrpc.UnlockWalletRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 			req, ok := m.(*lnrpc.UnlockWalletRequest)
 			if !ok {
@@ -84,7 +84,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			} else if _, err := u.UnlockWallet0(context.TODO(), req); err != nil {
 				return nil, err
 			}
-			return nil, nil
+			return &RestEmptyResponse{}, nil
 		},
 
 		getHelpInfo: pkthelp.WalletUnlocker_UnlockWallet,
@@ -97,7 +97,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wallet/create",
 		req:  (*lnrpc.InitWalletRequest)(nil), // Use init wallet structure to create
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
@@ -117,7 +117,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			if err != nil {
 				return nil, er.E(err)
 			}
-			return nil, nil
+			return &RestEmptyResponse{}, nil
 		},
 
 		getHelpInfo: pkthelp.WalletUnlocker_InitWallet,
@@ -266,7 +266,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wallet/changepassphrase",
 		req:  (*lnrpc.ChangePasswordRequest)(nil),
-		res:  nil, // no response
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 			req, ok := m.(*lnrpc.ChangePasswordRequest)
 			if !ok {
@@ -276,14 +276,48 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			if err != nil {
 				return nil, err
 			}
-			resp, errr := meta.ChangePassword(context.TODO(), req)
+			_, errr := meta.ChangePassword(context.TODO(), req)
 			if errr != nil {
 				return nil, er.E(errr)
 			}
-			return resp, nil
+			return &RestEmptyResponse{}, nil
 		},
 
 		getHelpInfo: pkthelp.MetaService_ChangePassword,
+	},
+	//MetaService check wallet password
+	{
+		category:    categoryWallet,
+		description: "Check the wallet's password",
+
+		path: "/wallet/checkpassphrase",
+		req:  (*lnrpc.CheckPasswordRequest)(nil),
+		res:  (*lnrpc.CheckPasswordResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			checkPasswordReq, ok := m.(*lnrpc.CheckPasswordRequest)
+			if !ok {
+				return nil, er.New("Argument is not a CheckPasswordRequest")
+			}
+
+			//	check the passphrase
+			var checkPasswordResp *lnrpc.CheckPasswordResponse
+
+			meta, errr := c.withMetaServer()
+			if errr != nil {
+				return nil, errr
+			}
+
+			checkPasswordResp, err := meta.CheckPassword(context.TODO(), checkPasswordReq)
+			if err != nil {
+				return nil, er.E(err)
+			}
+
+			return checkPasswordResp, nil
+		},
+
+		getHelpInfo: pkthelp.MetaService_CheckPassword,
 	},
 	//Wallet balance
 	//requires unlocked wallet -> access to rpcServer
@@ -469,17 +503,17 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wallet/unspent/resync",
 		req:  (*lnrpc.ReSyncChainRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 			req, ok := m.(*lnrpc.ReSyncChainRequest)
 			if !ok {
 				return nil, er.New("Argument is not a ReSyncChainRequest")
 			}
 			if server, err := c.withRpcServer(); server != nil {
-				if l, err := server.ReSync(context.TODO(), req); err != nil {
+				if _, err := server.ReSync(context.TODO(), req); err != nil {
 					return nil, er.E(err)
 				} else {
-					return l, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, err
@@ -544,20 +578,39 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.WalletUnlocker_GenSeed,
 	},
-	//	TODO: Change Passphrase service
+	//	Change Passphrase service
 	{
 		category:    subCategorySeed,
 		description: "Alter the passphrase which is used to encrypt a wallet seed",
 
 		path: "/util/seed/changepassphrase",
-		req:  nil,
-		res:  nil,
+		req:  (*lnrpc.ChangeSeedPassphraseRequest)(nil),
+		res:  (*lnrpc.ChangeSeedPassphraseResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			return nil, nil
+			//	get the request payload
+			changeSeedPassphraseReq, ok := m.(*lnrpc.ChangeSeedPassphraseRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ChangeSeedPassphraseRequest")
+			}
+
+			//	invoke Lightning change seed passphrase command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var changeSeedPassphraseResp *lnrpc.ChangeSeedPassphraseResponse
+
+				changeSeedPassphraseResp, err := cc.ChangeSeedPassphrase(context.TODO(), changeSeedPassphraseReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return changeSeedPassphraseResp, nil
+				}
+			} else {
+				return nil, errr
+			}
 		},
 
-		getHelpInfo: pkthelp.WalletUnlocker_GenSeed,
+		getHelpInfo: pkthelp.Lightning_ChangeSeedPassphrase,
 	},
 	//	service debug level
 	{
@@ -600,19 +653,17 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/meta/stop",
 		req:  nil,
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	invoke Lightning stop daemon command
 			cc, errr := c.withRpcServer()
 			if cc != nil {
-				var stopResp *lnrpc.StopResponse
-
-				stopResp, err := cc.StopDaemon(context.TODO(), nil)
+				_, err := cc.StopDaemon(context.TODO(), nil)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return stopResp, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr
@@ -690,7 +741,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/lightning/channel/close",
 		req:  (*lnrpc.CloseChannelRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -706,7 +757,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return nil, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr
@@ -715,35 +766,6 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.Lightning_CloseChannel,
 	},
-	//	TODO: service closeallchannels
-	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This is done in the client ide (pldctl)
-	/*
-		{
-			category:    categoryChannels,
-			description: "Close all existing channels",
-
-			path: "/channels/closeall",
-			req:  nil,
-			res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-
-				//	close all channels
-				cc, errr := c.withRpcServer()
-				if cc != nil {
-					var recoveryInfo *lnrpc.GetRecoveryInfoResponse
-
-					recoveryInfo, err := cc.GetRecoveryInfo(context.TODO(), nil)
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return recoveryInfo, nil
-					}
-				} else {
-					return nil, errr
-				}
-			},
-		},
-	*/
 	//	service abandonchannel
 	{
 		category:    subcategoryChannel,
@@ -1509,7 +1531,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wallet/networkstewardvote/set",
 		req:  (*lnrpc.SetNetworkStewardVoteRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -1521,13 +1543,11 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			//	set network steward vote
 			cc, errr := c.withRpcServer()
 			if cc != nil {
-				var setNetworkStewardVoteResp *lnrpc.SetNetworkStewardVoteResponse
-
-				setNetworkStewardVoteResp, err := cc.SetNetworkStewardVote(context.TODO(), setNetworkStewardVoteReq)
+				_, err := cc.SetNetworkStewardVote(context.TODO(), setNetworkStewardVoteReq)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return setNetworkStewardVoteResp, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr
@@ -1640,7 +1660,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/lightning/payment/payinvoice",
 		req:  (*routerrpc.SendPaymentRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -1656,7 +1676,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return nil, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr
@@ -1807,7 +1827,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/lightning/payment/track",
 		req:  (*routerrpc.TrackPaymentRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -1823,7 +1843,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return nil, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr
@@ -1899,19 +1919,17 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/lightning/payment/resetmc",
 		req:  nil,
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	invoke reset mission controle service
 			cc, errr := c.withRouterServer()
 			if cc != nil {
-				var resetMissionControlResp *routerrpc.ResetMissionControlResponse
-
-				resetMissionControlResp, err := cc.ResetMissionControl(context.TODO(), nil)
+				_, err := cc.ResetMissionControl(context.TODO(), nil)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return resetMissionControlResp, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr
@@ -1961,7 +1979,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/lightning/peer/connect",
 		req:  (*lnrpc.ConnectPeerRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -1973,13 +1991,11 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			//	invoke Lightning connect peer command
 			cc, errr := c.withRpcServer()
 			if cc != nil {
-				var connectPeerResp *lnrpc.ConnectPeerResponse
-
-				connectPeerResp, err := cc.ConnectPeer(context.TODO(), connectPeerReq)
+				_, err := cc.ConnectPeer(context.TODO(), connectPeerReq)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return connectPeerResp, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr
@@ -1995,7 +2011,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/lightning/peer/disconnect",
 		req:  (*lnrpc.DisconnectPeerRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -2007,13 +2023,11 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			//	invoke Lightning disconnect peer command
 			cc, errr := c.withRpcServer()
 			if cc != nil {
-				var disconnectPeerResp *lnrpc.DisconnectPeerResponse
-
-				disconnectPeerResp, err := cc.DisconnectPeer(context.TODO(), disconnectPeerReq)
+				_, err := cc.DisconnectPeer(context.TODO(), disconnectPeerReq)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return disconnectPeerResp, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr
@@ -2293,7 +2307,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wtclient/tower/create",
 		req:  (*wtclientrpc.AddTowerRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -2306,13 +2320,11 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			cc, errr := c.withWatchTowerClient()
 
 			if cc != nil {
-				var addTowerResp *wtclientrpc.AddTowerResponse
-
-				addTowerResp, err := cc.AddTower(context.TODO(), addTowerReq)
+				_, err := cc.AddTower(context.TODO(), addTowerReq)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return addTowerResp, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr
@@ -2328,7 +2340,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		path: "/wtclient/tower/remove",
 		req:  (*wtclientrpc.RemoveTowerRequest)(nil),
-		res:  nil,
+		res:  (*RestEmptyResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
 			//	get the request payload
@@ -2341,13 +2353,11 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			cc, errr := c.withWatchTowerClient()
 
 			if cc != nil {
-				var removeTowerResp *wtclientrpc.RemoveTowerResponse
-
-				removeTowerResp, err := cc.RemoveTower(context.TODO(), removeTowerReq)
+				_, err := cc.RemoveTower(context.TODO(), removeTowerReq)
 				if err != nil {
 					return nil, er.E(err)
 				} else {
-					return removeTowerResp, nil
+					return &RestEmptyResponse{}, nil
 				}
 			} else {
 				return nil, errr

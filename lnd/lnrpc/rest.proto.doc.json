@@ -192,6 +192,17 @@
           ]
         },
         {
+          "name": "RestEmptyResponse",
+          "longName": "RestEmptyResponse",
+          "fullName": "restrpc.RestEmptyResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "RestHelpResponse",
           "longName": "RestHelpResponse",
           "fullName": "restrpc.RestHelpResponse",

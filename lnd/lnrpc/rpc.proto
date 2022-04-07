@@ -494,6 +494,9 @@ service Lightning {
     /*Get the wallet seed words for this wallet*/
     rpc GetWalletSeed (GetWalletSeedRequest) returns (GetWalletSeedResponse);
 
+    /*  Change seed's passphrase */
+    rpc ChangeSeedPassphrase (ChangeSeedPassphraseRequest) returns (ChangeSeedPassphraseResponse);
+
     /*Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application*/
     rpc GetSecret (GetSecretRequest) returns (GetSecretResponse);
 
@@ -3682,6 +3685,43 @@ message StopReSyncResponse{
 message GetWalletSeedRequest{}
 
 message GetWalletSeedResponse{
+    repeated string seed = 1;
+}
+
+message ChangeSeedPassphraseRequest{
+    /*
+    current_seed_passphrase is the optional user specified passphrase that
+    encrypts the current seed.
+    */
+    string current_seed_passphrase = 1;
+
+    /*
+    current_seed_passphrase_bin overrides current_seed_passphrase if specified,
+    for binary representation of the current seed passphrase. If using JSON then
+    this field must be base64 encoded.
+    */
+    bytes current_seed_passphrase_bin = 2;
+
+    /*
+    current_seed is the seed whose passphrase is going to be changed
+    */
+    repeated string current_seed = 3;
+
+    /*
+    new_seed_passphrase is the optional user specified passphrase that will be used
+    to encrypt the seed.
+    */
+    string new_seed_passphrase = 4;
+
+    /*
+    new_seed_passphrase_bin overrides new_seed_passphrase if specified, for binary
+    representation of the passphrase. If using JSON then this field must be base64
+    encoded.
+    */
+    bytes new_seed_passphrase_bin = 5;
+}
+
+message ChangeSeedPassphraseResponse{
     repeated string seed = 1;
 }
 

@@ -49,6 +49,9 @@ message Type {
     repeated Field fields = 3;
 }
 
+message RestEmptyResponse{
+}
+
 message RestHelpResponse{
     string name = 1;
     string service = 2;

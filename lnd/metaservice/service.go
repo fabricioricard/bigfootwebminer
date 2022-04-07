@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/pkt-cash/pktd/btcjson"
 	"github.com/pkt-cash/pktd/btcutil/er"
@@ -371,4 +372,81 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 	_ = adminMac
 
 	return &lnrpc.ChangePasswordResponse{}, nil
+}
+
+func (u *MetaService) CheckPassword(ctx context.Context, req *lnrpc.CheckPasswordRequest) (*lnrpc.CheckPasswordResponse, error) {
+
+	res, err := u.CheckPassword0(ctx, req)
+
+	return res, er.Native(err)
+}
+
+//	CheckPassword just verifies if the password of the wallet is valid, and is
+//	meant to be used independent of wallet's state being unlocked or locked.
+func (m *MetaService) CheckPassword0(ctx context.Context, req *lnrpc.CheckPasswordRequest) (*lnrpc.CheckPasswordResponse, er.R) {
+
+	//	fetch current wallet passphrase from request
+	var walletPassphrase []byte
+
+	if len(req.WalletPasswordBin) > 0 {
+		walletPassphrase = req.WalletPasswordBin
+	} else {
+		if len(req.WalletPassphrase) > 0 {
+			walletPassphrase = []byte(req.WalletPassphrase)
+		} else {
+			// If the current password is blank, we'll assume the user is coming
+			// from a --noseedbackup state, so we'll use the default passwords.
+			walletPassphrase = []byte(lnwallet.DefaultPrivatePassphrase)
+		}
+	}
+
+	publicPw := []byte(wallet.InsecurePubPassphrase)
+
+	//	if wallet is locked, temporary unlock it just to check the passphrase
+	var walletAux *wallet.Wallet = m.Wallet
+
+	if walletAux == nil || walletAux.Locked() {
+		loader := wallet.NewLoader(m.netParams, m.walletPath, m.walletFile, m.noFreelistSync, 0)
+
+		// First, we'll make sure the wallet exists for the specific chain and network.
+		walletExists, err := loader.WalletExists()
+		if err != nil {
+			return nil, err
+		}
+
+		if !walletExists {
+			return nil, er.New("wallet not found")
+		}
+
+		// Load the existing wallet in order to proceed with the password change.
+		walletAux, err = loader.OpenExistingWallet(publicPw, false)
+		if err != nil {
+			return nil, err
+		}
+		log.Info("Wallet temporary opened with success")
+
+		// Now that we've opened the wallet, we need to close it before exit
+		defer func() {
+			if walletAux != m.Wallet {
+				_ = loader.UnloadWallet()
+				log.Info("Wallet unloaded with success")
+			}
+		}()
+	}
+
+	//	attempt to check the private passphrases for the wallet.
+	err := walletAux.CheckPassphrase(publicPw, walletPassphrase)
+	if err != nil {
+		if !strings.HasSuffix(err.Message(), "invalid passphrase for master private key") {
+			return nil, err
+		}
+
+		return &lnrpc.CheckPasswordResponse{
+			ValidPassphrase: false,
+		}, nil
+	}
+
+	return &lnrpc.CheckPasswordResponse{
+		ValidPassphrase: true,
+	}, nil
 }

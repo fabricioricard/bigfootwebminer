@@ -23,6 +23,9 @@ type MetaServiceClient interface {
 	//ChangePassword changes the password of the encrypted wallet. This will
 	//automatically unlock the wallet database if successful.
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
+	// lncli: `checkPassword`
+	//CheckPassword verify that the password in the request is valid for the wallet.
+	CheckPassword(ctx context.Context, in *CheckPasswordRequest, opts ...grpc.CallOption) (*CheckPasswordResponse, error)
 }
 
 type metaServiceClient struct {
@@ -51,6 +54,15 @@ func (c *metaServiceClient) ChangePassword(ctx context.Context, in *ChangePasswo
 	return out, nil
 }
 
+func (c *metaServiceClient) CheckPassword(ctx context.Context, in *CheckPasswordRequest, opts ...grpc.CallOption) (*CheckPasswordResponse, error) {
+	out := new(CheckPasswordResponse)
+	err := c.cc.Invoke(ctx, "/lnrpc.MetaService/CheckPassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MetaServiceServer is the server API for MetaService service.
 // All implementations should embed UnimplementedMetaServiceServer
 // for forward compatibility
@@ -60,6 +72,9 @@ type MetaServiceServer interface {
 	//ChangePassword changes the password of the encrypted wallet. This will
 	//automatically unlock the wallet database if successful.
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
+	// lncli: `checkPassword`
+	//CheckPassword verify that the password in the request is valid for the wallet.
+	CheckPassword(context.Context, *CheckPasswordRequest) (*CheckPasswordResponse, error)
 }
 
 // UnimplementedMetaServiceServer should be embedded to have forward compatible implementations.
@@ -71,6 +86,9 @@ func (UnimplementedMetaServiceServer) GetInfo2(context.Context, *GetInfo2Request
 }
 func (UnimplementedMetaServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
+}
+func (UnimplementedMetaServiceServer) CheckPassword(context.Context, *CheckPasswordRequest) (*CheckPasswordResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckPassword not implemented")
 }
 
 // UnsafeMetaServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -120,6 +138,24 @@ func _MetaService_ChangePassword_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MetaService_CheckPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetaServiceServer).CheckPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lnrpc.MetaService/CheckPassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetaServiceServer).CheckPassword(ctx, req.(*CheckPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MetaService_ServiceDesc is the grpc.ServiceDesc for MetaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +170,10 @@ var MetaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangePassword",
 			Handler:    _MetaService_ChangePassword_Handler,
+		},
+		{
+			MethodName: "CheckPassword",
+			Handler:    _MetaService_CheckPassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

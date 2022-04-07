@@ -4228,6 +4228,39 @@ func mklnrpc_ChangePasswordResponse() Type {
         Name: "lnrpc_ChangePasswordResponse",
     }
 }
+func mklnrpc_CheckPasswordRequest() Type {
+    return Type{
+        Name: "lnrpc_CheckPasswordRequest",
+        Fields: []Field{
+            {
+                Name: "wallet_passphrase",
+                Description: []string{
+                    "current_password should be the current valid passphrase used to unlock the daemon.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "wallet_password_bin",
+                Description: []string{
+                    "Binary form of current_passphrase, if specified will override current_passphrase.",
+                    "When using JSON, this field must be encoded as base64.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mklnrpc_CheckPasswordResponse() Type {
+    return Type{
+        Name: "lnrpc_CheckPasswordResponse",
+        Fields: []Field{
+            {
+                Name: "valid_passphrase",
+                Type: mkbool(),
+            },
+        },
+    }
+}
 func mklnrpc_GetInfo2Request() Type {
     return Type{
         Name: "lnrpc_GetInfo2Request",
@@ -4463,6 +4496,67 @@ func mklnrpc_ChanPointShim() Type {
                     "the value is less than 500,000, or as an absolute height otherwise.",
                 },
                 Type: mkuint32(),
+            },
+        },
+    }
+}
+func mklnrpc_ChangeSeedPassphraseRequest() Type {
+    return Type{
+        Name: "lnrpc_ChangeSeedPassphraseRequest",
+        Fields: []Field{
+            {
+                Name: "current_seed_passphrase",
+                Description: []string{
+                    "current_seed_passphrase is the optional user specified passphrase that",
+                    "encrypts the current seed.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "current_seed_passphrase_bin",
+                Description: []string{
+                    "current_seed_passphrase_bin overrides current_seed_passphrase if specified,",
+                    "for binary representation of the current seed passphrase. If using JSON then",
+                    "this field must be base64 encoded.",
+                },
+                Type: mkbytes(),
+            },
+            {
+                Name: "current_seed",
+                Description: []string{
+                    "current_seed is the seed whose passphrase is going to be changed",
+                },
+                Repeated: true,
+                Type: mkstring(),
+            },
+            {
+                Name: "new_seed_passphrase",
+                Description: []string{
+                    "new_seed_passphrase is the optional user specified passphrase that will be used",
+                    "to encrypt the seed.",
+                },
+                Type: mkstring(),
+            },
+            {
+                Name: "new_seed_passphrase_bin",
+                Description: []string{
+                    "new_seed_passphrase_bin overrides new_seed_passphrase if specified, for binary",
+                    "representation of the passphrase. If using JSON then this field must be base64",
+                    "encoded.",
+                },
+                Type: mkbytes(),
+            },
+        },
+    }
+}
+func mklnrpc_ChangeSeedPassphraseResponse() Type {
+    return Type{
+        Name: "lnrpc_ChangeSeedPassphraseResponse",
+        Fields: []Field{
+            {
+                Name: "seed",
+                Repeated: true,
+                Type: mkstring(),
             },
         },
     }
@@ -11676,6 +11770,14 @@ func MetaService_ChangePassword() Method {
         Res: mklnrpc_ChangePasswordResponse(),
     }
 }
+func MetaService_CheckPassword() Method {
+    return Method{
+        Name: "CheckPassword",
+        Service: "MetaService",
+        Req: mklnrpc_CheckPasswordRequest(),
+        Res: mklnrpc_CheckPasswordResponse(),
+    }
+}
 func Lightning_WalletBalance() Method {
     return Method{
         Name: "WalletBalance",
@@ -12520,6 +12622,17 @@ func Lightning_GetWalletSeed() Method {
         },
         Req: mklnrpc_GetWalletSeedRequest(),
         Res: mklnrpc_GetWalletSeedResponse(),
+    }
+}
+func Lightning_ChangeSeedPassphrase() Method {
+    return Method{
+        Name: "ChangeSeedPassphrase",
+        Service: "Lightning",
+        Description: []string{
+            "Change seed's passphrase",
+        },
+        Req: mklnrpc_ChangeSeedPassphraseRequest(),
+        Res: mklnrpc_ChangeSeedPassphraseResponse(),
     }
 }
 func Lightning_GetSecret() Method {

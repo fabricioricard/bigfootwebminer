@@ -15,6 +15,11 @@ service MetaService {
     automatically unlock the wallet database if successful.
     */
     rpc ChangePassword (ChangePasswordRequest) returns (ChangePasswordResponse);
+
+    /* lncli: `checkPassword`
+    CheckPassword verify that the password in the request is valid for the wallet.
+    */
+    rpc CheckPassword (CheckPasswordRequest) returns (CheckPasswordResponse);
 }
 
 message GetInfo2Request {}
@@ -51,3 +56,20 @@ message ChangePasswordRequest {
 }
 
 message ChangePasswordResponse {}
+
+message CheckPasswordRequest {
+    /*
+    current_password should be the current valid passphrase used to unlock the daemon.
+    */
+    string wallet_passphrase = 1;
+
+    /*
+    Binary form of current_passphrase, if specified will override current_passphrase.
+    When using JSON, this field must be encoded as base64.
+    */
+    bytes wallet_password_bin = 2;
+}
+
+message CheckPasswordResponse {
+    bool valid_passphrase = 1;
+}

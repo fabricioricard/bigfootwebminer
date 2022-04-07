@@ -285,6 +285,40 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.MetaService_ChangePassword,
 	},
+	//MetaService check wallet password
+	{
+		category:    categoryWallet,
+		description: "Check the wallet's password",
+
+		path: "/wallet/checkpassphrase",
+		req:  (*lnrpc.CheckPasswordRequest)(nil),
+		res:  (*lnrpc.CheckPasswordResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	get the request payload
+			checkPasswordReq, ok := m.(*lnrpc.CheckPasswordRequest)
+			if !ok {
+				return nil, er.New("Argument is not a CheckPasswordRequest")
+			}
+
+			//	check the passphrase
+			var checkPasswordResp *lnrpc.CheckPasswordResponse
+
+			meta, errr := c.withMetaServer()
+			if errr != nil {
+				return nil, errr
+			}
+
+			checkPasswordResp, err := meta.CheckPassword(context.TODO(), checkPasswordReq)
+			if err != nil {
+				return nil, er.E(err)
+			}
+
+			return checkPasswordResp, nil
+		},
+
+		getHelpInfo: pkthelp.MetaService_CheckPassword,
+	},
 	//Wallet balance
 	//requires unlocked wallet -> access to rpcServer
 	{
@@ -544,20 +578,39 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.WalletUnlocker_GenSeed,
 	},
-	//	TODO: Change Passphrase service
+	//	Change Passphrase service
 	{
 		category:    subCategorySeed,
 		description: "Alter the passphrase which is used to encrypt a wallet seed",
 
 		path: "/util/seed/changepassphrase",
-		req:  nil,
-		res:  (*RestEmptyResponse)(nil),
+		req:  (*lnrpc.ChangeSeedPassphraseRequest)(nil),
+		res:  (*lnrpc.ChangeSeedPassphraseResponse)(nil),
 		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
 
-			return &RestEmptyResponse{}, nil
+			//	get the request payload
+			changeSeedPassphraseReq, ok := m.(*lnrpc.ChangeSeedPassphraseRequest)
+			if !ok {
+				return nil, er.New("Argument is not a ChangeSeedPassphraseRequest")
+			}
+
+			//	invoke Lightning change seed passphrase command
+			cc, errr := c.withRpcServer()
+			if cc != nil {
+				var changeSeedPassphraseResp *lnrpc.ChangeSeedPassphraseResponse
+
+				changeSeedPassphraseResp, err := cc.ChangeSeedPassphrase(context.TODO(), changeSeedPassphraseReq)
+				if err != nil {
+					return nil, er.E(err)
+				} else {
+					return changeSeedPassphraseResp, nil
+				}
+			} else {
+				return nil, errr
+			}
 		},
 
-		getHelpInfo: pkthelp.WalletUnlocker_GenSeed,
+		getHelpInfo: pkthelp.Lightning_ChangeSeedPassphrase,
 	},
 	//	service debug level
 	{
@@ -713,35 +766,6 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.Lightning_CloseChannel,
 	},
-	//	TODO: service closeallchannels
-	//	check with Dimitris because the CloseAllChannels calls listChannels and then close one by one. This is done in the client ide (pldctl)
-	/*
-		{
-			category:    categoryChannels,
-			description: "Close all existing channels",
-
-			path: "/channels/closeall",
-			req:  nil,
-			res:  (*lnrpc.GetRecoveryInfoResponse)(nil),
-			f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
-
-				//	close all channels
-				cc, errr := c.withRpcServer()
-				if cc != nil {
-					var recoveryInfo *lnrpc.GetRecoveryInfoResponse
-
-					recoveryInfo, err := cc.GetRecoveryInfo(context.TODO(), nil)
-					if err != nil {
-						return nil, er.E(err)
-					} else {
-						return recoveryInfo, nil
-					}
-				} else {
-					return nil, errr
-				}
-			},
-		},
-	*/
 	//	service abandonchannel
 	{
 		category:    subcategoryChannel,

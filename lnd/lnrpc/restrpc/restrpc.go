@@ -2699,5 +2699,10 @@ func RestHandlers(c *RpcContext) *mux.Router {
 		http.Error(httpResponse, "404 - invalid endpoint: for help on all endpoints go to /api/v1 URI", http.StatusNotFound)
 	})
 
+	//	add a handler for websocket endpoint
+	r.Handle(URI_prefix+"/meta/websocket", http.HandlerFunc(func(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+		webSocketHandler(c, httpResponse, httpRequest)
+	}))
+
 	return r
 }

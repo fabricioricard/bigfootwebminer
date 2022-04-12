@@ -143,6 +143,28 @@
           ]
         },
         {
+          "name": "CrashRequest",
+          "longName": "CrashRequest",
+          "fullName": "lnrpc.CrashRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "CrashResponse",
+          "longName": "CrashResponse",
+          "fullName": "lnrpc.CrashResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "GetInfo2Request",
           "longName": "GetInfo2Request",
           "fullName": "lnrpc.GetInfo2Request",
@@ -243,6 +265,18 @@
               "responseType": "CheckPasswordResponse",
               "responseLongType": "CheckPasswordResponse",
               "responseFullType": "lnrpc.CheckPasswordResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "ForceCrash",
+              "description": "Force a pld crash (for debug purposes)",
+              "requestType": "CrashRequest",
+              "requestLongType": "CrashRequest",
+              "requestFullType": "lnrpc.CrashRequest",
+              "requestStreaming": false,
+              "responseType": "CrashResponse",
+              "responseLongType": "CrashResponse",
+              "responseFullType": "lnrpc.CrashResponse",
               "responseStreaming": false
             }
           ]

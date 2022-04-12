@@ -450,3 +450,15 @@ func (m *MetaService) CheckPassword0(ctx context.Context, req *lnrpc.CheckPasswo
 		ValidPassphrase: true,
 	}, nil
 }
+
+func (u *MetaService) ForceCrash(ctx context.Context, req *lnrpc.CrashRequest) (*lnrpc.CrashResponse, error) {
+
+	var someVariable *string = nil
+
+	//	dereference o nil pointer to force a core dump
+	if len(*someVariable) == 0 {
+		return nil, nil
+	}
+
+	return &lnrpc.CrashResponse{}, nil
+}

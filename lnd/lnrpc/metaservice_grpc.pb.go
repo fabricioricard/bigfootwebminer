@@ -26,6 +26,8 @@ type MetaServiceClient interface {
 	// lncli: `checkPassword`
 	//CheckPassword verify that the password in the request is valid for the wallet.
 	CheckPassword(ctx context.Context, in *CheckPasswordRequest, opts ...grpc.CallOption) (*CheckPasswordResponse, error)
+	//  Force a pld crash (for debug purposes)
+	ForceCrash(ctx context.Context, in *CrashRequest, opts ...grpc.CallOption) (*CrashResponse, error)
 }
 
 type metaServiceClient struct {
@@ -63,6 +65,15 @@ func (c *metaServiceClient) CheckPassword(ctx context.Context, in *CheckPassword
 	return out, nil
 }
 
+func (c *metaServiceClient) ForceCrash(ctx context.Context, in *CrashRequest, opts ...grpc.CallOption) (*CrashResponse, error) {
+	out := new(CrashResponse)
+	err := c.cc.Invoke(ctx, "/lnrpc.MetaService/ForceCrash", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MetaServiceServer is the server API for MetaService service.
 // All implementations should embed UnimplementedMetaServiceServer
 // for forward compatibility
@@ -75,6 +86,8 @@ type MetaServiceServer interface {
 	// lncli: `checkPassword`
 	//CheckPassword verify that the password in the request is valid for the wallet.
 	CheckPassword(context.Context, *CheckPasswordRequest) (*CheckPasswordResponse, error)
+	//  Force a pld crash (for debug purposes)
+	ForceCrash(context.Context, *CrashRequest) (*CrashResponse, error)
 }
 
 // UnimplementedMetaServiceServer should be embedded to have forward compatible implementations.
@@ -89,6 +102,9 @@ func (UnimplementedMetaServiceServer) ChangePassword(context.Context, *ChangePas
 }
 func (UnimplementedMetaServiceServer) CheckPassword(context.Context, *CheckPasswordRequest) (*CheckPasswordResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckPassword not implemented")
+}
+func (UnimplementedMetaServiceServer) ForceCrash(context.Context, *CrashRequest) (*CrashResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ForceCrash not implemented")
 }
 
 // UnsafeMetaServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -156,6 +172,24 @@ func _MetaService_CheckPassword_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MetaService_ForceCrash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CrashRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetaServiceServer).ForceCrash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lnrpc.MetaService/ForceCrash",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetaServiceServer).ForceCrash(ctx, req.(*CrashRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MetaService_ServiceDesc is the grpc.ServiceDesc for MetaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -174,6 +208,10 @@ var MetaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckPassword",
 			Handler:    _MetaService_CheckPassword_Handler,
+		},
+		{
+			MethodName: "ForceCrash",
+			Handler:    _MetaService_ForceCrash_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

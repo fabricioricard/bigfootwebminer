@@ -20,6 +20,9 @@ service MetaService {
     CheckPassword verify that the password in the request is valid for the wallet.
     */
     rpc CheckPassword (CheckPasswordRequest) returns (CheckPasswordResponse);
+
+    /*  Force a pld crash (for debug purposes) */
+    rpc ForceCrash (CrashRequest) returns (CrashResponse);
 }
 
 message GetInfo2Request {}
@@ -72,4 +75,10 @@ message CheckPasswordRequest {
 
 message CheckPasswordResponse {
     bool valid_passphrase = 1;
+}
+
+message CrashRequest{
+}
+
+message CrashResponse{
 }

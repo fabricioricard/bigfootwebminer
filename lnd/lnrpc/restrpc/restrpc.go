@@ -2506,6 +2506,29 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 
 		getHelpInfo: pkthelp.WatchtowerClient_Policy,
 	},
+	//	service force pld crash
+	{
+		category:    categoryMeta,
+		description: "Force pld to crash (for debugging purposes)",
+
+		path: "/meta/crash",
+		req:  nil,
+		res:  (*RestEmptyResponse)(nil),
+		f: func(c *RpcContext, m proto.Message) (proto.Message, er.R) {
+
+			//	force a crash by defer a nil pointer
+			meta, errr := c.withMetaServer()
+			if meta != nil {
+				meta.ForceCrash(context.TODO(), nil)
+
+				return &RestEmptyResponse{}, nil
+			} else {
+				return nil, errr
+			}
+		},
+
+		getHelpInfo: pkthelp.MetaService_ForceCrash,
+	},
 }
 
 type RpcContext struct {

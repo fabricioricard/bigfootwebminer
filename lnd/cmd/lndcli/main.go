@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -58,7 +60,7 @@ func main() {
 		return
 	}
 
-	//	only on argument is the command to be executed
+	//	only one argument means the command to be executed have no request payload
 	if len(flag.Args()) == 1 {
 		err := executeCommand(flag.Args()[0], "")
 		if err != nil {
@@ -69,14 +71,193 @@ func main() {
 	}
 
 	//	two arguments is the command to be executed + the request payload
-	if len(flag.Args()) == 2 {
-		err := executeCommand(flag.Args()[0], flag.Args()[1])
+	if len(flag.Args()) > 1 {
+		var command = flag.Args()[0]
+		var requestPayload string
+
+		requestPayload, err := formatRequestPayload(command, flag.Args()[1:])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %s", err)
+			panic(-1)
+		}
+		fmt.Fprintf(os.Stdout, "[debug]: request payload: %s\n", requestPayload)
+
+		err = executeCommand(command, requestPayload)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s", err)
 			panic(-1)
 		}
 		return
 	}
+}
+
+func formatRequestPayload(command string, arguments []string) (string, error) {
+
+	var helpURI = pldServer + URI_prefix + helpURI_prefix + "/" + command
+
+	//	get help from pld
+	response, err := http.Get(helpURI)
+	if err != nil {
+		return "", errors.New("fail getting command help from pld server: " + err.Error())
+	}
+	defer response.Body.Close()
+
+	responseCommandHelp, err := io.ReadAll(response.Body)
+	if err != nil {
+		return "", errors.New("fail reading command help message from pld server: %s" + err.Error())
+	}
+
+	//	unmarshal the help message
+	var commandMethod Method
+
+	err = jsoniter.Unmarshal(responseCommandHelp, &commandMethod)
+	if err != nil {
+		return "", errors.New("fail unmarshling command help message: %s" + err.Error())
+	}
+
+	var requestPayload string
+
+	if len(commandMethod.Request.Fields) > 0 {
+		for _, requestField := range commandMethod.Request.Fields {
+
+			formattedField := formatRequestField(requestField, arguments)
+			if len(formattedField) > 0 {
+				if len(requestPayload) > 0 {
+					requestPayload += ", "
+				}
+				requestPayload += formattedField
+			}
+		}
+	}
+	requestPayload = "{ " + requestPayload + " }"
+
+	return requestPayload, nil
+}
+
+func formatRequestField(requestField *Field, arguments []string) string {
+
+	var formattedField string
+
+	if len(requestField.Type.Fields) == 0 {
+
+		var commandOption = "--" + requestField.Name
+
+		switch requestField.Type.Name {
+		case "bool":
+			for _, argument := range arguments {
+				if argument == commandOption {
+					formattedField += "\"" + requestField.Name + "\": true"
+				}
+			}
+
+		case "[]byte":
+			commandOption += "="
+			for _, argument := range arguments {
+				if strings.HasPrefix(argument, commandOption) {
+					formattedField += "\"" + requestField.Name + "\": \"" + argument[len(commandOption):] + "\""
+				}
+			}
+
+		case "string":
+			commandOption += "="
+			for _, argument := range arguments {
+				if strings.HasPrefix(argument, commandOption) {
+					if !requestField.Repeated {
+						formattedField += "\"" + requestField.Name + "\": \"" + argument[len(commandOption):] + "\""
+					} else {
+						var arrayOfStrings string
+
+						for _, stringValue := range strings.Split(argument[len(commandOption):], ":") {
+							if len(arrayOfStrings) > 0 {
+								arrayOfStrings += ", "
+							}
+							arrayOfStrings += "\"" + stringValue + "\""
+						}
+
+						formattedField += "\"" + requestField.Name + "\": [ " + arrayOfStrings + " ]"
+					}
+				}
+			}
+
+		//	TODO: to make sure that for integer types pld doen't have arrays (Repeated == true)
+		case "uint32":
+			commandOption += "="
+			for _, argument := range arguments {
+				if strings.HasPrefix(argument, commandOption) {
+					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+				}
+			}
+
+		case "int32":
+			commandOption += "="
+			for _, argument := range arguments {
+				if strings.HasPrefix(argument, commandOption) {
+					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+				}
+			}
+
+		case "uint64":
+			commandOption += "="
+			for _, argument := range arguments {
+				if strings.HasPrefix(argument, commandOption) {
+					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+				}
+			}
+
+		case "int64":
+			commandOption += "="
+			for _, argument := range arguments {
+				if strings.HasPrefix(argument, commandOption) {
+					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+				}
+			}
+
+		case "float64":
+			commandOption += "="
+			for _, argument := range arguments {
+				if strings.HasPrefix(argument, commandOption) {
+					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+				}
+			}
+
+		//	map some hard coded enums
+		case "ENUM_VARIENT":
+			for _, argument := range arguments {
+				if argument == commandOption {
+					switch requestField.Name {
+					case "UNKNOWN":
+						formattedField += "0"
+
+					case "BETWEENNESS_CENTRALITY":
+						formattedField += "1"
+					}
+				}
+			}
+		}
+	} else {
+
+		var formattedSubFields string
+
+		for _, requestSubField := range requestField.Type.Fields {
+			formattedSubField := formatRequestField(requestSubField, arguments)
+
+			if len(formattedSubField) > 0 {
+				if len(formattedSubFields) > 0 {
+					formattedSubFields += ", "
+				}
+				formattedSubFields += formattedSubField
+			}
+		}
+		if len(formattedSubFields) > 0 {
+			if !requestField.Repeated {
+				formattedField += "\"" + requestField.Name + "\": { " + formattedSubFields + " }"
+			} else {
+				formattedField += "\"" + requestField.Name + "\": [ " + formattedSubFields + " ]"
+			}
+		}
+	}
+
+	return formattedField
 }
 
 func executeCommand(command string, payload string) error {

@@ -1012,7 +1012,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 			}
 		},
 
-		getHelpInfo: pkthelp.Lightning_FeeReport,
+		getHelpInfo: pkthelp.Lightning_UpdateChannelPolicy,
 	},
 	//	service exportchanbackup
 	{

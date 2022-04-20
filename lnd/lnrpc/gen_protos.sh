@@ -10,6 +10,12 @@
 
 echo "Generating root gRPC server protos"
 
+if [ -z "${GOPATH}" ]
+then
+    echo "${0}: environment variable GOPATH must be set"
+    exit 1
+fi
+
 GOOGLE_IMPORT_PATH="${GOPATH}/pkg/mod/github.com/gogo/protobuf@v1.3.2/protobuf"
 
 PROTOS="rpc.proto walletunlocker.proto metaservice.proto pkt.proto **/*.proto"

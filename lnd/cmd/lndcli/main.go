@@ -7,6 +7,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -80,8 +81,21 @@ func main() {
 			fmt.Fprintf(os.Stderr, "error: %s", err)
 			panic(-1)
 		}
-		fmt.Fprintf(os.Stdout, "[debug]: request payload: %s\n", requestPayload)
 
+		//	[debug] unmarshall the string with the request to marshall it with indentation
+		var requestPayloadMap map[string]interface{}
+
+		err = json.Unmarshal([]byte(requestPayload), &requestPayloadMap)
+		if err != nil {
+		} else {
+			prettyRequestPayload, err := json.MarshalIndent(requestPayloadMap, "", "    ")
+			if err != nil {
+			} else {
+				fmt.Fprintf(os.Stdout, "[debug]: request payload: %s\n", string(prettyRequestPayload))
+			}
+		}
+
+		//	send the request payload to pld
 		err = executeCommand(command, requestPayload)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s", err)
@@ -120,7 +134,7 @@ func formatRequestPayload(command string, arguments []string) (string, error) {
 	if len(commandMethod.Request.Fields) > 0 {
 		for _, requestField := range commandMethod.Request.Fields {
 
-			formattedField := formatRequestField(requestField, arguments)
+			formattedField := formatRequestField("", requestField, arguments)
 			if len(formattedField) > 0 {
 				if len(requestPayload) > 0 {
 					requestPayload += ", "
@@ -134,13 +148,19 @@ func formatRequestPayload(command string, arguments []string) (string, error) {
 	return requestPayload, nil
 }
 
-func formatRequestField(requestField *Field, arguments []string) string {
+func formatRequestField(fieldHierarchy string, requestField *Field, arguments []string) string {
 
 	var formattedField string
 
 	if len(requestField.Type.Fields) == 0 {
 
-		var commandOption = "--" + requestField.Name
+		var commandOption string
+
+		if len(fieldHierarchy) == 0 {
+			commandOption = "--" + requestField.Name
+		} else {
+			commandOption = "--" + fieldHierarchy + "." + requestField.Name
+		}
 
 		switch requestField.Type.Name {
 		case "bool":
@@ -224,13 +244,7 @@ func formatRequestField(requestField *Field, arguments []string) string {
 		case "ENUM_VARIENT":
 			for _, argument := range arguments {
 				if argument == commandOption {
-					switch requestField.Name {
-					case "UNKNOWN":
-						formattedField += "0"
-
-					case "BETWEENNESS_CENTRALITY":
-						formattedField += "1"
-					}
+					formattedField += "\"" + requestField.Name + "\""
 				}
 			}
 		}
@@ -239,7 +253,13 @@ func formatRequestField(requestField *Field, arguments []string) string {
 		var formattedSubFields string
 
 		for _, requestSubField := range requestField.Type.Fields {
-			formattedSubField := formatRequestField(requestSubField, arguments)
+			var formattedSubField string
+
+			if len(fieldHierarchy) == 0 {
+				formattedSubField = formatRequestField(requestField.Name, requestSubField, arguments)
+			} else {
+				formattedSubField = formatRequestField(fieldHierarchy+"."+requestField.Name, requestSubField, arguments)
+			}
 
 			if len(formattedSubField) > 0 {
 				if len(formattedSubFields) > 0 {

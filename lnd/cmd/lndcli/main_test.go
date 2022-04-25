@@ -59,28 +59,31 @@ func TestFormatRequestPayload(t *testing.T) {
 			command: "lightning/channel/open",
 			arguments: []string{"--node_pubkey=a0a1a2a3a4a5a6a7a8a9aa=", "--local_funding_amount=100000", "--push_sat=500000", "--target_conf=50",
 				"sat_per_byte=250", "--private", "--min_htlc_msat=2048", "--remote_csv_delay=256", "--min_confs=5", "--close_address=C70534dd",
-				"--amt=2050750", "--funding_txid_bytes=f0f1f2f3f4f5f6f7f8f9ff", "--output_index=282748", "--raw_key_bytes=1011121314151617181910",
-				"--key_family=25", "--key_index=70", "--remote_key=e0e2e3e4e5e6e7e8e9ee", "--pending_chain_id=632d129", "--thaw_height=16274648",
-				"--pending_chan_id=374649828379", "--base_psbt=3754629387292", "--no_publish", "--remote_max_value_in_flight_msat=100500",
-				"--remote_max_htlcs=287", "--remote_max_csv=209",
+				"--funding_shim.chan_point_shim.amt=2050750", "--funding_shim.chan_point_shim.chan_point.funding_txid_bytes=f0f1f2f3f4f5f6f7f8f9ff",
+				"--funding_shim.chan_point_shim.chan_point.output_index=282748", "--funding_shim.chan_point_shim.local_key.raw_key_bytes=1011121314151617181910",
+				"--funding_shim.chan_point_shim.local_key.key_loc.key_family=25", "--funding_shim.chan_point_shim.local_key.key_loc.key_index=70",
+				"--funding_shim.chan_point_shim.remote_key=e0e2e3e4e5e6e7e8e9ee", "--funding_shim.chan_point_shim.pending_chan_id=632d129",
+				"--funding_shim.chan_point_shim.thaw_height=16274648", "--funding_shim.psbt_shim.pending_chan_id=374649828379",
+				"--funding_shim.psbt_shim.base_psbt=3754629387292", "--funding_shim.psbt_shim.no_publish",
+				"--remote_max_value_in_flight_msat=100500", "--remote_max_htlcs=287", "--remote_max_csv=209",
 			},
 			expectedPayload: `{ "node_pubkey": "a0a1a2a3a4a5a6a7a8a9aa=", "local_funding_amount": 100000, "push_sat": 500000, "target_conf": 50, ` +
 				`"private": true, "min_htlc_msat": 2048, "remote_csv_delay": 256, "min_confs": 5, "close_address": "C70534dd", ` +
-				`"funding_shim": { "chan_point_shim": { "amt": 2050750, "chan_point": { "funding_txid_bytes": "f0f1f2f3f4f5f6f7f8f9ff", "output_index": 282748 }, "local_key": { "raw_key_bytes": "1011121314151617181910", ` +
-				`"key_loc": { "key_family": 25, "key_index": 70 } }, "remote_key": "e0e2e3e4e5e6e7e8e9ee", "pending_chan_id": "374649828379", "thaw_height": 16274648 }, ` +
-				`"psbt_shim": { "pending_chan_id": "374649828379", "base_psbt": "3754629387292", "no_publish": true } }, "remote_max_value_in_flight_msat": 100500, ` +
-				`"remote_max_htlcs": 287 }`,
+				`"funding_shim": { "chan_point_shim": { "amt": 2050750, "chan_point": { "funding_txid_bytes": "f0f1f2f3f4f5f6f7f8f9ff", "output_index": 282748 }, ` +
+				`"local_key": { "raw_key_bytes": "1011121314151617181910", "key_loc": { "key_family": 25, "key_index": 70 } }, "remote_key": "e0e2e3e4e5e6e7e8e9ee", ` +
+				`"pending_chan_id": "632d129", "thaw_height": 16274648 }, "psbt_shim": { "pending_chan_id": "374649828379", "base_psbt": "3754629387292", ` +
+				`"no_publish": true } }, "remote_max_value_in_flight_msat": 100500, "remote_max_htlcs": 287 }`,
 		},
 		{
 			name:            "closechannel CLI options",
 			command:         "lightning/channel/close",
-			arguments:       []string{"--funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--force", "--delivery_address=d0d1d2d3d4d5d6d7d8d9dd"},
+			arguments:       []string{"--channel_point.funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--force", "--delivery_address=d0d1d2d3d4d5d6d7d8d9dd"},
 			expectedPayload: `{ "channel_point": { "funding_txid_str": "a0a1a2a3a4a5a6a7a8a9aa" }, "force": true, "delivery_address": "d0d1d2d3d4d5d6d7d8d9dd" }`,
 		},
 		{
 			name:            "abandonchannel CLI options",
 			command:         "lightning/channel/abandon",
-			arguments:       []string{"--funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--output_index=282748", "--pending_funding_shim_only"},
+			arguments:       []string{"--channel_point.funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--channel_point.output_index=282748", "--pending_funding_shim_only"},
 			expectedPayload: `{ "channel_point": { "funding_txid_str": "a0a1a2a3a4a5a6a7a8a9aa", "output_index": 282748 }, "pending_funding_shim_only": true }`,
 		},
 		{
@@ -122,31 +125,33 @@ func TestFormatRequestPayload(t *testing.T) {
 		{
 			name:            "updatechanpolicy CLI options",
 			command:         "/lightning/channel/policy",
-			arguments:       []string{"--global", "--funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--output_index=282748", "--base_fee_msat=10", "--fee_rate=100"},
+			arguments:       []string{"--global", "--chan_point.funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--chan_point.output_index=282748", "--base_fee_msat=10", "--fee_rate=100"},
 			expectedPayload: `{ "global": true, "chan_point": { "funding_txid_str": "a0a1a2a3a4a5a6a7a8a9aa", "output_index": 282748 }, "base_fee_msat": 10, "fee_rate": 100 }`,
 		},
 		//	test commands of "Lightning/Channel/Backup" group
 		{
 			name:            "exportchanbackup CLI options",
 			command:         "/lightning/channel/backup/export",
-			arguments:       []string{"--funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--output_index=282748"},
+			arguments:       []string{"--chan_point.funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--chan_point.output_index=282748"},
 			expectedPayload: `{ "chan_point": { "funding_txid_str": "a0a1a2a3a4a5a6a7a8a9aa", "output_index": 282748 } }`,
 		},
 		{
-			name:            "restorechanbackup CLI options",
-			command:         "/lightning/channel/backup/restore",
-			arguments:       []string{"--funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--output_index=282748", "--chan_backup=RW5jcnlwdGVkIENoYW4gQmFja3Vw"},
-			expectedPayload: `{ "chan_backups": { "chan_backups": [ "chan_point": { "funding_txid_str": "a0a1a2a3a4a5a6a7a8a9aa", "output_index": 282748 }, "chan_backup": "RW5jcnlwdGVkIENoYW4gQmFja3Vw" ] } }`,
+			name:    "restorechanbackup CLI options",
+			command: "/lightning/channel/backup/restore",
+			arguments: []string{"--chan_backups.chan_backups.chan_point.funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa",
+				"--chan_backups.chan_backups.chan_point.output_index=282748", "--chan_backups.chan_backups.chan_backup=RW5jcnlwdGVkIENoYW4gQmFja3Vw"},
+			expectedPayload: `{ "chan_backups": { "chan_backups": [ "chan_point": { "funding_txid_str": "a0a1a2a3a4a5a6a7a8a9aa", "output_index": 282748 }, ` +
+				`"chan_backup": "RW5jcnlwdGVkIENoYW4gQmFja3Vw" ] } }`,
 		},
-		//	TODO: need to manage how to deal with fields with same name !
-		/*
-			{
-				name:            "verifychanbackup CLI options",
-				command:         "/lightning/channel/backup/verify",
-				arguments:       []string{"--funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa", "--output_index=282748", "--chanBackup=RW5jcnlwdGVkIENoYW4gQmFja3Vw"},
-				expectedPayload: `{ "chan_backups": [ "chan_point": { "funding_txid_str": "a0a1a2a3a4a5a6a7a8a9aa", "output_index": 282748 }, "chanBackup": "RW5jcnlwdGVkIENoYW4gQmFja3Vw" ] }`,
-			},
-		*/
+		{
+			name:    "verifychanbackup CLI options",
+			command: "/lightning/channel/backup/verify",
+			arguments: []string{"--single_chan_backups.chan_backups.chan_point.funding_txid_str=a0a1a2a3a4a5a6a7a8a9aa",
+				"--single_chan_backups.chan_backups.chan_point.output_index=282748", "--single_chan_backups.chan_backups.chan_backup=RW5jcnlwdGVkIENoYW4gQmFja3Vw",
+				"--multi_chan_backup.chan_points.funding_txid_str=b0b1b2b3b4b5b6b7b8b9bb"},
+			expectedPayload: `{ "single_chan_backups": { "chan_backups": [ "chan_point": { "funding_txid_str": "a0a1a2a3a4a5a6a7a8a9aa", "output_index": 282748 }, ` +
+				`"chan_backup": "RW5jcnlwdGVkIENoYW4gQmFja3Vw" ] }, "multi_chan_backup": { "chan_points": [ "funding_txid_str": "b0b1b2b3b4b5b6b7b8b9bb" ] } }`,
+		},
 		//	test commands of "Lightning/Graph" group
 		{
 			name:            "describegraph CLI options",
@@ -157,8 +162,8 @@ func TestFormatRequestPayload(t *testing.T) {
 		{
 			name:            "getnodemetrics CLI options",
 			command:         "/lightning/graph/nodemetrics",
-			arguments:       []string{"--UNKNOWN", "--BETWEENNESS_CENTRALITY"},
-			expectedPayload: `{ "types": [ 0, 1 ] }`,
+			arguments:       []string{"--types.UNKNOWN", "--types.BETWEENNESS_CENTRALITY"},
+			expectedPayload: `{ "types": [ "UNKNOWN", "BETWEENNESS_CENTRALITY" ] }`,
 		},
 		{
 			name:            "getchaninfo CLI options",
@@ -173,16 +178,12 @@ func TestFormatRequestPayload(t *testing.T) {
 			expectedPayload: `{ "pub_key": "a0a1a2a3a4a5a6a7a8a9aa", "include_channels": true }`,
 		},
 		//	test commands of "Lightning/Invoice" group
-
-		//	TODO: need to manage how to deal with fields with same name !
-		/*
-			{
-				name:            "addinvoice CLI options",
-				command:         "/lightning/invoice/create",
-				arguments:       []string{"--memo=xpto", "--r_preimage=0123456789abcdef0123456789abcdef", "--r_hash=00112233445566778899", "--value=10", "--expiry=3600"},
-				expectedPayload: `{ "memo": "xpto", "r_preimage": "0123456789abcdef0123456789abcdef", "r_hash": "00112233445566778899", "value": 10, "expiry": 3600 }`,
-			},
-		*/
+		{
+			name:            "addinvoice CLI options",
+			command:         "/lightning/invoice/create",
+			arguments:       []string{"--memo=xpto", "--r_preimage=0123456789abcdef0123456789abcdef", "--r_hash=00112233445566778899", "--value=10", "--expiry=3600"},
+			expectedPayload: `{ "memo": "xpto", "r_preimage": "0123456789abcdef0123456789abcdef", "r_hash": "00112233445566778899", "value": 10, "expiry": 3600 }`,
+		},
 		{
 			name:            "lookupinvoice CLI options",
 			command:         "/lightning/invoice/lookup",
@@ -273,17 +274,6 @@ func TestFormatRequestPayload(t *testing.T) {
 			expectedPayload: `{  }`,
 		},
 		/*
-			executeCommand '' 'POST' '/lightning/payment' "{ \"paymentHash\": \"${RHASH}\", \"amt\": 100000, \"dest\": \"${TARGET_WALLET}\" }"
-			executeCommand '' 'POST' '/lightning/payment' '{ "paymentHash": "02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e", "route": { "hops": { "chanId": "xpto"} } }'
-			executeCommand '' 'POST' '/lightning/payment' '{ "indexOffset": 1, "maxPayments": 10, "includeIncomplete": true }'
-			executeCommand '' 'POST' '/lightning/payment' '{ "indexOffset": 1, "maxPayments": 10, "includeIncomplete": true }'
-			executeCommand '' 'POST' '/lightning/payment' "{  }"
-			executeCommand '' 'POST' '/lightning/payment' '{ "indexOffset": 0, "numMaxEvents": 25 }'
-			executeCommand '' 'GET' '/lightning/payment'
-			executeCommand '' 'POST' '/lightning/payment' "{ \"fromNode\": \"${FROM_NODE}\", \"toNode\": \"${TO_NODE}\", \"amtMsat\": \"${AMOUNT}\" }"
-			executeCommand '' 'GET' '/lightning/payment'
-			executeCommand '' 'POST' '/lightning/payment' '{ "amtMsat": 0, "hopPubkeys": [ "01020304", "02030405", "03040506" ] }'
-
 			executeCommand 'connect' 'POST' '/lightning/peer/connect' "{ \"addr\": { \"pubkey\": \"${PUBLIC_KEY}\", \"host\": \"192.168.40.1:8080\" } }"
 			executeCommand 'disconnect' 'POST' '/lightning/peer/disconnect' "{ \"pubkey\": \"${PUBLIC_KEY}\" }"
 			executeCommand 'listpeers' 'GET' '/lightning/peer'

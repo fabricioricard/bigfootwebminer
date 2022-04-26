@@ -17,6 +17,7 @@ import (
 	"github.com/pkt-cash/pktd/connmgr/banmgr"
 	"github.com/pkt-cash/pktd/lnd/chainreg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc/help"
 	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
 	"github.com/pkt-cash/pktd/lnd/lnrpc/verrpc"
 	"github.com/pkt-cash/pktd/lnd/lnrpc/wtclientrpc"
@@ -30,27 +31,6 @@ import (
 
 const (
 	URI_prefix = "/api/v1"
-)
-
-const (
-	categoryLightning             = "Lightning"
-	subcategoryChannel            = "Channel"
-	subSubCategoryBackup          = "Backup"
-	subCategoryGraph              = "Graph"
-	subCategoryInvoice            = "Invoice"
-	subCategoryPayment            = "Payment"
-	subCategoryPeer               = "Peer"
-	categoryMeta                  = "Meta"
-	categoryWallet                = "Wallet"
-	subCategoryNetworkStewardVote = "Network Steward Vote"
-	subCategoryTransaction        = "Transaction"
-	subCategoryUnspent            = "Unspent"
-	subSubCategoryLock            = "Lock"
-	subCategoryAddress            = "Address"
-	categoryNeutrino              = "Neutrino"
-	categoryUtil                  = "Util"
-	subCategorySeed               = "Seed"
-	categoryWatchtower            = "Watchtower"
 )
 
 type RpcFunc struct {
@@ -68,7 +48,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//WalletUnlocker: Wallet unlock
 	//Will try to unlock the wallet with the password(s) provided
 	{
-		category:    categoryWallet,
+		category:    help.CategoryWallet,
 		description: "Unlock an encrypted wallet at startup",
 
 		path: "/wallet/unlock",
@@ -92,7 +72,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//WalletUnlocker: Wallet create
 	//Will try to create/restore wallet
 	{
-		category:    categoryWallet,
+		category:    help.CategoryWallet,
 		description: "Initialize a wallet when starting lnd for the first time",
 
 		path: "/wallet/create",
@@ -124,7 +104,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//MetaService get info
 	{
-		category:    categoryMeta,
+		category:    help.CategoryMeta,
 		description: "Returns basic information related to the active daemon",
 
 		path: "/meta/getinfo",
@@ -261,7 +241,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//MetaService change wallet password
 	{
-		category:    categoryWallet,
+		category:    help.CategoryWallet,
 		description: "Change an encrypted wallet's password at startup",
 
 		path: "/wallet/changepassphrase",
@@ -287,7 +267,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//MetaService check wallet password
 	{
-		category:    categoryWallet,
+		category:    help.CategoryWallet,
 		description: "Check the wallet's password",
 
 		path: "/wallet/checkpassphrase",
@@ -322,7 +302,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//Wallet balance
 	//requires unlocked wallet -> access to rpcServer
 	{
-		category:    categoryWallet,
+		category:    help.CategoryWallet,
 		description: "Compute and display the wallet's current balance",
 
 		path: "/wallet/balance",
@@ -345,7 +325,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//Wallet transactions
 	//requires unlocked wallet -> access to rpcServer
 	{
-		category:    subCategoryTransaction,
+		category:    help.SubCategoryTransaction,
 		description: "List transactions from the wallet",
 
 		path: "/wallet/transaction/query",
@@ -372,7 +352,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//New wallet address
 	//requires unlocked wallet -> access to rpcServer
 	{
-		category:    subCategoryAddress,
+		category:    help.SubCategoryAddress,
 		description: "Generates a new address",
 
 		path: "/wallet/address/create",
@@ -398,7 +378,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//GetAddressBalances
 	{
-		category:    subCategoryAddress,
+		category:    help.SubCategoryAddress,
 		description: "Compute and display balances for each address in the wallet",
 
 		path: "/wallet/address/balances",
@@ -424,7 +404,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//Sendfrom
 	{
-		category:    subCategoryTransaction,
+		category:    help.SubCategoryTransaction,
 		description: "Authors, signs, and sends a transaction that outputs some amount to a payment address",
 
 		path: "/wallet/transaction/sendfrom",
@@ -450,7 +430,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//GetWalletSeed
 	{
-		category:    categoryWallet,
+		category:    help.CategoryWallet,
 		description: "Get the wallet seed words for this wallet",
 
 		path: "/wallet/seed",
@@ -472,7 +452,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//GetTransaction
 	{
-		category:    subCategoryTransaction,
+		category:    help.SubCategoryTransaction,
 		description: "Returns a JSON object with details regarding a transaction relevant to this wallet",
 
 		path: "/wallet/transaction",
@@ -498,7 +478,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//Resync
 	{
-		category:    subCategoryUnspent,
+		category:    help.SubCategoryUnspent,
 		description: "Scan over the chain to find any transactions which may not have been recorded in the wallet's database",
 
 		path: "/wallet/unspent/resync",
@@ -524,7 +504,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//StopResync
 	{
-		category:    subCategoryUnspent,
+		category:    help.SubCategoryUnspent,
 		description: "Stop a re-synchronization job before it's completion",
 
 		path: "/wallet/unspent/stopresync",
@@ -546,7 +526,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	GenSeed service
 	{
-		category:    subCategorySeed,
+		category:    help.SubCategorySeed,
 		description: "Create a secret seed",
 
 		path: "/util/seed/create",
@@ -580,7 +560,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	Change Passphrase service
 	{
-		category:    subCategorySeed,
+		category:    help.SubCategorySeed,
 		description: "Alter the passphrase which is used to encrypt a wallet seed",
 
 		path: "/util/seed/changepassphrase",
@@ -614,7 +594,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service debug level
 	{
-		category:    categoryMeta,
+		category:    help.CategoryMeta,
 		description: "Set the debug level",
 
 		path: "/meta/debuglevel",
@@ -648,7 +628,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service to stop the pld daemon
 	{
-		category:    categoryMeta,
+		category:    help.CategoryMeta,
 		description: "Stop and shutdown the daemon",
 
 		path: "/meta/stop",
@@ -674,7 +654,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service daemon version
 	{
-		category:    categoryMeta,
+		category:    help.CategoryMeta,
 		description: "Display pldctl and pld version info",
 
 		path: "/meta/version",
@@ -702,7 +682,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	TODO: service openchannel
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "Open a channel to a node or an existing peer",
 
 		path: "/lightning/channel/open",
@@ -736,7 +716,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	TODO: service closechannel
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "Close an existing channel",
 
 		path: "/lightning/channel/close",
@@ -768,7 +748,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service abandonchannel
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "Abandons an existing channel",
 
 		path: "/lightning/channel/abandon",
@@ -802,7 +782,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service channelbalance
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "Returns the sum of the total available channel balance across all open channels",
 
 		path: "/lightning/channel/balance",
@@ -830,7 +810,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service pendingchannels
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "Display information pertaining to pending channels",
 
 		path: "/lightning/channel/pending",
@@ -858,7 +838,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listchannels
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "List all open channels",
 
 		path: "/lightning/channel",
@@ -892,7 +872,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service closedchannels
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "List all closed channels",
 
 		path: "/lightning/channel/closed",
@@ -926,7 +906,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnetworkinfo
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "Get statistical information about the current state of the network",
 
 		path: "/lightning/channel/networkinfo",
@@ -954,7 +934,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service feereport
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "Display the current fee policies of all active channels",
 
 		path: "/lightning/channel/feereport",
@@ -982,7 +962,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service updatechanpolicy
 	{
-		category:    subcategoryChannel,
+		category:    help.SubcategoryChannel,
 		description: "Update the channel policy for all channels, or a single channel",
 
 		path: "/lightning/channel/policy",
@@ -1016,7 +996,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service exportchanbackup
 	{
-		category:    subSubCategoryBackup,
+		category:    help.SubSubCategoryBackup,
 		description: "Obtain a static channel back up for a selected channels, or all known channels",
 
 		path: "/lightning/channel/backup/export",
@@ -1050,7 +1030,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service verifychanbackup
 	{
-		category:    subSubCategoryBackup,
+		category:    help.SubSubCategoryBackup,
 		description: "Verify an existing channel backup",
 
 		path: "/lightning/channel/backup/verify",
@@ -1084,7 +1064,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service restorechanbackup
 	{
-		category:    subSubCategoryBackup,
+		category:    help.SubSubCategoryBackup,
 		description: "Restore an existing single or multi-channel static channel backup",
 
 		path: "/lightning/channel/backup/restore",
@@ -1118,7 +1098,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service describegraph
 	{
-		category:    subCategoryGraph,
+		category:    help.SubCategoryGraph,
 		description: "Describe the network graph",
 
 		path: "/lightning/graph",
@@ -1152,7 +1132,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnodemetrics
 	{
-		category:    subCategoryGraph,
+		category:    help.SubCategoryGraph,
 		description: "Get node metrics",
 
 		path: "/lightning/graph/nodemetrics",
@@ -1186,7 +1166,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getchaninfo
 	{
-		category:    subCategoryGraph,
+		category:    help.SubCategoryGraph,
 		description: "Get the state of a channel",
 
 		path: "/lightning/graph/channel",
@@ -1220,7 +1200,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnodeinfo
 	{
-		category:    subCategoryGraph,
+		category:    help.SubCategoryGraph,
 		description: "Get information on a specific node",
 
 		path: "/lightning/graph/nodeinfo",
@@ -1254,7 +1234,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service addinvoice
 	{
-		category:    subCategoryInvoice,
+		category:    help.SubCategoryInvoice,
 		description: "Add a new invoice",
 
 		path: "/lightning/invoice/create",
@@ -1288,7 +1268,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service lookupinvoice
 	{
-		category:    subCategoryInvoice,
+		category:    help.SubCategoryInvoice,
 		description: "Lookup an existing invoice by its payment hash",
 
 		path: "/lightning/invoice/lookup",
@@ -1322,7 +1302,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listinvoices
 	{
-		category:    subCategoryInvoice,
+		category:    help.SubCategoryInvoice,
 		description: "List all invoices currently stored within the database. Any active debug invoices are ignored",
 
 		path: "/lightning/invoice",
@@ -1356,7 +1336,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service decodepayreq
 	{
-		category:    subCategoryInvoice,
+		category:    help.SubCategoryInvoice,
 		description: "Decode a payment request",
 
 		path: "/lightning/invoice/decodepayreq", // move to /util/payreq/decode
@@ -1390,7 +1370,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service estimatefee
 	{
-		category:    categoryNeutrino,
+		category:    help.CategoryNeutrino,
 		description: "Get fee estimates for sending bitcoin on-chain to multiple addresses",
 
 		path: "/neutrino/estimatefee",
@@ -1424,7 +1404,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendmany
 	{
-		category:    subCategoryTransaction,
+		category:    help.SubCategoryTransaction,
 		description: "Send bitcoin on-chain to multiple addresses",
 
 		path: "/wallet/transaction/sendmany",
@@ -1458,7 +1438,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendcoins
 	{
-		category:    subCategoryTransaction,
+		category:    help.SubCategoryTransaction,
 		description: "Send bitcoin on-chain to an address",
 
 		path: "/wallet/transaction/sendcoins",
@@ -1492,7 +1472,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listunspent
 	{
-		category:    subCategoryUnspent,
+		category:    help.SubCategoryUnspent,
 		description: "List utxos available for spending",
 
 		path: "/wallet/unspent",
@@ -1526,7 +1506,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service setnetworkstewardvote
 	{
-		category:    subCategoryNetworkStewardVote,
+		category:    help.SubCategoryNetworkStewardVote,
 		description: "Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)",
 
 		path: "/wallet/networkstewardvote/set",
@@ -1558,7 +1538,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getnetworkstewardvote
 	{
-		category:    subCategoryNetworkStewardVote,
+		category:    help.SubCategoryNetworkStewardVote,
 		description: "Find out how the wallet is currently configured to vote in a network steward election",
 
 		path: "/wallet/networkstewardvote",
@@ -1586,7 +1566,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service bcasttransaction
 	{
-		category:    categoryNeutrino,
+		category:    help.CategoryNeutrino,
 		description: "Broadcast a transaction onchain",
 
 		path: "/neutrino/bcasttransaction",
@@ -1620,7 +1600,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendpayment
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Send a payment over lightning",
 
 		path: "/lightning/payment/send",
@@ -1655,7 +1635,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//	TODO: service payinvoice
 	//	uses a stream Router_SendPaymentV2Server to send the payment updates - how to do it with RESP endpoints ?
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Pay an invoice over lightning",
 
 		path: "/lightning/payment/payinvoice",
@@ -1685,7 +1665,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service sendtoroute
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Send a payment over a predefined route",
 
 		path: "/lightning/payment/sendtoroute",
@@ -1719,7 +1699,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listpayments
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "List all outgoing payments",
 
 		path: "/lightning/payment",
@@ -1753,7 +1733,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service queryroutes
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Query a route to a destination",
 
 		path: "/lightning/payment/queryroutes",
@@ -1787,7 +1767,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service fwdinghistory
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Query the history of all forwarded HTLCs",
 
 		path: "/lightning/payment/fwdinghistory",
@@ -1822,7 +1802,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	//	TODO: service trackpayment
 	//	uses a stream Router_SendPaymentV2Server to send the payment updates - how to do it with RESP endpoints ?
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Track progress of an existing payment",
 
 		path: "/lightning/payment/track",
@@ -1852,7 +1832,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service querymc
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Query the internal mission control state",
 
 		path: "/lightning/payment/querymc",
@@ -1880,7 +1860,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service queryprob
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Estimate a success probability",
 
 		path: "/lightning/payment/queryprob",
@@ -1914,7 +1894,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service resetmc
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Reset internal mission control state",
 
 		path: "/lightning/payment/resetmc",
@@ -1940,7 +1920,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service buildroute
 	{
-		category:    subCategoryPayment,
+		category:    help.SubCategoryPayment,
 		description: "Build a route from a list of hop pubkeys",
 
 		path: "/lightning/payment/buildroute",
@@ -1974,7 +1954,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service connect
 	{
-		category:    subCategoryPeer,
+		category:    help.SubCategoryPeer,
 		description: "Connect to a remote pld peer",
 
 		path: "/lightning/peer/connect",
@@ -2006,7 +1986,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service disconnect
 	{
-		category:    subCategoryPeer,
+		category:    help.SubCategoryPeer,
 		description: "Disconnect a remote pld peer identified by public key",
 
 		path: "/lightning/peer/disconnect",
@@ -2038,7 +2018,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listpeers
 	{
-		category:    subCategoryPeer,
+		category:    help.SubCategoryPeer,
 		description: "List all active, currently connected peers",
 
 		path: "/lightning/peer",
@@ -2070,7 +2050,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service signmessage
 	{
-		category:    subCategoryAddress,
+		category:    help.SubCategoryAddress,
 		description: "Signs a message using the private key of a payment address",
 
 		path: "/wallet/address/signmessage",
@@ -2104,7 +2084,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service getsecret
 	{
-		category:    categoryWallet,
+		category:    help.CategoryWallet,
 		description: "Get a secret seed",
 
 		path: "/wallet/getsecret",
@@ -2138,7 +2118,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service importprivkey
 	{
-		category:    subCategoryAddress,
+		category:    help.SubCategoryAddress,
 		description: "Imports a WIF-encoded private key to the 'imported' account",
 
 		path: "/wallet/address/import",
@@ -2172,7 +2152,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service listlockunspent
 	{
-		category:    subSubCategoryLock,
+		category:    help.SubSubCategoryLock,
 		description: "Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session",
 
 		path: "/wallet/unspent/lock",
@@ -2200,7 +2180,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service lockunspent
 	{
-		category:    subSubCategoryLock,
+		category:    help.SubSubCategoryLock,
 		description: "Locks or unlocks an unspent output",
 
 		path: "/wallet/unspent/lock/create", // TODO: /wallet/unspent/lock/delete
@@ -2234,7 +2214,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service createtransaction
 	{
-		category:    subCategoryTransaction,
+		category:    help.SubCategoryTransaction,
 		description: "Create a transaction but do not send it to the chain",
 
 		path: "/wallet/transaction/create",
@@ -2268,7 +2248,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service dumpprivkey
 	{
-		category:    subCategoryAddress,
+		category:    help.SubCategoryAddress,
 		description: "Returns the private key in WIF encoding that controls some wallet address",
 
 		path: "/wallet/address/dumpprivkey",
@@ -2302,7 +2282,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service wtclient: Add
 	{
-		category:    categoryWatchtower,
+		category:    help.CategoryWatchtower,
 		description: "Register a watchtower to use for future sessions/backups",
 
 		path: "/wtclient/tower/create",
@@ -2335,7 +2315,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service wtclient: Remove
 	{
-		category:    categoryWatchtower,
+		category:    help.CategoryWatchtower,
 		description: "Remove a watchtower to prevent its use for future sessions/backups",
 
 		path: "/wtclient/tower/remove",
@@ -2368,7 +2348,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service wtclient: Towers
 	{
-		category:    categoryWatchtower,
+		category:    help.CategoryWatchtower,
 		description: "Display information about all registered watchtowers",
 
 		path: "/wtclient/tower",
@@ -2403,7 +2383,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service wtclient: Tower
 	{
-		category:    categoryWatchtower,
+		category:    help.CategoryWatchtower,
 		description: "Display information about a specific registered watchtower",
 
 		path: "/wtclient/tower/getinfo",
@@ -2438,7 +2418,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service wtclient: stats
 	{
-		category:    categoryWatchtower,
+		category:    help.CategoryWatchtower,
 		description: "Display the session stats of the watchtower client",
 
 		path: "/wtclient/tower/stats",
@@ -2473,7 +2453,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service wtclient: policy
 	{
-		category:    categoryWatchtower,
+		category:    help.CategoryWatchtower,
 		description: "Display the active watchtower client policy configuration",
 
 		path: "/wtclient/tower/policy",
@@ -2508,7 +2488,7 @@ var rpcFunctions []RpcFunc = []RpcFunc{
 	},
 	//	service force pld crash
 	{
-		category:    categoryMeta,
+		category:    help.CategoryMeta,
 		description: "Force pld to crash (for debugging purposes)",
 
 		path: "/meta/crash",

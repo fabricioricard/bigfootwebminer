@@ -209,14 +209,12 @@ func TestFormatRequestPayload(t *testing.T) {
 			arguments:       []string{"--dest=010203040506070809", "--payment_hash=02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e", "--amt=100000"},
 			expectedPayload: `{ "dest": "010203040506070809", "amt": 100000, "payment_hash": "02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e" }`,
 		},
-		/*
-			{
-				name:            "payinvoice CLI options",
-				command:         "/lightning/payment/payinvoice",
-				arguments:       []string{""},
-				expectedPayload: `{  }`,
-			},
-		*/
+		{
+			name:            "payinvoice CLI options",
+			command:         "/lightning/payment/payinvoice",
+			arguments:       []string{""},
+			expectedPayload: `{  }`,
+		},
 		{
 			name:            "sendtoroute CLI options",
 			command:         "/lightning/payment/sendtoroute",

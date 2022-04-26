@@ -181,18 +181,24 @@ func getCommandHelp(commandHelp string) error {
 	if len(commandMethod.Request.Fields) > 0 {
 		fmt.Fprintf(os.Stdout, "OPTIONS:\n")
 		for _, requestField := range commandMethod.Request.Fields {
-			showField(requestField)
+			showField("", requestField)
 		}
 	}
 
 	return nil
 }
 
-func showField(requestField *Field) {
+func showField(fieldHierarchy string, requestField *Field) {
 
 	if len(requestField.Type.Fields) == 0 {
 
-		var commandOption = "--" + requestField.Name
+		var commandOption string
+
+		if len(fieldHierarchy) == 0 {
+			commandOption = "--" + requestField.Name
+		} else {
+			commandOption = "--" + fieldHierarchy + "." + requestField.Name
+		}
 
 		switch requestField.Type.Name {
 		case "bool":
@@ -219,7 +225,11 @@ func showField(requestField *Field) {
 	} else {
 
 		for _, requestSubField := range requestField.Type.Fields {
-			showField(requestSubField)
+			if len(fieldHierarchy) == 0 {
+				showField(requestField.Name, requestSubField)
+			} else {
+				showField(fieldHierarchy+"."+requestField.Name, requestSubField)
+			}
 		}
 	}
 }

@@ -7,38 +7,13 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/gorilla/mux"
 	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc/help"
 	"github.com/pkt-cash/pktd/lnd/pkthelp"
 	"github.com/pkt-cash/pktd/pktlog/log"
 )
 
 const (
 	helpURI_prefix = "/help"
-)
-
-var (
-	categoryDescription map[string][]string = map[string][]string{
-		categoryLightning:  {"The Lightning Network component of the wallet"},
-		subcategoryChannel: {"Management of lightning channels to direct peers of this pld node"},
-		subSubCategoryBackup: {"Backup and recovery of the state of active Lightning channels",
-			"to and from this pld node"},
-		subCategoryGraph:   {"Information about the global known Lightning Network"},
-		subCategoryInvoice: {"Management of invoices which are used to request payment over Lightning"},
-		subCategoryPayment: {"Lightning network payments which have been made, or have been forwarded, through this node"},
-		subCategoryPeer:    {"Connections to other nodes in the Lightning Network"},
-		categoryMeta:       {"API endpoints which are relevant to the entire pld node, not any specific part"},
-		categoryWallet: {"APIs for management of on-chain (non-Lightning) payments,",
-			"seed export and recovery, and on-chain transaction detection"},
-		subCategoryNetworkStewardVote: {"Control how this wallet votes on PKT Network Steward"},
-		subCategoryTransaction:        {"Create and manage on-chain transactions with the wallet"},
-		subCategoryUnspent:            {"Detected unspent transactions associated with one of our wallet addresses"},
-		subSubCategoryLock: {"Manipulation of unspent outputs which are 'locked'",
-			"and therefore will not be used to source funds for any transaction"},
-		subCategoryAddress: {"Management of individual wallet addresses"},
-		categoryNeutrino:   {"Management of the Neutrino interface which is used to communicate with the p2p nodes in the network"},
-		categoryUtil:       {"Stateless utility functions which do not affect, not query, the node in any way"},
-		subCategorySeed:    {"Manipulation of mnemonic seed phrases which represent wallet keys"},
-		categoryWatchtower: {"Interact with the watchtower client"},
-	}
 )
 
 //	convert	pkthelp.type to REST help proto struct
@@ -93,7 +68,7 @@ func marshalHelp(httpResponse http.ResponseWriter, helpInfo pkthelp.Method) er.R
 //	the REST master help messsage
 func RESTCategory_help(category string, subCategory map[string]*RestCommandCategory) *RestCommandCategory {
 	restCommandCategory := &RestCommandCategory{
-		Description: categoryDescription[category],
+		Description: help.CategoryDescription[category],
 		Endpoints:   make(map[string]string),
 		Subcategory: make(map[string]*RestCommandCategory),
 	}
@@ -121,29 +96,29 @@ func RESTMaster_help() *RestMasterHelpResponse {
 			"General information about PLD",
 		},
 		Category: map[string]*RestCommandCategory{
-			categoryLightning: RESTCategory_help(categoryLightning, map[string]*RestCommandCategory{
-				subcategoryChannel: RESTCategory_help(subcategoryChannel, map[string]*RestCommandCategory{
-					subSubCategoryBackup: RESTCategory_help(subSubCategoryBackup, map[string]*RestCommandCategory{}),
+			help.CategoryLightning: RESTCategory_help(help.CategoryLightning, map[string]*RestCommandCategory{
+				help.SubcategoryChannel: RESTCategory_help(help.SubcategoryChannel, map[string]*RestCommandCategory{
+					help.SubSubCategoryBackup: RESTCategory_help(help.SubSubCategoryBackup, map[string]*RestCommandCategory{}),
 				}),
-				subCategoryGraph:   RESTCategory_help(subCategoryGraph, map[string]*RestCommandCategory{}),
-				subCategoryInvoice: RESTCategory_help(subCategoryInvoice, map[string]*RestCommandCategory{}),
-				subCategoryPayment: RESTCategory_help(subCategoryPayment, map[string]*RestCommandCategory{}),
-				subCategoryPeer:    RESTCategory_help(subCategoryPeer, map[string]*RestCommandCategory{}),
+				help.SubCategoryGraph:   RESTCategory_help(help.SubCategoryGraph, map[string]*RestCommandCategory{}),
+				help.SubCategoryInvoice: RESTCategory_help(help.SubCategoryInvoice, map[string]*RestCommandCategory{}),
+				help.SubCategoryPayment: RESTCategory_help(help.SubCategoryPayment, map[string]*RestCommandCategory{}),
+				help.SubCategoryPeer:    RESTCategory_help(help.SubCategoryPeer, map[string]*RestCommandCategory{}),
 			}),
-			categoryMeta: RESTCategory_help(categoryMeta, map[string]*RestCommandCategory{}),
-			categoryWallet: RESTCategory_help(categoryWallet, map[string]*RestCommandCategory{
-				subCategoryNetworkStewardVote: RESTCategory_help(subCategoryNetworkStewardVote, map[string]*RestCommandCategory{}),
-				subCategoryTransaction:        RESTCategory_help(subCategoryTransaction, map[string]*RestCommandCategory{}),
-				subCategoryUnspent: RESTCategory_help(subCategoryUnspent, map[string]*RestCommandCategory{
-					subSubCategoryLock: RESTCategory_help(subSubCategoryLock, map[string]*RestCommandCategory{}),
+			help.CategoryMeta: RESTCategory_help(help.CategoryMeta, map[string]*RestCommandCategory{}),
+			help.CategoryWallet: RESTCategory_help(help.CategoryWallet, map[string]*RestCommandCategory{
+				help.SubCategoryNetworkStewardVote: RESTCategory_help(help.SubCategoryNetworkStewardVote, map[string]*RestCommandCategory{}),
+				help.SubCategoryTransaction:        RESTCategory_help(help.SubCategoryTransaction, map[string]*RestCommandCategory{}),
+				help.SubCategoryUnspent: RESTCategory_help(help.SubCategoryUnspent, map[string]*RestCommandCategory{
+					help.SubSubCategoryLock: RESTCategory_help(help.SubSubCategoryLock, map[string]*RestCommandCategory{}),
 				}),
-				subCategoryAddress: RESTCategory_help(subCategoryAddress, map[string]*RestCommandCategory{}),
+				help.SubCategoryAddress: RESTCategory_help(help.SubCategoryAddress, map[string]*RestCommandCategory{}),
 			}),
-			categoryNeutrino: RESTCategory_help(categoryNeutrino, map[string]*RestCommandCategory{}),
-			categoryUtil: RESTCategory_help(categoryUtil, map[string]*RestCommandCategory{
-				subCategorySeed: RESTCategory_help(subCategorySeed, map[string]*RestCommandCategory{}),
+			help.CategoryNeutrino: RESTCategory_help(help.CategoryNeutrino, map[string]*RestCommandCategory{}),
+			help.CategoryUtil: RESTCategory_help(help.CategoryUtil, map[string]*RestCommandCategory{
+				help.SubCategorySeed: RESTCategory_help(help.SubCategorySeed, map[string]*RestCommandCategory{}),
 			}),
-			categoryWatchtower: RESTCategory_help(categoryWatchtower, map[string]*RestCommandCategory{}),
+			help.CategoryWatchtower: RESTCategory_help(help.CategoryWatchtower, map[string]*RestCommandCategory{}),
 		},
 	}
 

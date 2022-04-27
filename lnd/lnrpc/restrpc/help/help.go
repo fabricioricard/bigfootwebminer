@@ -8,6 +8,10 @@ package help
 
 import "github.com/pkt-cash/pktd/lnd/pkthelp"
 
+const (
+	URI_prefix = "/api/v1"
+)
+
 //	constants for categories and subcategories of commands
 const (
 	CategoryLightning             = "Lightning"
@@ -105,6 +109,7 @@ const (
 	CommandGetInfo    = "getinfo"
 	CommandStop       = "stop"
 	CommandVersion    = "version"
+	CommandCrash      = "crash"
 	//	wallet category command
 	CommandWalletBalance    = "walletbalance"
 	CommandChangePassphrase = "changePassphrase"
@@ -119,7 +124,7 @@ const (
 	//	wallet/transaction subCategory command
 	CommandGetTransaction    = "gettransaction"
 	CommandCreateTransaction = "createtransaction"
-	CommandQuery             = "query"
+	CommandQueryTransactions = "querytransactions"
 	CommandSendCoins         = "sendcoins"
 	CommandSendFrom          = "sendfrom"
 	CommandSendMany          = "sendmany"
@@ -144,14 +149,14 @@ const (
 	CommandGenSeed              = "genseed"
 	//	wtclient/tower subCategory command
 	CommandCreateWatchTower = "createwatchtower"
-	CommandemoveTower       = "removewatchtower"
+	CommandRemoveTower      = "removewatchtower"
 	CommandListTowers       = "listtowers"
 	CommandGetTowerInfo     = "gettowerinfo"
 	CommandGetTowerStats    = "gettowerstats"
 	CommandGetTowerPolicy   = "gettowerpolicy"
 )
 
-type CommandHelp struct {
+type CommandInfo struct {
 	Category    string
 	Description string
 	Path        string
@@ -160,7 +165,7 @@ type CommandHelp struct {
 
 //	mapping with the category, description and path for every command
 var (
-	CommandDescription map[string]CommandHelp = map[string]CommandHelp{
+	CommandInfoData map[string]CommandInfo = map[string]CommandInfo{
 		//	lightning/channel subCategory commands
 		CommandOpenChannel: {
 			Category:    SubcategoryChannel,
@@ -400,6 +405,12 @@ var (
 			Path:        "/meta/version",
 			HelpInfo:    pkthelp.Versioner_GetVersion,
 		},
+		CommandCrash: {
+			Category:    CategoryMeta,
+			Description: "Force pld to crash (for debugging purposes)",
+			Path:        "/meta/crash",
+			HelpInfo:    pkthelp.MetaService_ForceCrash,
+		},
 		//	wallet category command
 		CommandWalletBalance: {
 			Category:    CategoryWallet,
@@ -469,7 +480,7 @@ var (
 			Path:        "/wallet/transaction/create",
 			HelpInfo:    pkthelp.Lightning_CreateTransaction,
 		},
-		CommandQuery: {
+		CommandQueryTransactions: {
 			Category:    SubCategoryTransaction,
 			Description: "List transactions from the wallet",
 			Path:        "/wallet/transaction/query",
@@ -589,7 +600,7 @@ var (
 			Path:        "/wtclient/tower/create",
 			HelpInfo:    pkthelp.WatchtowerClient_AddTower,
 		},
-		CommandemoveTower: {
+		CommandRemoveTower: {
 			Category:    CategoryWatchtower,
 			Description: "Remove a watchtower to prevent its use for future sessions/backups",
 			Path:        "/wtclient/tower/remove",
@@ -621,3 +632,64 @@ var (
 		},
 	}
 )
+
+//	the category help in REST master
+func RESTCategory_help(category string, subCategory map[string]*RestCommandCategory) *RestCommandCategory {
+	restCommandCategory := &RestCommandCategory{
+		Description: CategoryDescription[category],
+		Endpoints:   make(map[string]string),
+		Subcategory: make(map[string]*RestCommandCategory),
+	}
+
+	//	add all endpoints for the category
+	for _, commandInfo := range CommandInfoData {
+
+		if commandInfo.Category == category {
+			restCommandCategory.Endpoints[URI_prefix+commandInfo.Path] = commandInfo.Description
+		}
+	}
+
+	//	add all sub categories
+	for name, value := range subCategory {
+		restCommandCategory.Subcategory[name] = value
+	}
+
+	return restCommandCategory
+}
+
+//	return the REST master help messsage
+func RESTMaster_help() *RestMasterHelpResponse {
+	masterHelpResp := &RestMasterHelpResponse{
+		Name: "pld - Lightning Network Daemon REST interface (pld)",
+		Description: []string{
+			"General information about PLD",
+		},
+		Category: map[string]*RestCommandCategory{
+			CategoryLightning: RESTCategory_help(CategoryLightning, map[string]*RestCommandCategory{
+				SubcategoryChannel: RESTCategory_help(SubcategoryChannel, map[string]*RestCommandCategory{
+					SubSubCategoryBackup: RESTCategory_help(SubSubCategoryBackup, map[string]*RestCommandCategory{}),
+				}),
+				SubCategoryGraph:   RESTCategory_help(SubCategoryGraph, map[string]*RestCommandCategory{}),
+				SubCategoryInvoice: RESTCategory_help(SubCategoryInvoice, map[string]*RestCommandCategory{}),
+				SubCategoryPayment: RESTCategory_help(SubCategoryPayment, map[string]*RestCommandCategory{}),
+				SubCategoryPeer:    RESTCategory_help(SubCategoryPeer, map[string]*RestCommandCategory{}),
+			}),
+			CategoryMeta: RESTCategory_help(CategoryMeta, map[string]*RestCommandCategory{}),
+			CategoryWallet: RESTCategory_help(CategoryWallet, map[string]*RestCommandCategory{
+				SubCategoryNetworkStewardVote: RESTCategory_help(SubCategoryNetworkStewardVote, map[string]*RestCommandCategory{}),
+				SubCategoryTransaction:        RESTCategory_help(SubCategoryTransaction, map[string]*RestCommandCategory{}),
+				SubCategoryUnspent: RESTCategory_help(SubCategoryUnspent, map[string]*RestCommandCategory{
+					SubSubCategoryLock: RESTCategory_help(SubSubCategoryLock, map[string]*RestCommandCategory{}),
+				}),
+				SubCategoryAddress: RESTCategory_help(SubCategoryAddress, map[string]*RestCommandCategory{}),
+			}),
+			CategoryNeutrino: RESTCategory_help(CategoryNeutrino, map[string]*RestCommandCategory{}),
+			CategoryUtil: RESTCategory_help(CategoryUtil, map[string]*RestCommandCategory{
+				SubCategorySeed: RESTCategory_help(SubCategorySeed, map[string]*RestCommandCategory{}),
+			}),
+			CategoryWatchtower: RESTCategory_help(CategoryWatchtower, map[string]*RestCommandCategory{}),
+		},
+	}
+
+	return masterHelpResp
+}

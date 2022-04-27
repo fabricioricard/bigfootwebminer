@@ -18,7 +18,7 @@ fi
 
 GOOGLE_IMPORT_PATH="${GOPATH}/pkg/mod/github.com/gogo/protobuf@v1.3.2/protobuf"
 
-PROTOS="rpc.proto walletunlocker.proto metaservice.proto pkt.proto **/*.proto"
+PROTOS="rpc.proto walletunlocker.proto metaservice.proto pkt.proto **/*.proto restrpc/help/rest_help.proto"
 
 # For each of the sub-servers, we then generate their protos, but a restricted
 # set as they don't yet require REST proxies, or swagger docs.

@@ -24,40 +24,7 @@ option go_package = "github.com/pkt-cash/pktd/lnd/lnrpc/restrpc";
  * https://github.com/lightninglabs/lightning-api
  */
 
-message RestCommandCategory {
-    repeated string description = 1;
-    map<string, string> endpoints = 2;
-    map<string, RestCommandCategory> subcategory = 3;
-}
-
-message RestMasterHelpResponse{
-    string name = 1;
-    repeated string description = 2;
-    map<string, RestCommandCategory> category = 3;
-}
-
-message Field {
-    string name = 1;
-    repeated string description = 2;
-    bool repeated = 3;
-    Type type = 4;
-}
-
-message Type {
-    string name = 1;
-    repeated string description = 2;
-    repeated Field fields = 3;
-}
-
 message RestEmptyResponse{
-}
-
-message RestHelpResponse{
-    string name = 1;
-    string service = 2;
-    repeated string description = 3;
-    Type request = 4;
-    Type response = 5;
 }
 
 //  WebSocket request and response JSon messages

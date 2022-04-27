@@ -17,15 +17,15 @@ const (
 )
 
 //	convert	pkthelp.type to REST help proto struct
-func convertHelpType(t pkthelp.Type) *Type {
-	resultType := &Type{
+func convertHelpType(t pkthelp.Type) *help.Type {
+	resultType := &help.Type{
 		Name:        t.Name,
 		Description: t.Description,
 	}
 
 	//	convert the array of fields
 	for _, field := range t.Fields {
-		resultType.Fields = append(resultType.Fields, &Field{
+		resultType.Fields = append(resultType.Fields, &help.Field{
 			Name:        field.Name,
 			Description: field.Description,
 			Repeated:    field.Repeated,
@@ -46,7 +46,7 @@ func marshalHelp(httpResponse http.ResponseWriter, helpInfo pkthelp.Method) er.R
 		Indent:       "   ",
 	}
 
-	s, err := marshaler.MarshalToString(&RestHelpResponse{
+	s, err := marshaler.MarshalToString(&help.RestHelpResponse{
 		Name:        helpInfo.Name,
 		Service:     helpInfo.Service,
 		Description: helpInfo.Description,
@@ -65,70 +65,10 @@ func marshalHelp(httpResponse http.ResponseWriter, helpInfo pkthelp.Method) er.R
 	return nil
 }
 
-//	the REST master help messsage
-func RESTCategory_help(category string, subCategory map[string]*RestCommandCategory) *RestCommandCategory {
-	restCommandCategory := &RestCommandCategory{
-		Description: help.CategoryDescription[category],
-		Endpoints:   make(map[string]string),
-		Subcategory: make(map[string]*RestCommandCategory),
-	}
-
-	//	add all endpoints for the category
-	for _, function := range rpcFunctions {
-		if function.category == category {
-			restCommandCategory.Endpoints[URI_prefix+function.path] = function.description
-		}
-	}
-
-	//	add all sub categories
-	for name, value := range subCategory {
-		restCommandCategory.Subcategory[name] = value
-	}
-
-	return restCommandCategory
-}
-
-//	the REST master help messsage
-func RESTMaster_help() *RestMasterHelpResponse {
-	masterHelpResp := &RestMasterHelpResponse{
-		Name: "pld - Lightning Network Daemon REST interface (pld)",
-		Description: []string{
-			"General information about PLD",
-		},
-		Category: map[string]*RestCommandCategory{
-			help.CategoryLightning: RESTCategory_help(help.CategoryLightning, map[string]*RestCommandCategory{
-				help.SubcategoryChannel: RESTCategory_help(help.SubcategoryChannel, map[string]*RestCommandCategory{
-					help.SubSubCategoryBackup: RESTCategory_help(help.SubSubCategoryBackup, map[string]*RestCommandCategory{}),
-				}),
-				help.SubCategoryGraph:   RESTCategory_help(help.SubCategoryGraph, map[string]*RestCommandCategory{}),
-				help.SubCategoryInvoice: RESTCategory_help(help.SubCategoryInvoice, map[string]*RestCommandCategory{}),
-				help.SubCategoryPayment: RESTCategory_help(help.SubCategoryPayment, map[string]*RestCommandCategory{}),
-				help.SubCategoryPeer:    RESTCategory_help(help.SubCategoryPeer, map[string]*RestCommandCategory{}),
-			}),
-			help.CategoryMeta: RESTCategory_help(help.CategoryMeta, map[string]*RestCommandCategory{}),
-			help.CategoryWallet: RESTCategory_help(help.CategoryWallet, map[string]*RestCommandCategory{
-				help.SubCategoryNetworkStewardVote: RESTCategory_help(help.SubCategoryNetworkStewardVote, map[string]*RestCommandCategory{}),
-				help.SubCategoryTransaction:        RESTCategory_help(help.SubCategoryTransaction, map[string]*RestCommandCategory{}),
-				help.SubCategoryUnspent: RESTCategory_help(help.SubCategoryUnspent, map[string]*RestCommandCategory{
-					help.SubSubCategoryLock: RESTCategory_help(help.SubSubCategoryLock, map[string]*RestCommandCategory{}),
-				}),
-				help.SubCategoryAddress: RESTCategory_help(help.SubCategoryAddress, map[string]*RestCommandCategory{}),
-			}),
-			help.CategoryNeutrino: RESTCategory_help(help.CategoryNeutrino, map[string]*RestCommandCategory{}),
-			help.CategoryUtil: RESTCategory_help(help.CategoryUtil, map[string]*RestCommandCategory{
-				help.SubCategorySeed: RESTCategory_help(help.SubCategorySeed, map[string]*RestCommandCategory{}),
-			}),
-			help.CategoryWatchtower: RESTCategory_help(help.CategoryWatchtower, map[string]*RestCommandCategory{}),
-		},
-	}
-
-	return masterHelpResp
-}
-
 //	add the REST master help HTTP handler
 func RestHandlersHelp(router *mux.Router) {
 	router.HandleFunc("/", getMainHelp)
-	router.HandleFunc(URI_prefix, getMainHelp)
+	router.HandleFunc(help.URI_prefix, getMainHelp)
 }
 
 //	get REST master help handler
@@ -148,7 +88,7 @@ func getMainHelp(httpResponse http.ResponseWriter, httpRequest *http.Request) {
 		Indent:       "   ",
 	}
 
-	s, err := marshaler.MarshalToString(RESTMaster_help())
+	s, err := marshaler.MarshalToString(help.RESTMaster_help())
 	if err != nil {
 		httpResponse.Header().Set("Content-Type", "text/plain")
 		http.Error(httpResponse, "500 - Internal Error", http.StatusInternalServerError)

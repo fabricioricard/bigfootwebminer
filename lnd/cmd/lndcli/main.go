@@ -16,12 +16,8 @@ import (
 	"os"
 	"strings"
 
-	jsoniter "github.com/json-iterator/go"
-)
-
-const (
-	URI_prefix     = "/api/v1"
-	helpURI_prefix = "/help"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc/help"
+	"github.com/pkt-cash/pktd/lnd/pkthelp"
 )
 
 var (
@@ -30,10 +26,12 @@ var (
 
 func main() {
 	var help bool
+	var showRequestPayload bool
 
 	//	parse command line arguments
 	flag.StringVar(&pldServer, "pld_server", "http://localhost:8080", "set the pld server URL")
 	flag.BoolVar(&help, "help", false, "get help on a specific command")
+	flag.BoolVar(&showRequestPayload, "show_req_payload", false, "show the request payload before invoke the pld command")
 
 	flag.Parse()
 
@@ -52,11 +50,9 @@ func main() {
 			err = getCommandHelp(flag.Args()[0])
 		} else {
 			fmt.Fprintf(os.Stderr, "error: unexpected arguments for help on command %s", flag.Args()[0])
-			panic(-1)
 		}
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s", err)
-			panic(-1)
+			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		}
 		return
 	}
@@ -65,76 +61,73 @@ func main() {
 	if len(flag.Args()) == 1 {
 		err := executeCommand(flag.Args()[0], "")
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s", err)
-			panic(-1)
+			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		}
 		return
 	}
 
-	//	two arguments is the command to be executed + the request payload
+	//	two or more arguments means the command to be executed followed by arguments to build request payload
 	if len(flag.Args()) > 1 {
 		var command = flag.Args()[0]
 		var requestPayload string
 
 		requestPayload, err := formatRequestPayload(command, flag.Args()[1:])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s", err)
-			panic(-1)
+			fmt.Fprintf(os.Stderr, "error: %s\n", err)
+			return
 		}
 
-		//	[debug] unmarshall the string with the request to marshall it with indentation
-		var requestPayloadMap map[string]interface{}
+		//	if necessary, indent the request payload before show it
+		if showRequestPayload {
+			var requestPayloadMap map[string]interface{}
 
-		err = json.Unmarshal([]byte(requestPayload), &requestPayloadMap)
-		if err != nil {
-		} else {
-			prettyRequestPayload, err := json.MarshalIndent(requestPayloadMap, "", "    ")
+			err = json.Unmarshal([]byte(requestPayload), &requestPayloadMap)
 			if err != nil {
 			} else {
-				fmt.Fprintf(os.Stdout, "[debug]: request payload: %s\n", string(prettyRequestPayload))
+				prettyRequestPayload, err := json.MarshalIndent(requestPayloadMap, "", "    ")
+				if err != nil {
+				} else {
+					fmt.Fprintf(os.Stdout, "[trace]: request payload: %s\n", string(prettyRequestPayload))
+				}
 			}
 		}
 
 		//	send the request payload to pld
 		err = executeCommand(command, requestPayload)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s", err)
-			panic(-1)
+			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		}
-		return
 	}
 }
 
-func formatRequestPayload(command string, arguments []string) (string, error) {
+func formatRequestPayload(commandPath string, arguments []string) (string, error) {
 
-	var helpURI = pldServer + URI_prefix + helpURI_prefix + "/" + command
+	//	search all pld commands for help on command path
+	var commandHelp pkthelp.Method
+	var commandFound bool
 
-	//	get help from pld
-	response, err := http.Get(helpURI)
-	if err != nil {
-		return "", errors.New("fail getting command help from pld server: " + err.Error())
-	}
-	defer response.Body.Close()
-
-	responseCommandHelp, err := io.ReadAll(response.Body)
-	if err != nil {
-		return "", errors.New("fail reading command help message from pld server: %s" + err.Error())
-	}
-
-	//	unmarshal the help message
-	var commandMethod Method
-
-	err = jsoniter.Unmarshal(responseCommandHelp, &commandMethod)
-	if err != nil {
-		return "", errors.New("fail unmarshling command help message: %s" + err.Error())
+	for _, commandInfo := range help.CommandInfoData {
+		if (commandPath[0] == '/' && commandInfo.Path == commandPath) || commandInfo.Path == "/"+commandPath {
+			if commandInfo.HelpInfo != nil {
+				commandHelp = commandInfo.HelpInfo()
+				commandFound = true
+				break
+			}
+		}
 	}
 
+	if !commandFound {
+		return "", errors.New("invalid pld command: " + commandPath)
+	}
+
+	//	build request payload based on request's help info
+	var parsedArgument []bool = make([]bool, len(arguments))
 	var requestPayload string
 
-	if len(commandMethod.Request.Fields) > 0 {
-		for _, requestField := range commandMethod.Request.Fields {
+	if len(commandHelp.Req.Fields) > 0 {
+		for _, requestField := range commandHelp.Req.Fields {
 
-			formattedField := formatRequestField("", requestField, arguments)
+			formattedField := formatRequestField("", &requestField, arguments, &parsedArgument)
 			if len(formattedField) > 0 {
 				if len(requestPayload) > 0 {
 					requestPayload += ", "
@@ -145,10 +138,19 @@ func formatRequestPayload(command string, arguments []string) (string, error) {
 	}
 	requestPayload = "{ " + requestPayload + " }"
 
+	//	check if there are invalid arguments (not parsed)
+	if len(arguments) > 0 {
+		for i := 0; i < len(parsedArgument); i++ {
+			if !parsedArgument[i] {
+				return "", errors.New("invalid command argument: " + arguments[i])
+			}
+		}
+	}
+
 	return requestPayload, nil
 }
 
-func formatRequestField(fieldHierarchy string, requestField *Field, arguments []string) string {
+func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, arguments []string, parsedArgument *[]bool) string {
 
 	var formattedField string
 
@@ -164,23 +166,25 @@ func formatRequestField(fieldHierarchy string, requestField *Field, arguments []
 
 		switch requestField.Type.Name {
 		case "bool":
-			for _, argument := range arguments {
+			for i, argument := range arguments {
 				if argument == commandOption {
 					formattedField += "\"" + requestField.Name + "\": true"
+					(*parsedArgument)[i] = true
 				}
 			}
 
 		case "[]byte":
 			commandOption += "="
-			for _, argument := range arguments {
+			for i, argument := range arguments {
 				if strings.HasPrefix(argument, commandOption) {
 					formattedField += "\"" + requestField.Name + "\": \"" + argument[len(commandOption):] + "\""
+					(*parsedArgument)[i] = true
 				}
 			}
 
 		case "string":
 			commandOption += "="
-			for _, argument := range arguments {
+			for i, argument := range arguments {
 				if strings.HasPrefix(argument, commandOption) {
 					if !requestField.Repeated {
 						formattedField += "\"" + requestField.Name + "\": \"" + argument[len(commandOption):] + "\""
@@ -196,55 +200,62 @@ func formatRequestField(fieldHierarchy string, requestField *Field, arguments []
 
 						formattedField += "\"" + requestField.Name + "\": [ " + arrayOfStrings + " ]"
 					}
+					(*parsedArgument)[i] = true
 				}
 			}
 
 		//	TODO: to make sure that for integer types pld doen't have arrays (Repeated == true)
 		case "uint32":
 			commandOption += "="
-			for _, argument := range arguments {
+			for i, argument := range arguments {
 				if strings.HasPrefix(argument, commandOption) {
 					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+					(*parsedArgument)[i] = true
 				}
 			}
 
 		case "int32":
 			commandOption += "="
-			for _, argument := range arguments {
+			for i, argument := range arguments {
 				if strings.HasPrefix(argument, commandOption) {
 					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+					(*parsedArgument)[i] = true
 				}
 			}
 
 		case "uint64":
 			commandOption += "="
-			for _, argument := range arguments {
+			for i, argument := range arguments {
 				if strings.HasPrefix(argument, commandOption) {
 					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+					(*parsedArgument)[i] = true
 				}
 			}
 
 		case "int64":
 			commandOption += "="
-			for _, argument := range arguments {
+			for i, argument := range arguments {
 				if strings.HasPrefix(argument, commandOption) {
 					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+					(*parsedArgument)[i] = true
 				}
 			}
 
 		case "float64":
 			commandOption += "="
-			for _, argument := range arguments {
+			for i, argument := range arguments {
 				if strings.HasPrefix(argument, commandOption) {
 					formattedField += "\"" + requestField.Name + "\": " + argument[len(commandOption):]
+					(*parsedArgument)[i] = true
 				}
 			}
 
 		//	map some hard coded enums
 		case "ENUM_VARIENT":
-			for _, argument := range arguments {
+			for i, argument := range arguments {
 				if argument == commandOption {
 					formattedField += "\"" + requestField.Name + "\""
+					(*parsedArgument)[i] = true
 				}
 			}
 		}
@@ -256,9 +267,9 @@ func formatRequestField(fieldHierarchy string, requestField *Field, arguments []
 			var formattedSubField string
 
 			if len(fieldHierarchy) == 0 {
-				formattedSubField = formatRequestField(requestField.Name, requestSubField, arguments)
+				formattedSubField = formatRequestField(requestField.Name, &requestSubField, arguments, parsedArgument)
 			} else {
-				formattedSubField = formatRequestField(fieldHierarchy+"."+requestField.Name, requestSubField, arguments)
+				formattedSubField = formatRequestField(fieldHierarchy+"."+requestField.Name, &requestSubField, arguments, parsedArgument)
 			}
 
 			if len(formattedSubField) > 0 {
@@ -285,7 +296,7 @@ func executeCommand(command string, payload string) error {
 	var response *http.Response
 	var err error
 
-	commandURI := pldServer + URI_prefix + "/" + command
+	commandURI := pldServer + help.URI_prefix + "/" + command
 
 	//	if there's no payload, use HTTP GET method to invoke pld command, otherwise use POST method
 	if len(payload) == 0 {

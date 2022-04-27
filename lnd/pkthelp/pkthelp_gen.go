@@ -10979,170 +10979,9 @@ func mkgoogle_protobuf_Any() Type {
         },
     }
 }
-func mkrestrpc_Field() Type {
-    return Type{
-        Name: "restrpc_Field",
-        Fields: []Field{
-            {
-                Name: "name",
-                Type: mkstring(),
-            },
-            {
-                Name: "description",
-                Repeated: true,
-                Type: mkstring(),
-            },
-            {
-                Name: "repeated",
-                Type: mkbool(),
-            },
-            {
-                Name: "type",
-                Type: mkrestrpc_Type(),
-            },
-        },
-    }
-}
-func mkrestrpc_RestCommandCategory() Type {
-    return Type{
-        Name: "restrpc_RestCommandCategory",
-        Fields: []Field{
-            {
-                Name: "description",
-                Repeated: true,
-                Type: mkstring(),
-            },
-            {
-                Name: "endpoints",
-                Repeated: true,
-                Type: mkrestrpc_RestCommandCategory_EndpointsEntry(),
-            },
-            {
-                Name: "subcategory",
-                Repeated: true,
-                Type: mkrestrpc_RestCommandCategory_SubcategoryEntry(),
-            },
-        },
-    }
-}
-func mkrestrpc_RestCommandCategory_EndpointsEntry() Type {
-    return Type{
-        Name: "restrpc_RestCommandCategory_EndpointsEntry",
-        Fields: []Field{
-            {
-                Name: "key",
-                Type: mkstring(),
-            },
-            {
-                Name: "value",
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkrestrpc_RestCommandCategory_SubcategoryEntry() Type {
-    return Type{
-        Name: "restrpc_RestCommandCategory_SubcategoryEntry",
-        Fields: []Field{
-            {
-                Name: "key",
-                Type: mkstring(),
-            },
-            {
-                Name: "value",
-                Type: mkrestrpc_RestCommandCategory(),
-            },
-        },
-    }
-}
 func mkrestrpc_RestEmptyResponse() Type {
     return Type{
         Name: "restrpc_RestEmptyResponse",
-    }
-}
-func mkrestrpc_RestHelpResponse() Type {
-    return Type{
-        Name: "restrpc_RestHelpResponse",
-        Fields: []Field{
-            {
-                Name: "name",
-                Type: mkstring(),
-            },
-            {
-                Name: "service",
-                Type: mkstring(),
-            },
-            {
-                Name: "description",
-                Repeated: true,
-                Type: mkstring(),
-            },
-            {
-                Name: "request",
-                Type: mkrestrpc_Type(),
-            },
-            {
-                Name: "response",
-                Type: mkrestrpc_Type(),
-            },
-        },
-    }
-}
-func mkrestrpc_RestMasterHelpResponse() Type {
-    return Type{
-        Name: "restrpc_RestMasterHelpResponse",
-        Fields: []Field{
-            {
-                Name: "name",
-                Type: mkstring(),
-            },
-            {
-                Name: "description",
-                Repeated: true,
-                Type: mkstring(),
-            },
-            {
-                Name: "category",
-                Repeated: true,
-                Type: mkrestrpc_RestMasterHelpResponse_CategoryEntry(),
-            },
-        },
-    }
-}
-func mkrestrpc_RestMasterHelpResponse_CategoryEntry() Type {
-    return Type{
-        Name: "restrpc_RestMasterHelpResponse_CategoryEntry",
-        Fields: []Field{
-            {
-                Name: "key",
-                Type: mkstring(),
-            },
-            {
-                Name: "value",
-                Type: mkrestrpc_RestCommandCategory(),
-            },
-        },
-    }
-}
-func mkrestrpc_Type() Type {
-    return Type{
-        Name: "restrpc_Type",
-        Fields: []Field{
-            {
-                Name: "name",
-                Type: mkstring(),
-            },
-            {
-                Name: "description",
-                Repeated: true,
-                Type: mkstring(),
-            },
-            {
-                Name: "fields",
-                Repeated: true,
-                Type: mkrestrpc_Field(),
-            },
-        },
     }
 }
 func mkrestrpc_WebSocketError() Type {
@@ -11218,6 +11057,167 @@ func mkrestrpc_WebSocketProtobufResponse() Type {
             {
                 Name: "error",
                 Type: mkrestrpc_WebSocketError(),
+            },
+        },
+    }
+}
+func mkhelp_Field() Type {
+    return Type{
+        Name: "help_Field",
+        Fields: []Field{
+            {
+                Name: "name",
+                Type: mkstring(),
+            },
+            {
+                Name: "description",
+                Repeated: true,
+                Type: mkstring(),
+            },
+            {
+                Name: "repeated",
+                Type: mkbool(),
+            },
+            {
+                Name: "type",
+                Type: mkhelp_Type(),
+            },
+        },
+    }
+}
+func mkhelp_RestCommandCategory() Type {
+    return Type{
+        Name: "help_RestCommandCategory",
+        Fields: []Field{
+            {
+                Name: "description",
+                Repeated: true,
+                Type: mkstring(),
+            },
+            {
+                Name: "endpoints",
+                Repeated: true,
+                Type: mkhelp_RestCommandCategory_EndpointsEntry(),
+            },
+            {
+                Name: "subcategory",
+                Repeated: true,
+                Type: mkhelp_RestCommandCategory_SubcategoryEntry(),
+            },
+        },
+    }
+}
+func mkhelp_RestCommandCategory_EndpointsEntry() Type {
+    return Type{
+        Name: "help_RestCommandCategory_EndpointsEntry",
+        Fields: []Field{
+            {
+                Name: "key",
+                Type: mkstring(),
+            },
+            {
+                Name: "value",
+                Type: mkstring(),
+            },
+        },
+    }
+}
+func mkhelp_RestCommandCategory_SubcategoryEntry() Type {
+    return Type{
+        Name: "help_RestCommandCategory_SubcategoryEntry",
+        Fields: []Field{
+            {
+                Name: "key",
+                Type: mkstring(),
+            },
+            {
+                Name: "value",
+                Type: mkhelp_RestCommandCategory(),
+            },
+        },
+    }
+}
+func mkhelp_RestHelpResponse() Type {
+    return Type{
+        Name: "help_RestHelpResponse",
+        Fields: []Field{
+            {
+                Name: "name",
+                Type: mkstring(),
+            },
+            {
+                Name: "service",
+                Type: mkstring(),
+            },
+            {
+                Name: "description",
+                Repeated: true,
+                Type: mkstring(),
+            },
+            {
+                Name: "request",
+                Type: mkhelp_Type(),
+            },
+            {
+                Name: "response",
+                Type: mkhelp_Type(),
+            },
+        },
+    }
+}
+func mkhelp_RestMasterHelpResponse() Type {
+    return Type{
+        Name: "help_RestMasterHelpResponse",
+        Fields: []Field{
+            {
+                Name: "name",
+                Type: mkstring(),
+            },
+            {
+                Name: "description",
+                Repeated: true,
+                Type: mkstring(),
+            },
+            {
+                Name: "category",
+                Repeated: true,
+                Type: mkhelp_RestMasterHelpResponse_CategoryEntry(),
+            },
+        },
+    }
+}
+func mkhelp_RestMasterHelpResponse_CategoryEntry() Type {
+    return Type{
+        Name: "help_RestMasterHelpResponse_CategoryEntry",
+        Fields: []Field{
+            {
+                Name: "key",
+                Type: mkstring(),
+            },
+            {
+                Name: "value",
+                Type: mkhelp_RestCommandCategory(),
+            },
+        },
+    }
+}
+func mkhelp_Type() Type {
+    return Type{
+        Name: "help_Type",
+        Fields: []Field{
+            {
+                Name: "name",
+                Type: mkstring(),
+            },
+            {
+                Name: "description",
+                Repeated: true,
+                Type: mkstring(),
+            },
+            {
+                Name: "fields",
+                Repeated: true,
+                Type: mkhelp_Field(),
             },
         },
     }

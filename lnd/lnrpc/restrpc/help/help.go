@@ -76,8 +76,8 @@ const (
 	CommandUpdateChanPolicy = "updatechanpolicy"
 	//	lightning/channel/backup subCategory commands
 	CommandExportChanBackup  = "exportchanbackup"
-	CommandRestoreChanBackup = "restorechanbackup"
 	CommandVerifyChanBackup  = "verifychanbackup"
+	CommandRestoreChanBackup = "restorechanbackup"
 	//	lightning/graph subCategory commands
 	CommandDescribeGraph  = "describegraph"
 	CommandGetNodeMetrics = "getnodemetrics"

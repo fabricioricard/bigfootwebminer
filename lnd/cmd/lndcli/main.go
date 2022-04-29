@@ -81,6 +81,8 @@ func main() {
 		if showRequestPayload {
 			var requestPayloadMap map[string]interface{}
 
+			fmt.Fprintf(os.Stdout, "[trace]: ugly request payload: %s\n", requestPayload)
+
 			err = json.Unmarshal([]byte(requestPayload), &requestPayloadMap)
 			if err != nil {
 			} else {
@@ -127,7 +129,11 @@ func formatRequestPayload(commandPath string, arguments []string) (string, error
 	if len(commandHelp.Req.Fields) > 0 {
 		for _, requestField := range commandHelp.Req.Fields {
 
-			formattedField := formatRequestField("", &requestField, arguments, &parsedArgument)
+			formattedField, err := formatRequestField("", &requestField, arguments, &parsedArgument)
+			if err != nil {
+				return "", errors.New("error parsing arguments: " + err.Error())
+			}
+
 			if len(formattedField) > 0 {
 				if len(requestPayload) > 0 {
 					requestPayload += ", "
@@ -150,7 +156,7 @@ func formatRequestPayload(commandPath string, arguments []string) (string, error
 	return requestPayload, nil
 }
 
-func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, arguments []string, parsedArgument *[]bool) string {
+func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, arguments []string, parsedArgument *[]bool) (string, error) {
 
 	var formattedField string
 
@@ -189,13 +195,28 @@ func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, argu
 					if !requestField.Repeated {
 						formattedField += "\"" + requestField.Name + "\": \"" + argument[len(commandOption):] + "\""
 					} else {
+						//	make sure the array is delimited by square brackets
+						arrayArgument := strings.TrimSpace(argument[len(commandOption):])
+
+						if arrayArgument[0] != '[' || arrayArgument[len(arrayArgument)-1] != ']' {
+							return "", errors.New("array argument must be delimitted by square brackets: " + arrayArgument)
+						}
+
+						//	each string in the array is comma separated
 						var arrayOfStrings string
 
-						for _, stringValue := range strings.Split(argument[len(commandOption):], ":") {
+						for _, stringValue := range strings.Split(arrayArgument[1:len(arrayArgument)-1], ",") {
+							stringValue = strings.TrimSpace(stringValue)
+
+							//	make sure the string element is delimited by double quotes
+							if stringValue[0] != '"' || stringValue[len(stringValue)-1] != '"' {
+								return "", errors.New("array element must be delimitted by double quotes: " + stringValue)
+							}
+
 							if len(arrayOfStrings) > 0 {
 								arrayOfStrings += ", "
 							}
-							arrayOfStrings += "\"" + stringValue + "\""
+							arrayOfStrings += stringValue
 						}
 
 						formattedField += "\"" + requestField.Name + "\": [ " + arrayOfStrings + " ]"
@@ -265,11 +286,15 @@ func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, argu
 
 		for _, requestSubField := range requestField.Type.Fields {
 			var formattedSubField string
+			var err error
 
 			if len(fieldHierarchy) == 0 {
-				formattedSubField = formatRequestField(requestField.Name, &requestSubField, arguments, parsedArgument)
+				formattedSubField, err = formatRequestField(requestField.Name, &requestSubField, arguments, parsedArgument)
 			} else {
-				formattedSubField = formatRequestField(fieldHierarchy+"."+requestField.Name, &requestSubField, arguments, parsedArgument)
+				formattedSubField, err = formatRequestField(fieldHierarchy+"."+requestField.Name, &requestSubField, arguments, parsedArgument)
+			}
+			if err != nil {
+				return "", err
 			}
 
 			if len(formattedSubField) > 0 {
@@ -288,7 +313,7 @@ func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, argu
 		}
 	}
 
-	return formattedField
+	return formattedField, nil
 }
 
 func executeCommand(command string, payload string) error {

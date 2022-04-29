@@ -386,7 +386,7 @@ executeCommand 'bcasttransaction' 'POST' '/neutrino/bcasttransaction' "{ \"tx\":
 showCommandResult 'result' ''
 #    echo -e "\ttransaction hash: $( echo ${JSON_OUTPUT} | jq '.txn_hash' )"
 
-executeCommand 'estimatefee' 'POST' '/neutrino/estimatefee' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
+executeCommand 'estimatefee' 'POST' '/neutrino/estimatefee' "{ \"AddrToAmount\": [ \"${TARGET_WALLET}\": 100000 ] }"
 showCommandResult 'fee sat' '.feeSat'
 
 echo "----------"

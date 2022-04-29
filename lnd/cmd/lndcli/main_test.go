@@ -30,6 +30,42 @@ func TestFormatRequestPayload(t *testing.T) {
 			arguments:     []string{"--show", "--level_spec=debug", "--amount=100000"},
 			expectedError: `invalid command argument: --amount=100000`,
 		},
+		{
+			name:    "missing square bracket before array elements",
+			command: "util/seed/changepassphrase",
+			arguments: []string{"--current_seed_passphrase_bin=cGFzc3dvcmQ=", `--current_seed="plastic", "hollow", ` +
+				`"mansion", "keep", "into", "cloth", "awesome", "salmon", "reopen", "inner", "replace", "dice", "life", ` +
+				`"example", "around"]`, "--new_seed_passphrase=password"},
+			expectedError: `error parsing arguments: array argument must be delimitted by square brackets: "plastic", "hollow", ` +
+				`"mansion", "keep", "into", "cloth", "awesome", "salmon", "reopen", "inner", "replace", "dice", "life", "example", ` +
+				`"around"]`,
+		},
+		{
+			name:    "missing square bracket after array elements",
+			command: "util/seed/changepassphrase",
+			arguments: []string{"--current_seed_passphrase_bin=cGFzc3dvcmQ=", `--current_seed=["plastic", "hollow", ` +
+				`"mansion", "keep", "into", "cloth", "awesome", "salmon", "reopen", "inner", "replace", "dice", "life", ` +
+				`"example", "around"`, "--new_seed_passphrase=password"},
+			expectedError: `error parsing arguments: array argument must be delimitted by square brackets: ["plastic", "hollow", ` +
+				`"mansion", "keep", "into", "cloth", "awesome", "salmon", "reopen", "inner", "replace", "dice", "life", "example", ` +
+				`"around"`,
+		},
+		{
+			name:    "missing open double quotes before array element",
+			command: "util/seed/changepassphrase",
+			arguments: []string{"--current_seed_passphrase_bin=cGFzc3dvcmQ=", `--current_seed=[plastic", "hollow", ` +
+				`"mansion", "keep", "into", "cloth", "awesome", "salmon", "reopen", "inner", "replace", "dice", "life", ` +
+				`"example", "around"]`, "--new_seed_passphrase=password"},
+			expectedError: `error parsing arguments: array element must be delimitted by double quotes: plastic"`,
+		},
+		{
+			name:    "missing close double quotes after array element",
+			command: "util/seed/changepassphrase",
+			arguments: []string{"--current_seed_passphrase_bin=cGFzc3dvcmQ=", `--current_seed=["plastic, "hollow", ` +
+				`"mansion", "keep", "into", "cloth", "awesome", "salmon", "reopen", "inner", "replace", "dice", "life", ` +
+				`"example", "around"]`, "--new_seed_passphrase=password"},
+			expectedError: `error parsing arguments: array element must be delimitted by double quotes: "plastic`,
+		},
 		//	test commands of "meta" group
 		{
 			name:            "debuglevel CLI options",
@@ -53,10 +89,9 @@ func TestFormatRequestPayload(t *testing.T) {
 		{
 			name:    "changepassphrase CLI options",
 			command: "util/seed/changepassphrase",
-			arguments: []string{"--current_seed_passphrase_bin=cGFzc3dvcmQ=",
-				"--current_seed=plastic:hollow:mansion:keep:into:cloth:awesome:salmon:reopen:inner:replace:dice:life:example:around",
-				"--new_seed_passphrase=password",
-			},
+			arguments: []string{"--current_seed_passphrase_bin=cGFzc3dvcmQ=", `--current_seed=["plastic", "hollow", ` +
+				`"mansion", "keep", "into", "cloth", "awesome", "salmon", "reopen", "inner", "replace", "dice", "life", ` +
+				`"example", "around"]`, "--new_seed_passphrase=password"},
 			expectedPayload: `{ "current_seed_passphrase_bin": "cGFzc3dvcmQ=", ` +
 				`"current_seed": [ "plastic", "hollow", "mansion", "keep", "into", "cloth", "awesome", "salmon", "reopen", "inner", "replace", "dice", "life", "example", "around" ], ` +
 				`"new_seed_passphrase": "password" }`,
@@ -310,48 +345,218 @@ func TestFormatRequestPayload(t *testing.T) {
 			arguments:       []string{},
 			expectedPayload: `{  }`,
 		},
-		/*
-			executeCommand 'bcasttransaction' 'POST' '/neutrino/bcasttransaction' "{ \"tx\": \"${TXID}\" }"
-			executeCommand 'estimatefee' 'POST' '/neutrino/estimatefee' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
-
-			executeCommand 'walletbalance' 'GET' '/wallet/balance'
-			executeCommand 'changePassphrase' 'POST' '/wallet/changepassphrase' "{ \"current_passphrase\": \"${PASSPHRASE}\", \"new_passphrase\": \"${NEW_PASSPHRASE}\" }"
-			executeCommand 'checkPassphrase' 'POST' '/wallet/checkpassphrase' "{ \"wallet_passphrase\": \"${WALLET_PASSPHRASE}\" }"
-			executeCommand 'create_wallet' 'POST' '/wallet/create' "{ \"wallet_passphrase\": \"${PASSPHRASE}\", \"wallet_seed\": ${WALLET_SEED}, \"seed_passphrase_bin\": \"${SEED_PASSPHRASE}\" }"
-			executeCommand 'getsecret' 'POST' '/wallet/getsecret' '{ "name": "Isaac Assimov" }'
-			executeCommand 'getwalletseed' 'GET' '/wallet/seed'
-			executeCommand 'unlock_wallet' 'POST' '/wallet/unlock' "{ \"wallet_passphrase\": \"${WALLET_PASSPHRASE}\" }"
-
-			executeCommand 'getaddressbalances' 'POST' '/wallet/address/balances' '{  }'
-			executeCommand 'newaddress' 'POST' '/wallet/address/create' '{  }'
-			executeCommand 'dumpprivkey' 'POST' '/wallet/address/dumpprivkey' '{ "address": "pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz" }'
-			executeCommand 'importprivkey' 'POST' '/wallet/address/import' "{ \"privateKey\": \"${WALLET_PRIVKEY}xx\", \"rescan\": true }"
-			executeCommand 'signmessage' 'POST' '/wallet/address/signmessage' '{ "msg": "testing pld REST endpoints" }'
-
-			executeCommand 'getnetworkstewardvote' 'GET' '/wallet/networkstewardvote'
-			executeCommand 'setnetworkstewardvote' 'POST' '/wallet/networkstewardvote/set' '{ "voteAgainst": "0", "voteFor": "1" }'
-
-			executeCommand 'gettransaction' 'POST' '/wallet/transaction' ''
-			executeCommand 'createtransaction' 'POST' '/wallet/transaction/create' "{ \"toAddress\": \"${TARGET_WALLET}\", \"amount\": ${AMOUNT} }"
-			executeCommand 'query' 'POST' '/wallet/transaction/query' '{  }'
-			executeCommand 'sendcoins' 'POST' '/wallet/transaction/sendcoins' "{ \"addr\": \"${TARGET_WALLET}\", \"amount\": ${AMOUNT} }"
-			executeCommand 'sendfrom' 'POST' '/wallet/transaction/sendfrom' '{  }'
-			executeCommand 'sendmany' 'POST' '/wallet/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": ${AMOUNT} } }"
-
-			executeCommand 'listunspent' 'POST' '/wallet/unspent' '{ "minConfs": 1, "maxConfs": 100 }'
-			executeCommand 'resync' 'POST' '/wallet/unspent/resync' '{  }'
-			executeCommand 'stopresync' 'GET' '/wallet/unspent/stopresync' ''
-
-			executeCommand 'listlockunspent' 'GET' '/wallet/unspent/lock'
-			executeCommand 'lockunspent' 'POST' '/wallet/unspent/lock/create' '{ "lockname": "secure vault", "unlock": false, "transactions": [ { "txid": "934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f" } ] }' ''
-
-			executeCommand 'show' 'POST' '/wtclient/tower' '{  }'
-			executeCommand 'show' 'POST' '/wtclient/tower/create' '{  }'
-			executeCommand 'show' 'POST' '/wtclient/tower/getinfo' '{  }'
-			executeCommand 'show' 'POST' '/wtclient/tower/policy' '{  }'
-			executeCommand 'show' 'POST' '/wtclient/tower/remove' '{  }'
-			executeCommand 'show' 'POST' '/wtclient/tower/stats' '{  }'
-		*/
+		//	test commands of "neutrino" group
+		{
+			name:            "bcasttransaction CLI options",
+			command:         "neutrino/bcasttransaction",
+			arguments:       []string{"--tx=f0f1f2f3f4f5f6f7f8f9ff"},
+			expectedPayload: `{ "tx": "f0f1f2f3f4f5f6f7f8f9ff" }`,
+		},
+		{
+			name:      "estimatefee CLI options",
+			command:   "neutrino/estimatefee",
+			arguments: []string{"--AddrToAmount.key=2625478276", "--AddrToAmount.value=8827484919"},
+			//	TODO: how to parse the help to correctly build this payload ?
+			expectedPayload: `{ "AddrToAmount": [ "key": "2625478276", "value": 8827484919 ] }`,
+		},
+		//	test commands of "wallet" group
+		{
+			name:            "walletbalance CLI options",
+			command:         "wallet/balance",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		{
+			name:            "changePassphrase CLI options",
+			command:         "wallet/changepassphrase",
+			arguments:       []string{"--current_passphrase=p4sswd", "--new_passphrase=n3wP4sswd"},
+			expectedPayload: `{ "current_passphrase": "p4sswd", "new_passphrase": "n3wP4sswd" }`,
+		},
+		{
+			name:            "checkPassphrase CLI options",
+			command:         "wallet/checkpassphrase",
+			arguments:       []string{"--wallet_passphrase=p4sswd"},
+			expectedPayload: `{ "wallet_passphrase": "p4sswd" }`,
+		},
+		{
+			name:    "create_wallet CLI options",
+			command: "wallet/create",
+			arguments: []string{"--wallet_passphrase=p4sswd", `--wallet_seed=["plastic","hollow",` +
+				`"mansion","keep","into","cloth","awesome","salmon","reopen","inner","replace","dice","life",` +
+				`"example","around"]`, "--seed_passphrase_bin=s33dP4sswd"},
+			expectedPayload: `{ "wallet_passphrase": "p4sswd", "wallet_seed": [ "plastic", "hollow", "mansion", "keep", "into", ` +
+				`"cloth", "awesome", "salmon", "reopen", "inner", "replace", "dice", "life", "example", "around" ], ` +
+				`"seed_passphrase_bin": "s33dP4sswd" }`,
+		},
+		{
+			name:            "getsecret CLI options",
+			command:         "wallet/getsecret",
+			arguments:       []string{"--name=Isaac Assimov"},
+			expectedPayload: `{ "name": "Isaac Assimov" }`,
+		},
+		{
+			name:            "getwalletseed CLI options",
+			command:         "wallet/seed",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		{
+			name:            "unlock_wallet CLI options",
+			command:         "wallet/unlock",
+			arguments:       []string{"--wallet_passphrase=p4sswd"},
+			expectedPayload: `{ "wallet_passphrase": "p4sswd" }`,
+		},
+		//	test commands of "wallet/address" group
+		{
+			name:            "getaddressbalances CLI options",
+			command:         "wallet/address/balances",
+			arguments:       []string{"--minconf=10", "--showzerobalance"},
+			expectedPayload: `{ "minconf": 10, "showzerobalance": true }`,
+		},
+		{
+			name:            "newaddress CLI options",
+			command:         "wallet/address/create",
+			arguments:       []string{"--legacy"},
+			expectedPayload: `{ "legacy": true }`,
+		},
+		{
+			name:            "dumpprivkey CLI options",
+			command:         "wallet/address/dumpprivkey",
+			arguments:       []string{"--address=pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz"},
+			expectedPayload: `{ "address": "pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz" }`,
+		},
+		{
+			name:            "importprivkey CLI options",
+			command:         "wallet/address/import",
+			arguments:       []string{"--private_key=d0d1d2d3d4d5d6d7d8d9dd", "--rescan"},
+			expectedPayload: `{ "private_key": "d0d1d2d3d4d5d6d7d8d9dd", "rescan": true }`,
+		},
+		{
+			name:            "signmessage CLI options",
+			command:         "wallet/address/signmessage",
+			arguments:       []string{"--msg=pldctl unit tests", "--key_loc.key_family=1"},
+			expectedPayload: `{ "msg": "pldctl unit tests", "key_loc": { "key_family": 1 } }`,
+		},
+		//	test commands of "wallet/networkstewardvote" group
+		{
+			name:            "getnetworkstewardvote CLI options",
+			command:         "wallet/networkstewardvote",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		{
+			name:            "setnetworkstewardvote CLI options",
+			command:         "wallet/networkstewardvote/set",
+			arguments:       []string{"--vote_against=0", "--vote_for=1"},
+			expectedPayload: `{ "vote_against": "0", "vote_for": "1" }`,
+		},
+		//	test commands of "wallet/transaction" group
+		{
+			name:            "gettransaction CLI options",
+			command:         "wallet/transaction",
+			arguments:       []string{"--txid=e0e1e2e3e4e5e6e7e8e9ee"},
+			expectedPayload: `{ "txid": "e0e1e2e3e4e5e6e7e8e9ee" }`,
+		},
+		{
+			name:            "createtransaction CLI options",
+			command:         "wallet/transaction/create",
+			arguments:       []string{"--to_address=2734648278367", "--amount=100000"},
+			expectedPayload: `{ "to_address": "2734648278367", "amount": 100000 }`,
+		},
+		{
+			name:            "query CLI options",
+			command:         "wallet/transaction/query",
+			arguments:       []string{"--start_height=1000000", "--end_height=1500000"},
+			expectedPayload: `{ "start_height": 1000000, "end_height": 1500000 }`,
+		},
+		{
+			name:            "sendcoins CLI options",
+			command:         "wallet/transaction/sendcoins",
+			arguments:       []string{"--addr=2734648278367", "--send_all"},
+			expectedPayload: `{ "addr": "2734648278367", "send_all": true }`,
+		},
+		{
+			name:            "sendfrom CLI options",
+			command:         "wallet/transaction/sendfrom",
+			arguments:       []string{"--to_address=2734648278367", "--amount=100000", `--from_address=[ "8274745638725", "475647384723" ]`},
+			expectedPayload: `{ "to_address": "2734648278367", "amount": 100000, "from_address": [ "8274745638725", "475647384723" ] }`,
+		},
+		{
+			//	TODO: again, how to parse the help to correctly build this payload ?
+			name:            "sendmany CLI options",
+			command:         "wallet/transaction/sendmany",
+			arguments:       []string{"--AddrToAmount.key=2734648278367", "--AddrToAmount.value=100000", "--label=Payment for mobile phone bill"},
+			expectedPayload: `{ "AddrToAmount": [ "key": "2734648278367", "value": 100000 ], "label": "Payment for mobile phone bill" }`,
+		},
+		//	test commands of "wallet/unspent" group
+		{
+			name:            "listunspent CLI options",
+			command:         "wallet/unspent",
+			arguments:       []string{"--min_confs=10", "--max_confs=50"},
+			expectedPayload: `{ "min_confs": 10, "max_confs": 50 }`,
+		},
+		{
+			name:            "resync CLI options",
+			command:         "wallet/unspent/resync",
+			arguments:       []string{"--from_height=1200000"},
+			expectedPayload: `{ "from_height": 1200000 }`,
+		},
+		{
+			name:            "stopresync CLI options",
+			command:         "wallet/unspent/stopresync",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		//	test commands of "wallet/unspent/lock" group
+		{
+			name:            "listlockunspent CLI options",
+			command:         "wallet/unspent/lock",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		{
+			name:            "lockunspent CLI options",
+			command:         "wallet/unspent/lock/create",
+			arguments:       []string{"--unlock", "--transactions.txid=e0e1e2e3e4e5e6e7e8e9ee"},
+			expectedPayload: `{ "unlock": true, "transactions": [ "txid": "e0e1e2e3e4e5e6e7e8e9ee" ] }`,
+		},
+		//	test commands of "wtclient/tower" group
+		{
+			name:            "listtowers CLI options",
+			command:         "wtclient/tower",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		{
+			name:            "createwatchtower CLI options",
+			command:         "wtclient/tower/create",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		{
+			name:            "gettowerinfo CLI options",
+			command:         "wtclient/tower/getinfo",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		{
+			name:            "gettowerpolicy CLI options",
+			command:         "wtclient/tower/policy",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		{
+			name:            "removewatchtower CLI options",
+			command:         "wtclient/tower/remove",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
+		{
+			name:            "gettowerstats CLI options",
+			command:         "wtclient/tower/stats",
+			arguments:       []string{},
+			expectedPayload: `{  }`,
+		},
 	}
 
 	for _, testCase := range testCases {

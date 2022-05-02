@@ -160,6 +160,7 @@ type CommandInfo struct {
 	Category    string
 	Description string
 	Path        string
+	AllowGet    bool
 	HelpInfo    func() pkthelp.Method
 }
 
@@ -201,12 +202,14 @@ var (
 			Category:    SubcategoryChannel,
 			Description: "List all open channels",
 			Path:        "/lightning/channel",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_ListChannels,
 		},
 		CommandClosedChannels: {
 			Category:    SubcategoryChannel,
 			Description: "List all closed channels",
 			Path:        "/lightning/channel/closed",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_ClosedChannels,
 		},
 		CommandGetNetworkInfo: {
@@ -251,12 +254,14 @@ var (
 			Category:    SubCategoryGraph,
 			Description: "Describe the network graph",
 			Path:        "/lightning/graph",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_DescribeGraph,
 		},
 		CommandGetNodeMetrics: {
 			Category:    SubCategoryGraph,
 			Description: "Get node metrics",
 			Path:        "/lightning/graph/nodemetrics",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_GetNodeMetrics,
 		},
 		CommandGetChanInfo: {
@@ -288,6 +293,7 @@ var (
 			Category:    SubCategoryInvoice,
 			Description: "List all invoices currently stored within the database. Any active debug invoices are ignored",
 			Path:        "/lightning/invoice",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_ListInvoices,
 		},
 		CommandDecodePayreq: {
@@ -319,11 +325,14 @@ var (
 			Category:    SubCategoryPayment,
 			Description: "List all outgoing payments",
 			Path:        "/lightning/payment",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_ListPayments,
 		},
 		CommandTrackPayment: {
-			Category: SubCategoryPayment,
-			HelpInfo: nil,
+			Category:    SubCategoryPayment,
+			Description: "Track payment",
+			Path:        "/lightning/payment/track",
+			HelpInfo:    nil,
 		},
 		CommandQueryRoutes: {
 			Category:    SubCategoryPayment,
@@ -378,6 +387,7 @@ var (
 			Category:    SubCategoryPeer,
 			Description: "List all active, currently connected peers",
 			Path:        "/lightning/peer",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_ListPeers,
 		},
 		//	meta category command
@@ -484,6 +494,7 @@ var (
 			Category:    SubCategoryTransaction,
 			Description: "List transactions from the wallet",
 			Path:        "/wallet/transaction/query",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_GetTransactions,
 		},
 		CommandSendCoins: {
@@ -509,12 +520,14 @@ var (
 			Category:    SubCategoryUnspent,
 			Description: "List utxos available for spending",
 			Path:        "/wallet/unspent",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_ListUnspent,
 		},
 		CommandResync: {
 			Category:    SubCategoryUnspent,
 			Description: "Scan over the chain to find any transactions which may not have been recorded in the wallet's database",
 			Path:        "/wallet/unspent/resync",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_ReSync,
 		},
 		CommandStopResync: {
@@ -541,6 +554,7 @@ var (
 			Category:    SubCategoryAddress,
 			Description: "Compute and display balances for each address in the wallet",
 			Path:        "/wallet/address/balances",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_GetAddressBalances,
 		},
 		CommandNewAddress: {
@@ -610,6 +624,7 @@ var (
 			Category:    CategoryWatchtower,
 			Description: "Display information about all registered watchtowers",
 			Path:        "/wtclient/tower",
+			AllowGet:    true,
 			HelpInfo:    pkthelp.WatchtowerClient_ListTowers,
 		},
 		CommandGetTowerInfo: {
@@ -634,25 +649,27 @@ var (
 )
 
 //	the category help in REST master
-func RESTCategory_help(category string, subCategory map[string]*RestCommandCategory) *RestCommandCategory {
+func RESTCategory_help(category string, subCategory []*RestCommandCategory) *RestCommandCategory {
 	restCommandCategory := &RestCommandCategory{
+		Name:        category,
 		Description: CategoryDescription[category],
-		Endpoints:   make(map[string]string),
-		Subcategory: make(map[string]*RestCommandCategory),
+		Endpoints:   make([]*RestEndpoint, 0, 10),
+		Subcategory: make([]*RestCommandCategory, 0, 10),
 	}
 
 	//	add all endpoints for the category
 	for _, commandInfo := range CommandInfoData {
 
 		if commandInfo.Category == category {
-			restCommandCategory.Endpoints[URI_prefix+commandInfo.Path] = commandInfo.Description
+			restCommandCategory.Endpoints = append(restCommandCategory.Endpoints, &RestEndpoint{
+				URI:              URI_prefix + commandInfo.Path,
+				ShortDescription: commandInfo.Description,
+			})
 		}
 	}
 
-	//	add all sub categories
-	for name, value := range subCategory {
-		restCommandCategory.Subcategory[name] = value
-	}
+	//	add sub categories
+	restCommandCategory.Subcategory = subCategory
 
 	return restCommandCategory
 }
@@ -664,30 +681,30 @@ func RESTMaster_help() *RestMasterHelpResponse {
 		Description: []string{
 			"General information about PLD",
 		},
-		Category: map[string]*RestCommandCategory{
-			CategoryLightning: RESTCategory_help(CategoryLightning, map[string]*RestCommandCategory{
-				SubcategoryChannel: RESTCategory_help(SubcategoryChannel, map[string]*RestCommandCategory{
-					SubSubCategoryBackup: RESTCategory_help(SubSubCategoryBackup, map[string]*RestCommandCategory{}),
+		Category: []*RestCommandCategory{
+			RESTCategory_help(CategoryLightning, []*RestCommandCategory{
+				RESTCategory_help(SubcategoryChannel, []*RestCommandCategory{
+					RESTCategory_help(SubSubCategoryBackup, []*RestCommandCategory{}),
 				}),
-				SubCategoryGraph:   RESTCategory_help(SubCategoryGraph, map[string]*RestCommandCategory{}),
-				SubCategoryInvoice: RESTCategory_help(SubCategoryInvoice, map[string]*RestCommandCategory{}),
-				SubCategoryPayment: RESTCategory_help(SubCategoryPayment, map[string]*RestCommandCategory{}),
-				SubCategoryPeer:    RESTCategory_help(SubCategoryPeer, map[string]*RestCommandCategory{}),
+				RESTCategory_help(SubCategoryGraph, []*RestCommandCategory{}),
+				RESTCategory_help(SubCategoryInvoice, []*RestCommandCategory{}),
+				RESTCategory_help(SubCategoryPayment, []*RestCommandCategory{}),
+				RESTCategory_help(SubCategoryPeer, []*RestCommandCategory{}),
 			}),
-			CategoryMeta: RESTCategory_help(CategoryMeta, map[string]*RestCommandCategory{}),
-			CategoryWallet: RESTCategory_help(CategoryWallet, map[string]*RestCommandCategory{
-				SubCategoryNetworkStewardVote: RESTCategory_help(SubCategoryNetworkStewardVote, map[string]*RestCommandCategory{}),
-				SubCategoryTransaction:        RESTCategory_help(SubCategoryTransaction, map[string]*RestCommandCategory{}),
-				SubCategoryUnspent: RESTCategory_help(SubCategoryUnspent, map[string]*RestCommandCategory{
-					SubSubCategoryLock: RESTCategory_help(SubSubCategoryLock, map[string]*RestCommandCategory{}),
+			RESTCategory_help(CategoryMeta, []*RestCommandCategory{}),
+			RESTCategory_help(CategoryWallet, []*RestCommandCategory{
+				RESTCategory_help(SubCategoryNetworkStewardVote, []*RestCommandCategory{}),
+				RESTCategory_help(SubCategoryTransaction, []*RestCommandCategory{}),
+				RESTCategory_help(SubCategoryUnspent, []*RestCommandCategory{
+					RESTCategory_help(SubSubCategoryLock, []*RestCommandCategory{}),
 				}),
-				SubCategoryAddress: RESTCategory_help(SubCategoryAddress, map[string]*RestCommandCategory{}),
+				RESTCategory_help(SubCategoryAddress, []*RestCommandCategory{}),
 			}),
-			CategoryNeutrino: RESTCategory_help(CategoryNeutrino, map[string]*RestCommandCategory{}),
-			CategoryUtil: RESTCategory_help(CategoryUtil, map[string]*RestCommandCategory{
-				SubCategorySeed: RESTCategory_help(SubCategorySeed, map[string]*RestCommandCategory{}),
+			RESTCategory_help(CategoryNeutrino, []*RestCommandCategory{}),
+			RESTCategory_help(CategoryUtil, []*RestCommandCategory{
+				RESTCategory_help(SubCategorySeed, []*RestCommandCategory{}),
 			}),
-			CategoryWatchtower: RESTCategory_help(CategoryWatchtower, map[string]*RestCommandCategory{}),
+			RESTCategory_help(CategoryWatchtower, []*RestCommandCategory{}),
 		},
 	}
 

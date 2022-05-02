@@ -30,25 +30,25 @@ func getMasterHelp() error {
 	fmt.Fprintf(os.Stdout, "\n")
 
 	fmt.Fprintf(os.Stdout, "CATEGORY:\n")
-	for categoryName, category := range masterHelp.Category {
-		showCategory(categoryName, category, 1)
+	for _, category := range masterHelp.Category {
+		showCategory(category, 1)
 	}
 
 	return nil
 }
 
 //	show a fancy output for the help on a specific category
-func showCategory(name string, category *help.RestCommandCategory, level int) {
+func showCategory(category *help.RestCommandCategory, level int) {
 
 	var firstIndent string
 	var secondIndent string
 
 	for i := 1; i <= level; i++ {
-		firstIndent = firstIndent + "    "
+		firstIndent = firstIndent + "  "
 	}
-	secondIndent = firstIndent + "    "
+	secondIndent = firstIndent + "  "
 
-	fmt.Fprintf(os.Stdout, "%s%s:\n\n", firstIndent, name)
+	fmt.Fprintf(os.Stdout, "%s%s:\n\n", firstIndent, category.Name)
 
 	fmt.Fprintf(os.Stdout, "%sDESCRIPTION:\n", firstIndent)
 	for _, line := range category.Description {
@@ -58,13 +58,13 @@ func showCategory(name string, category *help.RestCommandCategory, level int) {
 
 	if len(category.Endpoints) > 0 {
 		fmt.Fprintf(os.Stdout, "%sCOMMANDS:\n", firstIndent)
-		for endpoint, description := range category.Endpoints {
-			var command = endpoint
+		for _, endpoint := range category.Endpoints {
+			var command = endpoint.URI
 
 			if strings.HasPrefix(command, help.URI_prefix+"/") {
 				command = command[len(help.URI_prefix)+1:]
 			}
-			fmt.Fprintf(os.Stdout, "%s%s: %s\n", secondIndent, command, description)
+			fmt.Fprintf(os.Stdout, "%s%s: %s\n", secondIndent, command, endpoint.ShortDescription)
 		}
 		fmt.Fprintf(os.Stdout, "\n")
 	}
@@ -72,8 +72,8 @@ func showCategory(name string, category *help.RestCommandCategory, level int) {
 	if len(category.Subcategory) > 0 {
 
 		fmt.Fprintf(os.Stdout, "%sSUBCATEGORY:\n", firstIndent)
-		for subcategoryName, subcategory := range category.Subcategory {
-			showCategory(subcategoryName, subcategory, level+1)
+		for _, subcategory := range category.Subcategory {
+			showCategory(subcategory, level+1)
 		}
 	}
 }

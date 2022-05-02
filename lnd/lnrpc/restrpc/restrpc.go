@@ -2303,7 +2303,7 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 	}
 
 	//	command URI handler
-	if s.rf.req != nil {
+	if s.rf.req != nil && !commandInfo.AllowGet {
 		if r.Method != "POST" {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return er.New("405 - Request should be a POST because the endpoint requires input")

@@ -49,39 +49,39 @@ func main() {
 		} else if len(flag.Args()) == 1 {
 			err = getCommandHelp(flag.Args()[0])
 		} else {
-			fmt.Fprintf(os.Stderr, "error: unexpected arguments for help on command %s", flag.Args()[0])
+			fmt.Fprintf(os.Stderr, "error: unexpected arguments for help on command %s\n", flag.Args()[0])
 		}
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		}
 		return
 	}
+
+	var err error
+
+	switch len(flag.Args()) {
+	//	print the main help if no arguments are available
+	case 0:
+		err = getMasterHelp()
 
 	//	only one argument means the command to be executed have no request payload
-	if len(flag.Args()) == 1 {
-		err := executeCommand(flag.Args()[0], "")
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		}
-		return
-	}
+	/*
+		case 1:
+			err = executeCommand(flag.Args()[0], "")
+	*/
 
 	//	two or more arguments means the command to be executed followed by arguments to build request payload
-	if len(flag.Args()) > 1 {
+	default:
 		var command = flag.Args()[0]
 		var requestPayload string
 
-		requestPayload, err := formatRequestPayload(command, flag.Args()[1:])
+		requestPayload, err = formatRequestPayload(command, flag.Args()[1:])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s\n", err)
-			return
+			break
 		}
-
 		//	if necessary, indent the request payload before show it
 		if showRequestPayload {
 			var requestPayloadMap map[string]interface{}
-
-			fmt.Fprintf(os.Stdout, "[trace]: ugly request payload: %s\n", requestPayload)
 
 			err = json.Unmarshal([]byte(requestPayload), &requestPayloadMap)
 			if err != nil {
@@ -96,9 +96,10 @@ func main() {
 
 		//	send the request payload to pld
 		err = executeCommand(command, requestPayload)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		}
+	}
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 	}
 }
 
@@ -107,12 +108,14 @@ func formatRequestPayload(commandPath string, arguments []string) (string, error
 	//	search all pld commands for help on command path
 	var commandHelp pkthelp.Method
 	var commandFound bool
+	var allowGet bool
 
 	for _, commandInfo := range help.CommandInfoData {
 		if (commandPath[0] == '/' && commandInfo.Path == commandPath) || commandInfo.Path == "/"+commandPath {
 			if commandInfo.HelpInfo != nil {
 				commandHelp = commandInfo.HelpInfo()
 				commandFound = true
+				allowGet = commandInfo.AllowGet
 				break
 			}
 		}
@@ -142,7 +145,11 @@ func formatRequestPayload(commandPath string, arguments []string) (string, error
 			}
 		}
 	}
-	requestPayload = "{ " + requestPayload + " }"
+	if len(requestPayload) == 0 && allowGet {
+		requestPayload = ""
+	} else {
+		requestPayload = "{ " + requestPayload + " }"
+	}
 
 	//	check if there are invalid arguments (not parsed)
 	if len(arguments) > 0 {

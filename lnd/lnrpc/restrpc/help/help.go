@@ -527,7 +527,6 @@ var (
 			Category:    SubCategoryUnspent,
 			Description: "Scan over the chain to find any transactions which may not have been recorded in the wallet's database",
 			Path:        "/wallet/unspent/resync",
-			AllowGet:    true,
 			HelpInfo:    pkthelp.Lightning_ReSync,
 		},
 		CommandStopResync: {

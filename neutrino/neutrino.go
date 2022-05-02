@@ -548,6 +548,10 @@ type Config struct {
 	// up and this filter header state has diverged, then it'll remove the
 	// current on disk filter headers to sync them anew.
 	AssertFilterHeader *headerfs.FilterHeader
+
+	// CheckConnectivity is an option to force a CheckConectivity during
+	// NeutrinoDBStore initialization
+	CheckConectivity bool
 }
 
 // ChainService is instantiated with functional options
@@ -707,7 +711,7 @@ func NewChainService(cfg Config) (*ChainService, er.R) {
 	s.BlockCache = lru.NewCache(blockCacheSize)
 
 	s.NeutrinoDB, err = headerfs.NewNeutrinoDBStore(
-		cfg.Database, &cfg.ChainParams, false,
+		cfg.Database, &cfg.ChainParams, cfg.CheckConectivity,
 	)
 	if err != nil {
 		return nil, err

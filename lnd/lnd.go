@@ -1395,6 +1395,7 @@ func initNeutrinoBackend(cfg *Config, chainDir string) (*neutrino.ChainService,
 			return ips, nil
 		},
 		AssertFilterHeader: headerStateAssertion,
+		CheckConectivity:   cfg.NeutrinoMode.CheckConectivity,
 	}
 
 	neutrino.MaxPeers = 8

@@ -1,20 +1,20 @@
 {
   "files": [
     {
-      "name": "metaservice.proto",
+      "name": "restrpc/help/rest_help.proto",
       "description": "",
-      "package": "lnrpc",
+      "package": "help",
       "hasEnums": false,
       "hasExtensions": false,
       "hasMessages": true,
-      "hasServices": true,
+      "hasServices": false,
       "enums": [],
       "extensions": [],
       "messages": [
         {
-          "name": "ChangePasswordRequest",
-          "longName": "ChangePasswordRequest",
-          "fullName": "lnrpc.ChangePasswordRequest",
+          "name": "Field",
+          "longName": "Field",
+          "fullName": "help.Field",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -22,8 +22,8 @@
           "extensions": [],
           "fields": [
             {
-              "name": "current_passphrase",
-              "description": "current_password should be the current valid passphrase used to unlock the daemon.",
+              "name": "name",
+              "description": "",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -34,21 +34,9 @@
               "defaultValue": ""
             },
             {
-              "name": "current_password_bin",
-              "description": "Binary form of current_passphrase, if specified will override current_passphrase.\nWhen using JSON, this field must be encoded as base64.",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "new_passphrase",
-              "description": "new_passphrase should be the new passphrase that will be needed to unlock the\ndaemon.",
-              "label": "",
+              "name": "description",
+              "description": "",
+              "label": "repeated",
               "type": "string",
               "longType": "string",
               "fullType": "string",
@@ -58,78 +46,7 @@
               "defaultValue": ""
             },
             {
-              "name": "new_passphrase_bin",
-              "description": "Binary form of new_passphrase, if specified will override new_passphrase.\nWhen using JSON, this field must be encoded as base64.",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "ChangePasswordResponse",
-          "longName": "ChangePasswordResponse",
-          "fullName": "lnrpc.ChangePasswordResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
-        },
-        {
-          "name": "CheckPasswordRequest",
-          "longName": "CheckPasswordRequest",
-          "fullName": "lnrpc.CheckPasswordRequest",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "wallet_passphrase",
-              "description": "current_password should be the current valid passphrase used to unlock the daemon.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "wallet_password_bin",
-              "description": "Binary form of current_passphrase, if specified will override current_passphrase.\nWhen using JSON, this field must be encoded as base64.",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "CheckPasswordResponse",
-          "longName": "CheckPasswordResponse",
-          "fullName": "lnrpc.CheckPasswordResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "valid_passphrase",
+              "name": "repeated",
               "description": "",
               "label": "",
               "type": "bool",
@@ -139,46 +56,25 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "type",
+              "description": "",
+              "label": "",
+              "type": "Type",
+              "longType": "Type",
+              "fullType": "help.Type",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
         {
-          "name": "CrashRequest",
-          "longName": "CrashRequest",
-          "fullName": "lnrpc.CrashRequest",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
-        },
-        {
-          "name": "CrashResponse",
-          "longName": "CrashResponse",
-          "fullName": "lnrpc.CrashResponse",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
-        },
-        {
-          "name": "GetInfo2Request",
-          "longName": "GetInfo2Request",
-          "fullName": "lnrpc.GetInfo2Request",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
-        },
-        {
-          "name": "GetInfo2Response",
-          "longName": "GetInfo2Response",
-          "fullName": "lnrpc.GetInfo2Response",
+          "name": "RestCommandCategory",
+          "longName": "RestCommandCategory",
+          "fullName": "help.RestCommandCategory",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -186,36 +82,312 @@
           "extensions": [],
           "fields": [
             {
-              "name": "neutrino",
+              "name": "description",
               "description": "",
-              "label": "",
-              "type": "NeutrinoInfo",
-              "longType": "NeutrinoInfo",
-              "fullType": "lnrpc.NeutrinoInfo",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
             },
             {
-              "name": "wallet",
+              "name": "endpoints",
+              "description": "",
+              "label": "repeated",
+              "type": "EndpointsEntry",
+              "longType": "RestCommandCategory.EndpointsEntry",
+              "fullType": "help.RestCommandCategory.EndpointsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "subcategory",
+              "description": "",
+              "label": "repeated",
+              "type": "SubcategoryEntry",
+              "longType": "RestCommandCategory.SubcategoryEntry",
+              "fullType": "help.RestCommandCategory.SubcategoryEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "EndpointsEntry",
+          "longName": "RestCommandCategory.EndpointsEntry",
+          "fullName": "help.RestCommandCategory.EndpointsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
               "description": "",
               "label": "",
-              "type": "WalletInfo",
-              "longType": "WalletInfo",
-              "fullType": "lnrpc.WalletInfo",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
             },
             {
-              "name": "lightning",
+              "name": "value",
               "description": "",
               "label": "",
-              "type": "GetInfoResponse",
-              "longType": "GetInfoResponse",
-              "fullType": "lnrpc.GetInfoResponse",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SubcategoryEntry",
+          "longName": "RestCommandCategory.SubcategoryEntry",
+          "fullName": "help.RestCommandCategory.SubcategoryEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "RestCommandCategory",
+              "longType": "RestCommandCategory",
+              "fullType": "help.RestCommandCategory",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "RestHelpResponse",
+          "longName": "RestHelpResponse",
+          "fullName": "help.RestHelpResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "service",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "request",
+              "description": "",
+              "label": "",
+              "type": "Type",
+              "longType": "Type",
+              "fullType": "help.Type",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "response",
+              "description": "",
+              "label": "",
+              "type": "Type",
+              "longType": "Type",
+              "fullType": "help.Type",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "RestMasterHelpResponse",
+          "longName": "RestMasterHelpResponse",
+          "fullName": "help.RestMasterHelpResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "category",
+              "description": "",
+              "label": "repeated",
+              "type": "CategoryEntry",
+              "longType": "RestMasterHelpResponse.CategoryEntry",
+              "fullType": "help.RestMasterHelpResponse.CategoryEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CategoryEntry",
+          "longName": "RestMasterHelpResponse.CategoryEntry",
+          "fullName": "help.RestMasterHelpResponse.CategoryEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "RestCommandCategory",
+              "longType": "RestCommandCategory",
+              "fullType": "help.RestCommandCategory",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Type",
+          "longName": "Type",
+          "fullName": "help.Type",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "description",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "fields",
+              "description": "",
+              "label": "repeated",
+              "type": "Field",
+              "longType": "Field",
+              "fullType": "help.Field",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -224,64 +396,7 @@
           ]
         }
       ],
-      "services": [
-        {
-          "name": "MetaService",
-          "longName": "MetaService",
-          "fullName": "lnrpc.MetaService",
-          "description": "",
-          "methods": [
-            {
-              "name": "GetInfo2",
-              "description": "",
-              "requestType": "GetInfo2Request",
-              "requestLongType": "GetInfo2Request",
-              "requestFullType": "lnrpc.GetInfo2Request",
-              "requestStreaming": false,
-              "responseType": "GetInfo2Response",
-              "responseLongType": "GetInfo2Response",
-              "responseFullType": "lnrpc.GetInfo2Response",
-              "responseStreaming": false
-            },
-            {
-              "name": "ChangePassword",
-              "description": "lncli: `changepassword`\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
-              "requestType": "ChangePasswordRequest",
-              "requestLongType": "ChangePasswordRequest",
-              "requestFullType": "lnrpc.ChangePasswordRequest",
-              "requestStreaming": false,
-              "responseType": "ChangePasswordResponse",
-              "responseLongType": "ChangePasswordResponse",
-              "responseFullType": "lnrpc.ChangePasswordResponse",
-              "responseStreaming": false
-            },
-            {
-              "name": "CheckPassword",
-              "description": "lncli: `checkPassword`\nCheckPassword verify that the password in the request is valid for the wallet.",
-              "requestType": "CheckPasswordRequest",
-              "requestLongType": "CheckPasswordRequest",
-              "requestFullType": "lnrpc.CheckPasswordRequest",
-              "requestStreaming": false,
-              "responseType": "CheckPasswordResponse",
-              "responseLongType": "CheckPasswordResponse",
-              "responseFullType": "lnrpc.CheckPasswordResponse",
-              "responseStreaming": false
-            },
-            {
-              "name": "ForceCrash",
-              "description": "Force a pld crash (for debug purposes)",
-              "requestType": "CrashRequest",
-              "requestLongType": "CrashRequest",
-              "requestFullType": "lnrpc.CrashRequest",
-              "requestStreaming": false,
-              "responseType": "CrashResponse",
-              "responseLongType": "CrashResponse",
-              "responseFullType": "lnrpc.CrashResponse",
-              "responseStreaming": false
-            }
-          ]
-        }
-      ]
+      "services": []
     }
   ],
   "scalarValueTypes": [

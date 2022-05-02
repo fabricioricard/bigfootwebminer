@@ -17,6 +17,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc/help"
 	"github.com/pkt-cash/pktd/pktlog/log"
 	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -91,12 +92,14 @@ func (conn *websocketConn) HandleJsonMessage(ctx *RpcContext, req []byte) {
 	}
 
 	//	based on the endpoint, find the appropriate handler for the message request
-	var endpoint = strings.TrimPrefix(string(webSocketReq.Endpoint), URI_prefix)
+	var endpoint = strings.TrimPrefix(string(webSocketReq.Endpoint), help.URI_prefix)
 
 	//	log.Info("WebSocket JSon message received for endpoint: " + endpoint)
 
 	for _, rpcFunc := range rpcFunctions {
-		if endpoint == rpcFunc.path {
+		var commandInfo = help.CommandInfoData[rpcFunc.command]
+
+		if endpoint == commandInfo.Path {
 			var valueMessage protoiface.MessageV1 = nil
 
 			if rpcFunc.req != nil {
@@ -165,12 +168,14 @@ func (conn *websocketConn) HandleProtobufMessage(ctx *RpcContext, req []byte) {
 	}
 
 	//	based on the endpoint, find the appropriate handler for the message request
-	var endpoint = strings.TrimPrefix(string(webSocketReq.Endpoint), URI_prefix)
+	var endpoint = strings.TrimPrefix(string(webSocketReq.Endpoint), help.URI_prefix)
 
 	//	log.Info("WebSocket Protobuf message received for endpoint: " + endpoint)
 
 	for _, rpcFunc := range rpcFunctions {
-		if endpoint == rpcFunc.path {
+		var commandInfo = help.CommandInfoData[rpcFunc.command]
+
+		if endpoint == commandInfo.Path {
 			var valueMessage protoiface.MessageV1 = nil
 
 			if rpcFunc.req != nil {

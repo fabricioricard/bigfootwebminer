@@ -4967,7 +4967,7 @@ func (r *rpcServer) GetTransactions(ctx context.Context,
 	var endHeight = btcwallet.UnconfirmedHeight
 
 	// If the user has provided an end height, we overwrite our default.
-	if req.EndHeight != 0 {
+	if req.EndHeight > 0 {
 		endHeight = req.EndHeight
 	}
 
@@ -4988,12 +4988,12 @@ func (r *rpcServer) GetTransactions(ctx context.Context,
 		coinbase = req.Coinbase
 	}
 
-	transactions, err := r.server.cc.Wallet.ListTransactionDetails(req.StartHeight, endHeight, skip, limit, coinbase)
+	transactions, err := r.server.cc.Wallet.ListTransactionDetails(req.StartHeight, endHeight, skip, limit, coinbase, req.Reversed)
 	if err != nil {
 		return nil, er.Native(err)
 	}
 
-	return lnrpc.RPCTransactionDetails(transactions), nil
+	return lnrpc.RPCTransactionDetails(transactions, req.Reversed), nil
 }
 
 func (r *rpcServer) DescribeGraph(ctx context.Context,

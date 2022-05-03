@@ -7156,8 +7156,7 @@ func mklnrpc_GetTransactionsRequest() Type {
             {
                 Name: "start_height",
                 Description: []string{
-                    "The height from which to list transactions, inclusive. If this value is",
-                    "greater than end_height, transactions will be read in reverse.",
+                    "The height from which to list transactions, inclusive.",
                 },
                 Type: mkint32(),
             },
@@ -7183,6 +7182,15 @@ func mklnrpc_GetTransactionsRequest() Type {
             {
                 Name: "coinbase",
                 Type: mkint32(),
+            },
+            {
+                Name: "reversed",
+                Description: []string{
+                    "If set, the payments returned will result from seeking backwards from the",
+                    "specified index offset. This can be used to paginate backwards. The order",
+                    "of the returned payments is always oldest first (ascending index order).",
+                },
+                Type: mkbool(),
             },
         },
     }

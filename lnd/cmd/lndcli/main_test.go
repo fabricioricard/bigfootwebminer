@@ -343,7 +343,7 @@ func TestFormatRequestPayload(t *testing.T) {
 			name:            "listpeers CLI options",
 			command:         "lightning/peer",
 			arguments:       []string{},
-			expectedPayload: `{  }`,
+			expectedPayload: ``,
 		},
 		//	test commands of "neutrino" group
 		{
@@ -525,7 +525,7 @@ func TestFormatRequestPayload(t *testing.T) {
 			name:            "listtowers CLI options",
 			command:         "wtclient/tower",
 			arguments:       []string{},
-			expectedPayload: `{  }`,
+			expectedPayload: ``,
 		},
 		{
 			name:            "createwatchtower CLI options",

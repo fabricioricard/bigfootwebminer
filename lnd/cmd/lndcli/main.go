@@ -25,12 +25,10 @@ var (
 )
 
 func main() {
-	var help bool
 	var showRequestPayload bool
 
 	//	parse command line arguments
 	flag.StringVar(&pldServer, "pld_server", "http://localhost:8080", "set the pld server URL")
-	flag.BoolVar(&help, "help", false, "get help on a specific command")
 	flag.BoolVar(&showRequestPayload, "show_req_payload", false, "show the request payload before invoke the pld command")
 
 	flag.Parse()
@@ -40,23 +38,6 @@ func main() {
 		pldServer = "http://" + pldServer
 	}
 
-	//	check if the user wants a command help
-	if help {
-		var err error
-
-		if len(flag.Args()) == 0 {
-			err = getMasterHelp()
-		} else if len(flag.Args()) == 1 {
-			err = getCommandHelp(flag.Args()[0])
-		} else {
-			fmt.Fprintf(os.Stderr, "error: unexpected arguments for help on command %s\n", flag.Args()[0])
-		}
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		}
-		return
-	}
-
 	var err error
 
 	switch len(flag.Args()) {
@@ -64,15 +45,28 @@ func main() {
 	case 0:
 		err = getMasterHelp()
 
-	//	only one argument means the command to be executed have no request payload
-	/*
-		case 1:
-			err = executeCommand(flag.Args()[0], "")
-	*/
-
-	//	two or more arguments means the command to be executed followed by arguments to build request payload
+	//	one or more arguments means the help + command
+	//		or command to be executed followed by arguments to build request payload
 	default:
 		var command = flag.Args()[0]
+
+		//	if the user wants help on a command
+		if command == "help" {
+
+			switch len(flag.Args()) {
+			case 1:
+				err = getMasterHelp()
+
+			case 2:
+				err = getCommandHelp(flag.Args()[1])
+
+			default:
+				fmt.Fprintf(os.Stderr, "error: unexpected arguments for help on command %v\n", flag.Args()[2:])
+			}
+			break
+		}
+
+		//	first argument is a pld command followed by arguments to build request payload
 		var requestPayload string
 
 		requestPayload, err = formatRequestPayload(command, flag.Args()[1:])

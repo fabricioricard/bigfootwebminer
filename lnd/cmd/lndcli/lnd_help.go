@@ -98,15 +98,15 @@ func getCommandHelp(commandPath string) error {
 	}
 
 	//	show a fancy output for the command help
-	fmt.Fprintf(os.Stdout, "NAME:\n    %s: %s\n\n", commandHelp.Name, commandPath)
+	fmt.Fprintf(os.Stdout, "NAME:\n  %s: %s\n\n", commandHelp.Name, commandPath)
 
 	fmt.Fprintf(os.Stdout, "DESCRIPTION:\n")
 	for _, line := range commandHelp.Description {
-		fmt.Fprintf(os.Stdout, "    %s\n", line)
+		fmt.Fprintf(os.Stdout, "  %s\n", line)
 	}
 	fmt.Fprintf(os.Stdout, "\n")
 
-	fmt.Fprintf(os.Stdout, "SERVICE:\n    %s\n\n", commandHelp.Service)
+	fmt.Fprintf(os.Stdout, "SERVICE:\n  %s\n\n", commandHelp.Service)
 
 	if len(commandHelp.Req.Fields) > 0 {
 		fmt.Fprintf(os.Stdout, "OPTIONS:\n")
@@ -149,13 +149,13 @@ func showField(fieldHierarchy string, requestField *pkthelp.Field) {
 		}
 
 		if len(requestField.Description) == 0 {
-			fmt.Fprintf(os.Stdout, "    %s\n", commandOption)
+			fmt.Fprintf(os.Stdout, "  %s\n", commandOption)
 		} else {
 			for i, description := range requestField.Description {
 				if i == 0 {
-					fmt.Fprintf(os.Stdout, "    %s - %s\n", commandOption, description)
+					fmt.Fprintf(os.Stdout, "  %s - %s\n", commandOption, description)
 				} else {
-					fmt.Fprintf(os.Stdout, "        %s\n", description)
+					fmt.Fprintf(os.Stdout, "    %s\n", description)
 				}
 			}
 		}

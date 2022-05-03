@@ -212,14 +212,13 @@ type WalletController interface {
 	ListUnspentWitness(minconfirms, maxconfirms int32) ([]*Utxo, er.R)
 
 	// ListTransactionDetails returns a list of all transactions which are
-	// relevant to the wallet over [startHeight;endHeight]. If start height
-	// is greater than end height, the transactions will be retrieved in
-	// reverse order. To include unconfirmed transactions, endHeight should
+	// relevant to the wallet over [startHeight;endHeight].
+	// To include unconfirmed transactions, endHeight should
 	// be set to the special value -1. This will return transactions from
 	// the tip of the chain until the start height (inclusive) and
 	// unconfirmed transactions.
 	ListTransactionDetails(startHeight,
-		endHeight, skip, limit, coinbase int32) ([]*TransactionDetail, er.R)
+		endHeight, skip, limit, coinbase int32, reversed bool) ([]*TransactionDetail, er.R)
 
 	// LockOutpoint marks an outpoint as locked meaning it will no longer
 	// be deemed as eligible for coin selection. Locking outputs are

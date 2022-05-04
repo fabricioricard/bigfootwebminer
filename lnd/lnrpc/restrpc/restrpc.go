@@ -2309,11 +2309,13 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 	//	command URI handler
 	if s.rf.req != nil {
 		if r.Method != "POST" {
+			//	if it's not a POST, check if the endpoint allows GET
 			if !commandInfo.AllowGet {
 				w.WriteHeader(http.StatusMethodNotAllowed)
 				return er.New("405 - Request should be a POST because the endpoint requires input")
 			}
 
+			//	not a POST and not a GET so, it's defenitely not allowed
 			if r.Method != "GET" {
 				w.WriteHeader(http.StatusMethodNotAllowed)
 				return er.New("405 - Method not allowed: " + r.Method)
@@ -2325,9 +2327,12 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 		} else {
 			req = r
 		}
-		if err := unmarshal(r, req, isJson); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return err
+		//	check the method again, because if it's a GET, there's no request payload
+		if r.Method == "POST" {
+			if err := unmarshal(r, req, isJson); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return err
+			}
 		}
 	} else if r.Method != "GET" {
 		w.WriteHeader(http.StatusMethodNotAllowed)

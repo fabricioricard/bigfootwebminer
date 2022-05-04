@@ -97,6 +97,7 @@ func main() {
 	}
 }
 
+//	based on pld's command path, parse the CLI arguments to build the request payload
 func formatRequestPayload(commandPath string, arguments []string) (string, error) {
 
 	//	search all pld commands for help on command path
@@ -119,7 +120,7 @@ func formatRequestPayload(commandPath string, arguments []string) (string, error
 		return "", errors.New("invalid pld command: " + commandPath)
 	}
 
-	//	build request payload based on request's help info
+	//	build request payload based on request's help info hierarchy
 	var parsedArgument []bool = make([]bool, len(arguments))
 	var requestPayload string
 
@@ -157,6 +158,8 @@ func formatRequestPayload(commandPath string, arguments []string) (string, error
 	return requestPayload, nil
 }
 
+//	check if there's a CLI argument for a specific payload field,
+//	in which case, returs the field formatted accordingly to it's data type
 func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, arguments []string, parsedArgument *[]bool) (string, error) {
 
 	var formattedField string
@@ -272,7 +275,7 @@ func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, argu
 				}
 			}
 
-		//	map some hard coded enums
+		//	enums are formatted as it's name, because pld is able to unmarshall them
 		case "ENUM_VARIENT":
 			for i, argument := range arguments {
 				if argument == commandOption {
@@ -283,6 +286,7 @@ func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, argu
 		}
 	} else {
 
+		//	field composed of sub-fields
 		var formattedSubFields string
 
 		for _, requestSubField := range requestField.Type.Fields {
@@ -317,6 +321,7 @@ func formatRequestField(fieldHierarchy string, requestField *pkthelp.Field, argu
 	return formattedField, nil
 }
 
+//	invoke pld's REST endpoint and try to parse error messages eventually returned by the server
 func executeCommand(command string, payload string) error {
 
 	var response *http.Response
@@ -343,7 +348,31 @@ func executeCommand(command string, payload string) error {
 		fmt.Fprintf(os.Stderr, "fail reading command response payload from pld server: %s", err)
 		panic(-1)
 	}
+	err = checkForServerError(responsePayload)
+	if err != nil {
+		return errors.New(err.Error() + "\nTry \"pldctl help " + command + "\" for more informaton on this command")
+	}
+
 	fmt.Fprintf(os.Stdout, "%s\n", responsePayload)
+
+	return nil
+}
+
+type pldErrorResponse struct {
+	Message string   `json:"message,omitempty"`
+	Stack   []string `json:"stack,omitempty"`
+}
+
+//	parse a response payload to check if it indicates an error messages returned by the server
+func checkForServerError(responsePayload []byte) error {
+	var errorResponse pldErrorResponse
+
+	err := json.Unmarshal(responsePayload, &errorResponse)
+	if err == nil {
+		if len(errorResponse.Message) > 0 && len(errorResponse.Stack) > 0 {
+			return errors.New("pld returned an error message: " + errorResponse.Message)
+		}
+	}
 
 	return nil
 }

@@ -40,38 +40,37 @@ func getMasterHelp() error {
 //	show a fancy output for the help on a specific category
 func showCategory(category *help.RestCommandCategory, level int) {
 
-	var firstIndent string
-	var secondIndent string
+	const indentation = "  "
+	var levelIndentation string
 
 	for i := 1; i <= level; i++ {
-		firstIndent = firstIndent + "  "
+		levelIndentation = levelIndentation + indentation
 	}
-	secondIndent = firstIndent + "  "
 
-	fmt.Fprintf(os.Stdout, "%s%s:\n\n", firstIndent, category.Name)
+	fmt.Fprintf(os.Stdout, "%s%s:\n\n", levelIndentation, category.Name)
 
-	fmt.Fprintf(os.Stdout, "%sDESCRIPTION:\n", firstIndent)
+	fmt.Fprintf(os.Stdout, "%sDESCRIPTION:\n", levelIndentation)
 	for _, line := range category.Description {
-		fmt.Fprintf(os.Stdout, "%s%s\n", secondIndent, line)
+		fmt.Fprintf(os.Stdout, "%s%s%s\n", levelIndentation, indentation, line)
 	}
 	fmt.Fprintf(os.Stdout, "\n")
 
 	if len(category.Endpoints) > 0 {
-		fmt.Fprintf(os.Stdout, "%sCOMMANDS:\n", firstIndent)
+		fmt.Fprintf(os.Stdout, "%sCOMMANDS:\n", levelIndentation)
 		for _, endpoint := range category.Endpoints {
 			var command = endpoint.URI
 
 			if strings.HasPrefix(command, help.URI_prefix+"/") {
 				command = command[len(help.URI_prefix)+1:]
 			}
-			fmt.Fprintf(os.Stdout, "%s%s: %s\n", secondIndent, command, endpoint.ShortDescription)
+			fmt.Fprintf(os.Stdout, "%s%s%s: %s\n", levelIndentation, indentation, command, endpoint.ShortDescription)
 		}
 		fmt.Fprintf(os.Stdout, "\n")
 	}
 
 	if len(category.Subcategory) > 0 {
 
-		fmt.Fprintf(os.Stdout, "%sSUBCATEGORY:\n", firstIndent)
+		fmt.Fprintf(os.Stdout, "%sSUBCATEGORY:\n", levelIndentation)
 		for _, subcategory := range category.Subcategory {
 			showCategory(subcategory, level+1)
 		}

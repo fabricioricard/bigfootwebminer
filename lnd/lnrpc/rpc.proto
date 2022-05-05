@@ -592,8 +592,7 @@ message Transaction {
 }
 message GetTransactionsRequest {
     /*
-    The height from which to list transactions, inclusive. If this value is
-    greater than end_height, transactions will be read in reverse.
+    The height from which to list transactions, inclusive.
     */
     int32 start_height = 1;
 
@@ -608,6 +607,12 @@ message GetTransactionsRequest {
     int32 txns_limit = 3;
     int32 txns_skip = 4;
     int32 coinbase = 5;
+    /*
+    If set, the payments returned will result from seeking backwards from the
+    specified index offset. This can be used to paginate backwards. The order
+    of the returned payments is always oldest first (ascending index order).
+    */
+    bool reversed = 6;
 }
 
 message TransactionDetails {

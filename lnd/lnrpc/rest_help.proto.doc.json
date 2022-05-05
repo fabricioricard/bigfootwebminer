@@ -82,6 +82,18 @@
           "extensions": [],
           "fields": [
             {
+              "name": "name",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
               "name": "description",
               "description": "",
               "label": "repeated",
@@ -97,10 +109,10 @@
               "name": "endpoints",
               "description": "",
               "label": "repeated",
-              "type": "EndpointsEntry",
-              "longType": "RestCommandCategory.EndpointsEntry",
-              "fullType": "help.RestCommandCategory.EndpointsEntry",
-              "ismap": true,
+              "type": "RestEndpoint",
+              "longType": "RestEndpoint",
+              "fullType": "help.RestEndpoint",
+              "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
@@ -109,81 +121,45 @@
               "name": "subcategory",
               "description": "",
               "label": "repeated",
-              "type": "SubcategoryEntry",
-              "longType": "RestCommandCategory.SubcategoryEntry",
-              "fullType": "help.RestCommandCategory.SubcategoryEntry",
-              "ismap": true,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "EndpointsEntry",
-          "longName": "RestCommandCategory.EndpointsEntry",
-          "fullName": "help.RestCommandCategory.EndpointsEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "SubcategoryEntry",
-          "longName": "RestCommandCategory.SubcategoryEntry",
-          "fullName": "help.RestCommandCategory.SubcategoryEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
               "type": "RestCommandCategory",
               "longType": "RestCommandCategory",
               "fullType": "help.RestCommandCategory",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "RestEndpoint",
+          "longName": "RestEndpoint",
+          "fullName": "help.RestEndpoint",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "URI",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "short_description",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -301,42 +277,6 @@
               "name": "category",
               "description": "",
               "label": "repeated",
-              "type": "CategoryEntry",
-              "longType": "RestMasterHelpResponse.CategoryEntry",
-              "fullType": "help.RestMasterHelpResponse.CategoryEntry",
-              "ismap": true,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "CategoryEntry",
-          "longName": "RestMasterHelpResponse.CategoryEntry",
-          "fullName": "help.RestMasterHelpResponse.CategoryEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
               "type": "RestCommandCategory",
               "longType": "RestCommandCategory",
               "fullType": "help.RestCommandCategory",

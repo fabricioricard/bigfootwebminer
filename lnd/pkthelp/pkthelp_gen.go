@@ -7156,8 +7156,7 @@ func mklnrpc_GetTransactionsRequest() Type {
             {
                 Name: "start_height",
                 Description: []string{
-                    "The height from which to list transactions, inclusive. If this value is",
-                    "greater than end_height, transactions will be read in reverse.",
+                    "The height from which to list transactions, inclusive.",
                 },
                 Type: mkint32(),
             },
@@ -7183,6 +7182,15 @@ func mklnrpc_GetTransactionsRequest() Type {
             {
                 Name: "coinbase",
                 Type: mkint32(),
+            },
+            {
+                Name: "reversed",
+                Description: []string{
+                    "If set, the payments returned will result from seeking backwards from the",
+                    "specified index offset. This can be used to paginate backwards. The order",
+                    "of the returned payments is always oldest first (ascending index order).",
+                },
+                Type: mkbool(),
             },
         },
     }
@@ -11090,6 +11098,10 @@ func mkhelp_RestCommandCategory() Type {
         Name: "help_RestCommandCategory",
         Fields: []Field{
             {
+                Name: "name",
+                Type: mkstring(),
+            },
+            {
                 Name: "description",
                 Repeated: true,
                 Type: mkstring(),
@@ -11097,42 +11109,27 @@ func mkhelp_RestCommandCategory() Type {
             {
                 Name: "endpoints",
                 Repeated: true,
-                Type: mkhelp_RestCommandCategory_EndpointsEntry(),
+                Type: mkhelp_RestEndpoint(),
             },
             {
                 Name: "subcategory",
                 Repeated: true,
-                Type: mkhelp_RestCommandCategory_SubcategoryEntry(),
-            },
-        },
-    }
-}
-func mkhelp_RestCommandCategory_EndpointsEntry() Type {
-    return Type{
-        Name: "help_RestCommandCategory_EndpointsEntry",
-        Fields: []Field{
-            {
-                Name: "key",
-                Type: mkstring(),
-            },
-            {
-                Name: "value",
-                Type: mkstring(),
-            },
-        },
-    }
-}
-func mkhelp_RestCommandCategory_SubcategoryEntry() Type {
-    return Type{
-        Name: "help_RestCommandCategory_SubcategoryEntry",
-        Fields: []Field{
-            {
-                Name: "key",
-                Type: mkstring(),
-            },
-            {
-                Name: "value",
                 Type: mkhelp_RestCommandCategory(),
+            },
+        },
+    }
+}
+func mkhelp_RestEndpoint() Type {
+    return Type{
+        Name: "help_RestEndpoint",
+        Fields: []Field{
+            {
+                Name: "URI",
+                Type: mkstring(),
+            },
+            {
+                Name: "short_description",
+                Type: mkstring(),
             },
         },
     }
@@ -11181,21 +11178,6 @@ func mkhelp_RestMasterHelpResponse() Type {
             {
                 Name: "category",
                 Repeated: true,
-                Type: mkhelp_RestMasterHelpResponse_CategoryEntry(),
-            },
-        },
-    }
-}
-func mkhelp_RestMasterHelpResponse_CategoryEntry() Type {
-    return Type{
-        Name: "help_RestMasterHelpResponse_CategoryEntry",
-        Fields: []Field{
-            {
-                Name: "key",
-                Type: mkstring(),
-            },
-            {
-                Name: "value",
                 Type: mkhelp_RestCommandCategory(),
             },
         },

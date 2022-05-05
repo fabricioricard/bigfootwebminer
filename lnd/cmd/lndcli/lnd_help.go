@@ -30,50 +30,49 @@ func getMasterHelp() error {
 	fmt.Fprintf(os.Stdout, "\n")
 
 	fmt.Fprintf(os.Stdout, "CATEGORY:\n")
-	for categoryName, category := range masterHelp.Category {
-		showCategory(categoryName, category, 1)
+	for _, category := range masterHelp.Category {
+		showCategory(category, 1)
 	}
 
 	return nil
 }
 
 //	show a fancy output for the help on a specific category
-func showCategory(name string, category *help.RestCommandCategory, level int) {
+func showCategory(category *help.RestCommandCategory, level int) {
 
-	var firstIndent string
-	var secondIndent string
+	const indentation = "  "
+	var levelIndentation string
 
 	for i := 1; i <= level; i++ {
-		firstIndent = firstIndent + "    "
+		levelIndentation = levelIndentation + indentation
 	}
-	secondIndent = firstIndent + "    "
 
-	fmt.Fprintf(os.Stdout, "%s%s:\n\n", firstIndent, name)
+	fmt.Fprintf(os.Stdout, "%s%s:\n\n", levelIndentation, category.Name)
 
-	fmt.Fprintf(os.Stdout, "%sDESCRIPTION:\n", firstIndent)
+	fmt.Fprintf(os.Stdout, "%sDESCRIPTION:\n", levelIndentation)
 	for _, line := range category.Description {
-		fmt.Fprintf(os.Stdout, "%s%s\n", secondIndent, line)
+		fmt.Fprintf(os.Stdout, "%s%s%s\n", levelIndentation, indentation, line)
 	}
 	fmt.Fprintf(os.Stdout, "\n")
 
 	if len(category.Endpoints) > 0 {
-		fmt.Fprintf(os.Stdout, "%sCOMMANDS:\n", firstIndent)
-		for endpoint, description := range category.Endpoints {
-			var command = endpoint
+		fmt.Fprintf(os.Stdout, "%sCOMMANDS:\n", levelIndentation)
+		for _, endpoint := range category.Endpoints {
+			var command = endpoint.URI
 
 			if strings.HasPrefix(command, help.URI_prefix+"/") {
 				command = command[len(help.URI_prefix)+1:]
 			}
-			fmt.Fprintf(os.Stdout, "%s%s: %s\n", secondIndent, command, description)
+			fmt.Fprintf(os.Stdout, "%s%s%s: %s\n", levelIndentation, indentation, command, endpoint.ShortDescription)
 		}
 		fmt.Fprintf(os.Stdout, "\n")
 	}
 
 	if len(category.Subcategory) > 0 {
 
-		fmt.Fprintf(os.Stdout, "%sSUBCATEGORY:\n", firstIndent)
-		for subcategoryName, subcategory := range category.Subcategory {
-			showCategory(subcategoryName, subcategory, level+1)
+		fmt.Fprintf(os.Stdout, "%sSUBCATEGORY:\n", levelIndentation)
+		for _, subcategory := range category.Subcategory {
+			showCategory(subcategory, level+1)
 		}
 	}
 }
@@ -98,15 +97,15 @@ func getCommandHelp(commandPath string) error {
 	}
 
 	//	show a fancy output for the command help
-	fmt.Fprintf(os.Stdout, "NAME:\n    %s: %s\n\n", commandHelp.Name, commandPath)
+	fmt.Fprintf(os.Stdout, "NAME:\n  %s: %s\n\n", commandHelp.Name, commandPath)
 
 	fmt.Fprintf(os.Stdout, "DESCRIPTION:\n")
 	for _, line := range commandHelp.Description {
-		fmt.Fprintf(os.Stdout, "    %s\n", line)
+		fmt.Fprintf(os.Stdout, "  %s\n", line)
 	}
 	fmt.Fprintf(os.Stdout, "\n")
 
-	fmt.Fprintf(os.Stdout, "SERVICE:\n    %s\n\n", commandHelp.Service)
+	fmt.Fprintf(os.Stdout, "SERVICE:\n  %s\n\n", commandHelp.Service)
 
 	if len(commandHelp.Req.Fields) > 0 {
 		fmt.Fprintf(os.Stdout, "OPTIONS:\n")
@@ -149,13 +148,13 @@ func showField(fieldHierarchy string, requestField *pkthelp.Field) {
 		}
 
 		if len(requestField.Description) == 0 {
-			fmt.Fprintf(os.Stdout, "    %s\n", commandOption)
+			fmt.Fprintf(os.Stdout, "  %s\n", commandOption)
 		} else {
 			for i, description := range requestField.Description {
 				if i == 0 {
-					fmt.Fprintf(os.Stdout, "    %s - %s\n", commandOption, description)
+					fmt.Fprintf(os.Stdout, "  %s - %s\n", commandOption, description)
 				} else {
-					fmt.Fprintf(os.Stdout, "        %s\n", description)
+					fmt.Fprintf(os.Stdout, "    %s\n", description)
 				}
 			}
 		}

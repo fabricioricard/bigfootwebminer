@@ -22,16 +22,22 @@ option go_package = "github.com/pkt-cash/pktd/lnd/lnrpc/restrpc/help";
  * https://github.com/lightninglabs/lightning-api
  */
 
+message RestEndpoint {
+    string URI = 1;
+    string short_description = 2;
+}
+
 message RestCommandCategory {
-    repeated string description = 1;
-    map<string, string> endpoints = 2;
-    map<string, RestCommandCategory> subcategory = 3;
+    string name = 1;
+    repeated string description = 2;
+    repeated RestEndpoint endpoints = 3;
+    repeated RestCommandCategory subcategory = 4;
 }
 
 message RestMasterHelpResponse{
     string name = 1;
     repeated string description = 2;
-    map<string, RestCommandCategory> category = 3;
+    repeated RestCommandCategory category = 3;
 }
 
 message Field {

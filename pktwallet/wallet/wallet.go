@@ -1621,7 +1621,7 @@ type GetTransactionsResult struct {
 func (w *Wallet) GetTransactions(
 	startBlock, endBlock *BlockIdentifier,
 	limit, skip, //0 means no limit imposed
-	coinbase int32,
+	coinbase int32, reversed bool,
 	cancel <-chan struct{},
 ) (*GetTransactionsResult, er.R) {
 	var start, end int32 = 0, -1
@@ -1751,7 +1751,10 @@ func (w *Wallet) GetTransactions(
 				return false, nil
 			}
 		}
-		return w.TxStore.RangeTransactions(txmgrNs, start, end, rangeFn)
+		if !reversed {
+			return w.TxStore.RangeTransactions(txmgrNs, start, end, rangeFn)
+		}
+		return w.TxStore.RangeTransactions(txmgrNs, end, start, rangeFn)
 	})
 	return &res, err
 }

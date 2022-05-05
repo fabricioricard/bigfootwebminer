@@ -370,7 +370,14 @@ func checkForServerError(responsePayload []byte) error {
 	err := json.Unmarshal(responsePayload, &errorResponse)
 	if err == nil {
 		if len(errorResponse.Message) > 0 && len(errorResponse.Stack) > 0 {
-			return errors.New("pld returned an error message: " + errorResponse.Message)
+			var stackTrace string
+
+			//	format the stack trance for output
+			for _, step := range errorResponse.Stack {
+				stackTrace += step + "\n"
+			}
+
+			return errors.New("pld returned an error message: " + errorResponse.Message + "\n\npld stack trace: " + stackTrace)
 		}
 	}
 

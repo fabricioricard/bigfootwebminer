@@ -11260,7 +11260,6 @@ func ChainNotifier_RegisterConfirmationsNtfn() Method {
             "RegisterConfirmationsNtfn is a synchronous response-streaming RPC that",
             "registers an intent for a client to be notified once a confirmation request",
             "has reached its required number of confirmations on-chain.",
-            "",
             "A client can specify whether the confirmation request should be for a",
             "particular transaction by its hash or for an output script by specifying a",
             "zero hash.",
@@ -11277,7 +11276,6 @@ func ChainNotifier_RegisterSpendNtfn() Method {
             "RegisterSpendNtfn is a synchronous response-streaming RPC that registers an",
             "intent for a client to be notification once a spend request has been spent",
             "by a transaction that has confirmed on-chain.",
-            "",
             "A client can specify whether the spend request should be for a particular",
             "outpoint  or for an output script by specifying a zero outpoint.",
         },
@@ -11295,7 +11293,6 @@ func ChainNotifier_RegisterBlockEpochNtfn() Method {
             "stream will return a hash and height tuple of a block for each new/stale",
             "block in the chain. It is the client's responsibility to determine whether",
             "the tuple returned is for a new or stale block in the chain.",
-            "",
             "A client can also request a historical backlog of blocks from a particular",
             "point. This allows clients to be idempotent by ensuring that they do not",
             "missing processing a single block within the chain.",
@@ -11358,6 +11355,8 @@ func Router_SendPaymentV2() Method {
     return Method{
         Name: "SendPaymentV2",
         Service: "Router",
+        Category: "Payment",
+        ShortDescription: "Send a payment over lightning",
         Description: []string{
             "SendPaymentV2 attempts to route a payment described by the passed",
             "PaymentRequest to the final destination. The call returns a stream of",
@@ -11371,6 +11370,8 @@ func Router_TrackPaymentV2() Method {
     return Method{
         Name: "TrackPaymentV2",
         Service: "Router",
+        Category: "Payment",
+        ShortDescription: "Track payment",
         Description: []string{
             "TrackPaymentV2 returns an update stream for the payment identified by the",
             "payment hash.",
@@ -11410,6 +11411,8 @@ func Router_SendToRouteV2() Method {
     return Method{
         Name: "SendToRouteV2",
         Service: "Router",
+        Category: "Payment",
+        ShortDescription: "Send a payment over a predefined route",
         Description: []string{
             "SendToRouteV2 attempts to make a payment via the specified route. This",
             "method differs from SendPayment in that it allows users to specify a full",
@@ -11424,6 +11427,8 @@ func Router_ResetMissionControl() Method {
     return Method{
         Name: "ResetMissionControl",
         Service: "Router",
+        Category: "Payment",
+        ShortDescription: "Reset internal mission control state",
         Description: []string{
             "ResetMissionControl clears all mission control state and starts with a clean",
             "slate.",
@@ -11436,6 +11441,8 @@ func Router_QueryMissionControl() Method {
     return Method{
         Name: "QueryMissionControl",
         Service: "Router",
+        Category: "Payment",
+        ShortDescription: "Query the internal mission control state",
         Description: []string{
             "QueryMissionControl exposes the internal mission control state to callers.",
             "It is a development feature.",
@@ -11448,6 +11455,8 @@ func Router_QueryProbability() Method {
     return Method{
         Name: "QueryProbability",
         Service: "Router",
+        Category: "Payment",
+        ShortDescription: "Estimate a success probability",
         Description: []string{
             "QueryProbability returns the current success probability estimate for a",
             "given node pair and amount.",
@@ -11460,6 +11469,8 @@ func Router_BuildRoute() Method {
     return Method{
         Name: "BuildRoute",
         Service: "Router",
+        Category: "Payment",
+        ShortDescription: "Build a route from a list of hop pubkeys",
         Description: []string{
             "BuildRoute builds a fully specified route based on a list of hop public",
             "keys. It retrieves the relevant channel policies from the graph in order to",
@@ -11531,7 +11542,6 @@ func Signer_SignOutputRaw() Method {
             "concerning how the outputs should be signed, which keys they should be",
             "signed with, and also any optional tweaks. The return value is a fixed",
             "64-byte signature (the same format as we use on the wire in Lightning).",
-            "",
             "If we are  unable to sign using the specified keys, then an error will be",
             "returned.",
         },
@@ -11549,7 +11559,6 @@ func Signer_ComputeInputScript() Method {
             "This method should be capable of generating the proper input script for",
             "both regular p2wkh output and p2wkh outputs nested within a regular p2sh",
             "output.",
-            "",
             "Note that when using this method to sign inputs belonging to the wallet,",
             "the only items of the SignDescriptor that need to be populated are pkScript",
             "in the TxOut field, the value in that same field, and finally the input",
@@ -11566,7 +11575,6 @@ func Signer_SignMessage() Method {
         Description: []string{
             "SignMessage signs a message with the key specified in the key locator. The",
             "returned signature is fixed-size LN wire format encoded.",
-            "",
             "The main difference to SignMessage in the main RPC is that a specific key is",
             "used to sign the message instead of the node identity private key.",
         },
@@ -11581,7 +11589,6 @@ func Signer_VerifyMessage() Method {
         Description: []string{
             "VerifyMessage verifies a signature over a message using the public key",
             "provided. The signature must be fixed-size LN wire format encoded.",
-            "",
             "The main difference to VerifyMessage in the main RPC is that the public key",
             "used to sign the message does not have to be a node known to the network.",
         },
@@ -11745,7 +11752,6 @@ func WalletKit_PendingSweeps() Method {
             "attempting to sweep within its central batching engine. Outputs with similar",
             "fee rates are batched together in order to sweep them within a single",
             "transaction.",
-            "",
             "NOTE: Some of the fields within PendingSweepsRequest are not guaranteed to",
             "remain supported. This is an advanced API that depends on the internals of",
             "the UtxoSweeper, so things may change.",
@@ -11767,20 +11773,16 @@ func WalletKit_BumpFee() Method {
             "any point with the addition of new inputs. The list of inputs that",
             "currently exist within lnd's central batching engine can be retrieved",
             "through the PendingSweeps RPC.",
-            "",
             "When bumping the fee of an input that currently exists within lnd's central",
             "batching engine, a higher fee transaction will be created that replaces the",
             "lower fee transaction through the Replace-By-Fee (RBF) policy. If it",
-            "",
             "This RPC also serves useful when wanting to perform a Child-Pays-For-Parent",
             "(CPFP), where the child transaction pays for its parent's fee. This can be",
             "done by specifying an outpoint within the low fee transaction that is under",
             "the control of the wallet.",
-            "",
             "The fee preference can be expressed either as a specific fee rate or a delta",
             "of blocks in which the output should be swept on-chain within. If a fee",
             "preference is not explicitly specified, then an error is returned.",
-            "",
             "Note that this RPC currently doesn't perform any validation checks on the",
             "fee preference being provided. For now, the responsibility of ensuring that",
             "the new fee preference is sufficient is delegated to the user.",
@@ -11825,16 +11827,13 @@ func WalletKit_FundPsbt() Method {
             "the outputs specified in the template. There are two ways of specifying a",
             "template: Either by passing in a PSBT with at least one output declared or",
             "by passing in a raw TxTemplate message.",
-            "",
             "If there are no inputs specified in the template, coin selection is",
             "performed automatically. If the template does contain any inputs, it is",
             "assumed that full coin selection happened externally and no additional",
             "inputs are added. If the specified inputs aren't enough to fund the outputs",
             "with the given fee rate, an error is returned.",
-            "",
             "After either selecting or verifying the inputs, all input UTXOs are locked",
             "with an internal app ID.",
-            "",
             "NOTE: If this method returns without an error, it is the caller's",
             "responsibility to either spend the locked UTXOs (by finalizing and then",
             "publishing the transaction) or to unlock/release the locked UTXOs in case of",
@@ -11856,7 +11855,6 @@ func WalletKit_FinalizePsbt() Method {
             "without witness data that do not belong to lnd's wallet, this method will",
             "fail. If no error is returned, the PSBT is ready to be extracted and the",
             "final TX within to be broadcast.",
-            "",
             "NOTE: This method does NOT publish the transaction once finalized. It is the",
             "caller's responsibility to either publish the transaction on success or",
             "unlock/release any locked UTXOs in case of an error in this method.",
@@ -11960,7 +11958,6 @@ func WalletUnlocker_GenSeed() Method {
             "instance. This method allows a caller to generate a new aezeed cipher seed",
             "given an optional passphrase. If provided, the passphrase will be necessary",
             "to decrypt the cipherseed to expose the internal wallet seed.",
-            "",
             "Once the cipherseed is obtained and verified by the user, the InitWallet",
             "method should be used to commit the newly generated seed, and create the",
             "wallet.",
@@ -11978,11 +11975,9 @@ func WalletUnlocker_InitWallet() Method {
             "initialize the daemon and its internal wallet. At the very least a wallet",
             "password must be provided. This will be used to encrypt sensitive material",
             "on disk.",
-            "",
             "In the case of a recovery scenario, the user can also specify their aezeed",
             "mnemonic and passphrase. If set, then the daemon will use this prior state",
             "to initialize its internal wallet.",
-            "",
             "Alternatively, this can be used along with the GenSeed RPC to obtain a",
             "seed, then present it to the user. Once it has been verified by the user,",
             "the seed can be fed into this RPC in order to commit the new wallet.",
@@ -12040,8 +12035,9 @@ func Lightning_WalletBalance() Method {
     return Method{
         Name: "WalletBalance",
         Service: "Lightning",
+        Category: "Wallet",
+        ShortDescription: "Compute and display the wallet's current balance",
         Description: []string{
-            "lncli: `walletbalance`",
             "WalletBalance returns total unspent outputs(confirmed and unconfirmed), all",
             "confirmed unspent outputs and all unconfirmed unspent outputs under control",
             "of the wallet.",
@@ -12054,8 +12050,9 @@ func Lightning_GetAddressBalances() Method {
     return Method{
         Name: "GetAddressBalances",
         Service: "Lightning",
+        Category: "Wallet",
         Description: []string{
-            "lncli: `getaddressbalances`",
+            "$pld.short_description: ``",
             "GetAddressBalances returns the balance for each of the addresses in the wallet.",
         },
         Req: mklnrpc_GetAddressBalancesRequest(),
@@ -12066,8 +12063,9 @@ func Lightning_ChannelBalance() Method {
     return Method{
         Name: "ChannelBalance",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "Returns the sum of the total available channel balance across all open channels",
         Description: []string{
-            "lncli: `channelbalance`",
             "ChannelBalance returns a report on the total funds across all open channels,",
             "categorized in local/remote, pending local/remote and unsettled local/remote",
             "balances.",
@@ -12082,6 +12080,8 @@ func Lightning_GetTransactions() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `listchaintxns`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "GetTransactions returns a list describing all the known transactions",
             "relevant to the wallet.",
         },
@@ -12095,9 +12095,10 @@ func Lightning_EstimateFee() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `estimatefee`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "EstimateFee asks the chain backend to estimate the fee rate and total fees",
             "for a transaction that pays to multiple specified outputs.",
-            "",
             "When using REST, the `AddrToAmount` map type can be set by appending",
             "`&AddrToAmount[<address>]=<amount_to_send>` to the URL. Unfortunately this",
             "map type doesn't appear in the REST API documentation because of a bug in",
@@ -12113,6 +12114,8 @@ func Lightning_SendCoins() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `sendcoins`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "SendCoins executes a request to send coins to a particular address. Unlike",
             "SendMany, this RPC call only allows creating a single output at a time. If",
             "neither target_conf, or sat_per_byte are set, then the internal wallet will",
@@ -12129,8 +12132,9 @@ func Lightning_ListUnspent() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `listunspent`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Deprecated, use walletrpc.ListUnspent instead.",
-            "",
             "ListUnspent returns a list of all utxos spendable by the wallet with a",
             "number of confirmations between the specified minimum and maximum.",
         },
@@ -12143,6 +12147,8 @@ func Lightning_SubscribeTransactions() Method {
         Name: "SubscribeTransactions",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "SubscribeTransactions creates a uni-directional stream from the server to",
             "the client in which any newly discovered transactions relevant to the",
             "wallet are sent over.",
@@ -12157,6 +12163,8 @@ func Lightning_SendMany() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `sendmany`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "SendMany handles a request for a transaction that creates multiple specified",
             "outputs in parallel. If neither target_conf, or sat_per_byte are set, then",
             "the internal wallet will consult its fee model to determine a fee for the",
@@ -12172,6 +12180,8 @@ func Lightning_NewAddress() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `newaddress`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "NewAddress creates a new address under control of the local wallet.",
         },
         Req: mklnrpc_NewAddressRequest(),
@@ -12184,6 +12194,8 @@ func Lightning_SignMessage() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `signmessage`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "SignMessage signs a message with this node's private key. The returned",
             "signature string is `zbase32` encoded and pubkey recoverable, meaning that",
             "only the message digest and signature are needed for verification.",
@@ -12198,6 +12210,8 @@ func Lightning_ConnectPeer() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `connect`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "ConnectPeer attempts to establish a connection to a remote peer. This is at",
             "the networking level, and is used for communication between nodes. This is",
             "distinct from establishing a channel with a peer.",
@@ -12212,6 +12226,8 @@ func Lightning_DisconnectPeer() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `disconnect`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "DisconnectPeer attempts to disconnect one peer from another identified by a",
             "given pubKey. In the case that we currently have a pending or active channel",
             "with the target peer, then this action will be not be allowed.",
@@ -12226,6 +12242,8 @@ func Lightning_ListPeers() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `listpeers`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "ListPeers returns a verbose listing of all currently active peers.",
         },
         Req: mklnrpc_ListPeersRequest(),
@@ -12237,6 +12255,8 @@ func Lightning_SubscribePeerEvents() Method {
         Name: "SubscribePeerEvents",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "SubscribePeerEvents creates a uni-directional stream from the server to",
             "the client in which any events relevant to the state of peers are sent",
             "over. Events include peers going online and offline.",
@@ -12251,6 +12271,8 @@ func Lightning_GetInfo() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `getinfo`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "GetInfo returns general information concerning the lightning node including",
             "it's identity pubkey, alias, the chains it is connected to, and information",
             "concerning the number of open+pending channels.",
@@ -12265,6 +12287,8 @@ func Lightning_GetRecoveryInfo() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `getrecoveryinfo`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "GetRecoveryInfo returns information concerning the recovery mode including",
             "whether it's in a recovery mode, whether the recovery is finished, and the",
             "progress made so far.",
@@ -12277,8 +12301,9 @@ func Lightning_PendingChannels() Method {
     return Method{
         Name: "PendingChannels",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "Display information pertaining to pending channels",
         Description: []string{
-            "lncli: `pendingchannels`",
             "PendingChannels returns a list of all the channels that are currently",
             "considered \"pending\". A channel is pending if it has finished the funding",
             "workflow and is waiting for confirmations for the funding txn, or is in the",
@@ -12292,8 +12317,9 @@ func Lightning_ListChannels() Method {
     return Method{
         Name: "ListChannels",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "List all open channels",
         Description: []string{
-            "lncli: `listchannels`",
             "ListChannels returns a description of all the open channels that this node",
             "is a participant in.",
         },
@@ -12319,8 +12345,9 @@ func Lightning_ClosedChannels() Method {
     return Method{
         Name: "ClosedChannels",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "List all closed channels",
         Description: []string{
-            "lncli: `closedchannels`",
             "ClosedChannels returns a description of all the closed channels that",
             "this node was a participant in.",
         },
@@ -12346,8 +12373,9 @@ func Lightning_OpenChannel() Method {
     return Method{
         Name: "OpenChannel",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "Open a channel to a node or an existing peer",
         Description: []string{
-            "lncli: `openchannel`",
             "OpenChannel attempts to open a singly funded channel specified in the",
             "request to a remote peer. Users are able to specify a target number of",
             "blocks that the funding transaction should be confirmed in, or a manual fee",
@@ -12366,6 +12394,8 @@ func Lightning_FundingStateStep() Method {
         Name: "FundingStateStep",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "FundingStateStep is an advanced funding related call that allows the caller",
             "to either execute some preparatory steps for a funding workflow, or",
             "manually progress a funding workflow. The primary way a funding flow is",
@@ -12384,6 +12414,8 @@ func Lightning_ChannelAcceptor() Method {
         Name: "ChannelAcceptor",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "ChannelAcceptor dispatches a bi-directional streaming RPC in which",
             "OpenChannel requests are sent to the client and the client responds with",
             "a boolean that tells LND whether or not to accept the channel. This allows",
@@ -12398,8 +12430,9 @@ func Lightning_CloseChannel() Method {
     return Method{
         Name: "CloseChannel",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "Close an existing channel",
         Description: []string{
-            "lncli: `closechannel`",
             "CloseChannel attempts to close an active channel identified by its channel",
             "outpoint (ChannelPoint). The actions of this method can additionally be",
             "augmented to attempt a force close after a timeout period in the case of an",
@@ -12416,8 +12449,9 @@ func Lightning_AbandonChannel() Method {
     return Method{
         Name: "AbandonChannel",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "Abandons an existing channel",
         Description: []string{
-            "lncli: `abandonchannel`",
             "AbandonChannel removes all channel state from the database except for a",
             "close summary. This method can be used to get rid of permanently unusable",
             "channels due to bugs fixed in newer versions of lnd. This method can also be",
@@ -12434,7 +12468,6 @@ func Lightning_SendPayment() Method {
         Name: "SendPayment",
         Service: "Lightning",
         Description: []string{
-            "lncli: `sendpayment`",
             "Deprecated, use routerrpc.SendPaymentV2. SendPayment dispatches a",
             "bi-directional streaming RPC for sending payments through the Lightning",
             "Network. A single RPC invocation creates a persistent bi-directional",
@@ -12491,8 +12524,9 @@ func Lightning_AddInvoice() Method {
     return Method{
         Name: "AddInvoice",
         Service: "Lightning",
+        Category: "Invoice",
+        ShortDescription: "Add a new invoice",
         Description: []string{
-            "lncli: `addinvoice`",
             "AddInvoice attempts to add a new invoice to the invoice database. Any",
             "duplicated invoices are rejected, therefore all invoices *must* have a",
             "unique payment preimage.",
@@ -12505,8 +12539,9 @@ func Lightning_ListInvoices() Method {
     return Method{
         Name: "ListInvoices",
         Service: "Lightning",
+        Category: "Invoice",
+        ShortDescription: "List all invoices currently stored within the database. Any active debug invoices are ignored",
         Description: []string{
-            "lncli: `listinvoices`",
             "ListInvoices returns a list of all the invoices currently stored within the",
             "database. Any active debug invoices are ignored. It has full support for",
             "paginated responses, allowing users to query for specific invoices through",
@@ -12523,8 +12558,9 @@ func Lightning_LookupInvoice() Method {
     return Method{
         Name: "LookupInvoice",
         Service: "Lightning",
+        Category: "Invoice",
+        ShortDescription: "Lookup an existing invoice by its payment hash",
         Description: []string{
-            "lncli: `lookupinvoice`",
             "LookupInvoice attempts to look up an invoice according to its payment hash.",
             "The passed payment hash *must* be exactly 32 bytes, if not, an error is",
             "returned.",
@@ -12538,6 +12574,8 @@ func Lightning_SubscribeInvoices() Method {
         Name: "SubscribeInvoices",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "SubscribeInvoices returns a uni-directional stream (server -> client) for",
             "notifying the client of newly added/settled invoices. The caller can",
             "optionally specify the add_index and/or the settle_index. If the add_index",
@@ -12556,8 +12594,9 @@ func Lightning_DecodePayReq() Method {
     return Method{
         Name: "DecodePayReq",
         Service: "Lightning",
+        Category: "Invoice",
+        ShortDescription: "Decode a payment request",
         Description: []string{
-            "lncli: `decodepayreq`",
             "DecodePayReq takes an encoded payment request string and attempts to decode",
             "it, returning a full description of the conditions encoded within the",
             "payment request.",
@@ -12570,8 +12609,9 @@ func Lightning_ListPayments() Method {
     return Method{
         Name: "ListPayments",
         Service: "Lightning",
+        Category: "Payment",
+        ShortDescription: "List all outgoing payments",
         Description: []string{
-            "lncli: `listpayments`",
             "ListPayments returns a list of all outgoing payments.",
         },
         Req: mklnrpc_ListPaymentsRequest(),
@@ -12593,8 +12633,9 @@ func Lightning_DescribeGraph() Method {
     return Method{
         Name: "DescribeGraph",
         Service: "Lightning",
+        Category: "Graph",
+        ShortDescription: "Describe the network graph",
         Description: []string{
-            "lncli: `describegraph`",
             "DescribeGraph returns a description of the latest graph state from the",
             "point of view of the node. The graph information is partitioned into two",
             "components: all the nodes/vertexes, and all the edges that connect the",
@@ -12610,8 +12651,9 @@ func Lightning_GetNodeMetrics() Method {
     return Method{
         Name: "GetNodeMetrics",
         Service: "Lightning",
+        Category: "Graph",
+        ShortDescription: "Get node metrics",
         Description: []string{
-            "lncli: `getnodemetrics`",
             "GetNodeMetrics returns node metrics calculated from the graph. Currently",
             "the only supported metric is betweenness centrality of individual nodes.",
         },
@@ -12623,8 +12665,9 @@ func Lightning_GetChanInfo() Method {
     return Method{
         Name: "GetChanInfo",
         Service: "Lightning",
+        Category: "Graph",
+        ShortDescription: "Get the state of a channel",
         Description: []string{
-            "lncli: `getchaninfo`",
             "GetChanInfo returns the latest authenticated network announcement for the",
             "given channel identified by its channel ID: an 8-byte integer which",
             "uniquely identifies the location of transaction's funding output within the",
@@ -12638,8 +12681,9 @@ func Lightning_GetNodeInfo() Method {
     return Method{
         Name: "GetNodeInfo",
         Service: "Lightning",
+        Category: "Graph",
+        ShortDescription: "Get information on a specific node",
         Description: []string{
-            "lncli: `getnodeinfo`",
             "GetNodeInfo returns the latest advertised, aggregated, and authenticated",
             "channel information for the specified node identified by its public key.",
         },
@@ -12651,14 +12695,14 @@ func Lightning_QueryRoutes() Method {
     return Method{
         Name: "QueryRoutes",
         Service: "Lightning",
+        Category: "Payment",
+        ShortDescription: "Query a route to a destination",
         Description: []string{
-            "lncli: `queryroutes`",
             "QueryRoutes attempts to query the daemon's Channel Router for a possible",
             "route to a target destination capable of carrying a specific amount of",
             "satoshis. The returned route contains the full details required to craft and",
             "send an HTLC, also including the necessary information that should be",
             "present within the Sphinx packet encapsulated within the HTLC.",
-            "",
             "When using REST, the `dest_custom_records` map type can be set by appending",
             "`&dest_custom_records[<record_number>]=<record_data_base64_url_encoded>`",
             "to the URL. Unfortunately this map type doesn't appear in the REST API",
@@ -12672,8 +12716,9 @@ func Lightning_GetNetworkInfo() Method {
     return Method{
         Name: "GetNetworkInfo",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "Get statistical information about the current state of the network",
         Description: []string{
-            "lncli: `getnetworkinfo`",
             "GetNetworkInfo returns some basic stats about the known channel graph from",
             "the point of view of the node.",
         },
@@ -12687,6 +12732,8 @@ func Lightning_StopDaemon() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `stop`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "StopDaemon will send a shutdown request to the interrupt handler, triggering",
             "a graceful shutdown of the daemon.",
         },
@@ -12716,6 +12763,8 @@ func Lightning_DebugLevel() Method {
         Service: "Lightning",
         Description: []string{
             "lncli: `debuglevel`",
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "DebugLevel allows a caller to programmatically set the logging verbosity of",
             "lnd. The logging can be targeted according to a coarse daemon-wide logging",
             "level, or in a granular fashion to specify the logging for a target",
@@ -12729,8 +12778,9 @@ func Lightning_FeeReport() Method {
     return Method{
         Name: "FeeReport",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "Display the current fee policies of all active channels",
         Description: []string{
-            "lncli: `feereport`",
             "FeeReport allows the caller to obtain a report detailing the current fee",
             "schedule enforced by the node globally for each channel.",
         },
@@ -12742,8 +12792,9 @@ func Lightning_UpdateChannelPolicy() Method {
     return Method{
         Name: "UpdateChannelPolicy",
         Service: "Lightning",
+        Category: "Channel",
+        ShortDescription: "Update the channel policy for all channels, or a single channel",
         Description: []string{
-            "lncli: `updatechanpolicy`",
             "UpdateChannelPolicy allows the caller to update the fee schedule and",
             "channel policies for all channels globally, or a particular channel.",
         },
@@ -12755,13 +12806,13 @@ func Lightning_ForwardingHistory() Method {
     return Method{
         Name: "ForwardingHistory",
         Service: "Lightning",
+        Category: "Payment",
+        ShortDescription: "Query the history of all forwarded HTLCs",
         Description: []string{
-            "lncli: `fwdinghistory`",
             "ForwardingHistory allows the caller to query the htlcswitch for a record of",
             "all HTLCs forwarded within the target time range, and integer offset",
             "within that time range. If no time-range is specified, then the first chunk",
             "of the past 24 hrs of forwarding history are returned.",
-            "",
             "A list of forwarding events are returned. The size of each forwarding event",
             "is 40 bytes, and the max message size able to be returned in gRPC is 4 MiB.",
             "As a result each message can only contain 50k entries. Each response has",
@@ -12776,8 +12827,9 @@ func Lightning_ExportChannelBackup() Method {
     return Method{
         Name: "ExportChannelBackup",
         Service: "Lightning",
+        Category: "Backup",
+        ShortDescription: "Obtain a static channel back up for a selected channels, or all known channels",
         Description: []string{
-            "lncli: `exportchanbackup`",
             "ExportChannelBackup attempts to return an encrypted static channel backup",
             "for the target channel identified by it channel point. The backup is",
             "encrypted with a key generated from the aezeed seed of the user. The",
@@ -12808,6 +12860,8 @@ func Lightning_VerifyChanBackup() Method {
     return Method{
         Name: "VerifyChanBackup",
         Service: "Lightning",
+        Category: "Backup",
+        ShortDescription: "Verify an existing channel backup",
         Description: []string{
             "VerifyChanBackup allows a caller to verify the integrity of a channel backup",
             "snapshot. This method will accept either a packed Single or a packed Multi.",
@@ -12821,8 +12875,9 @@ func Lightning_RestoreChannelBackups() Method {
     return Method{
         Name: "RestoreChannelBackups",
         Service: "Lightning",
+        Category: "Backup",
+        ShortDescription: "Restore an existing single or multi-channel static channel backup",
         Description: []string{
-            "lncli: `restorechanbackup`",
             "RestoreChannelBackups accepts a set of singular channel backups, or a",
             "single encrypted multi-chan backup and attempts to recover any funds",
             "remaining within the channel. If we are able to unpack the backup, then the",
@@ -12854,6 +12909,8 @@ func Lightning_ReSync() Method {
         Name: "ReSync",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Scan over the chain to find any transactions which may not have been recorded in the wallet's database",
         },
         Req: mklnrpc_ReSyncChainRequest(),
@@ -12865,6 +12922,8 @@ func Lightning_StopReSync() Method {
         Name: "StopReSync",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Stop a re-synchronization job before it's completion",
         },
         Req: mklnrpc_StopReSyncRequest(),
@@ -12876,6 +12935,8 @@ func Lightning_GetWalletSeed() Method {
         Name: "GetWalletSeed",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Get the wallet seed words for this wallet",
         },
         Req: mklnrpc_GetWalletSeedRequest(),
@@ -12887,6 +12948,8 @@ func Lightning_ChangeSeedPassphrase() Method {
         Name: "ChangeSeedPassphrase",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Change seed's passphrase",
         },
         Req: mklnrpc_ChangeSeedPassphraseRequest(),
@@ -12898,6 +12961,8 @@ func Lightning_GetSecret() Method {
         Name: "GetSecret",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application",
         },
         Req: mklnrpc_GetSecretRequest(),
@@ -12909,6 +12974,8 @@ func Lightning_ImportPrivKey() Method {
         Name: "ImportPrivKey",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Imports a WIF-encoded private key to the 'imported' account.",
         },
         Req: mklnrpc_ImportPrivKeyRequest(),
@@ -12920,6 +12987,8 @@ func Lightning_DumpPrivKey() Method {
         Name: "DumpPrivKey",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Returns the private key in WIF encoding that controls some wallet address.",
         },
         Req: mklnrpc_DumpPrivKeyRequest(),
@@ -12931,6 +13000,8 @@ func Lightning_ListLockUnspent() Method {
         Name: "ListLockUnspent",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.",
         },
         Req: mklnrpc_ListLockUnspentRequest(),
@@ -12942,6 +13013,8 @@ func Lightning_LockUnspent() Method {
         Name: "LockUnspent",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Locks or unlocks an unspent output",
         },
         Req: mklnrpc_LockUnspentRequest(),
@@ -12953,6 +13026,8 @@ func Lightning_CreateTransaction() Method {
         Name: "CreateTransaction",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Create a transaction but po not send it to the chain",
         },
         Req: mklnrpc_CreateTransactionRequest(),
@@ -12964,6 +13039,8 @@ func Lightning_GetNewAddress() Method {
         Name: "GetNewAddress",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Generates and returns a new payment address",
         },
         Req: mklnrpc_GetNewAddressRequest(),
@@ -12975,6 +13052,8 @@ func Lightning_GetTransaction() Method {
         Name: "GetTransaction",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Returns a JSON object with details regarding a transaction relevant to this wallet.",
         },
         Req: mklnrpc_GetTransactionRequest(),
@@ -12986,6 +13065,8 @@ func Lightning_SetNetworkStewardVote() Method {
         Name: "SetNetworkStewardVote",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)",
         },
         Req: mklnrpc_SetNetworkStewardVoteRequest(),
@@ -12997,6 +13078,8 @@ func Lightning_GetNetworkStewardVote() Method {
         Name: "GetNetworkStewardVote",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Find out how the wallet is currently configured to vote in a network steward election",
         },
         Req: mklnrpc_GetNetworkStewardVoteRequest(),
@@ -13008,6 +13091,8 @@ func Lightning_BcastTransaction() Method {
         Name: "BcastTransaction",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "Broadcast a transaction",
         },
         Req: mklnrpc_BcastTransactionRequest(),
@@ -13019,6 +13104,8 @@ func Lightning_SendFrom() Method {
         Name: "SendFrom",
         Service: "Lightning",
         Description: []string{
+            "$pld.category: ``",
+            "$pld.short_description: ``",
             "SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.",
         },
         Req: mklnrpc_SendFromRequest(),

@@ -64,42 +64,42 @@ var (
 //	constants for every pld command
 const (
 	//	lightning/channel subCategory commands
-	CommandOpenChannel      = "openchannel"
-	CommandCloseChannel     = "closechannel"
-	CommandAbandonChannel   = "abandonchannel"
-	CommandChannelBalance   = "channelbalance"
-	CommandPendingChannels  = "pendingchannels"
-	CommandListChannels     = "listchannels"
-	CommandClosedChannels   = "closedchannels"
-	CommandGetNetworkInfo   = "getnetworkinfo"
-	CommandFeeReport        = "feereport"
-	CommandUpdateChanPolicy = "updatechanpolicy"
+	CommandOpenChannel      = "OpenChannel"
+	CommandCloseChannel     = "CloseChannel"
+	CommandAbandonChannel   = "AbandonChannel"
+	CommandChannelBalance   = "ChannelBalance"
+	CommandPendingChannels  = "PendingChannels"
+	CommandListChannels     = "ListChannels"
+	CommandClosedChannels   = "ClosedChannels"
+	CommandGetNetworkInfo   = "GetNetworkInfo"
+	CommandFeeReport        = "FeeReport"
+	CommandUpdateChanPolicy = "UpdateChannelPolicy"
 	//	lightning/channel/backup subCategory commands
-	CommandExportChanBackup  = "exportchanbackup"
-	CommandVerifyChanBackup  = "verifychanbackup"
-	CommandRestoreChanBackup = "restorechanbackup"
+	CommandExportChanBackup  = "ExportChannelBackup"
+	CommandVerifyChanBackup  = "VerifyChanBackup"
+	CommandRestoreChanBackup = "RestoreChannelBackups"
 	//	lightning/graph subCategory commands
-	CommandDescribeGraph  = "describegraph"
-	CommandGetNodeMetrics = "getnodemetrics"
-	CommandGetChanInfo    = "getchaninfo"
-	CommandGetNodeInfo    = "getnodeinfo"
+	CommandDescribeGraph  = "DescribeGraph"
+	CommandGetNodeMetrics = "GetNodeMetrics"
+	CommandGetChanInfo    = "GetChanInfo"
+	CommandGetNodeInfo    = "GetNodeInfo"
 	//	lightning/invoice subCategory commands
-	CommandAddInvoice    = "addinvoice"
-	CommandLookupInvoice = "lookupinvoice"
-	CommandListInvoices  = "listinvoices"
-	CommandDecodePayreq  = "decodepayreq"
+	CommandAddInvoice    = "AddInvoice"
+	CommandLookupInvoice = "LookupInvoice"
+	CommandListInvoices  = "ListInvoices"
+	CommandDecodePayreq  = "DecodePayReq"
 	//	lightning/payment subCategory command
-	CommandSendPayment   = "sendpayment"
+	CommandSendPayment   = "SendPaymentV2"
 	CommandPayInvoice    = "payinvoice"
-	CommandSendToRoute   = "sendtoroute"
-	CommandListPayments  = "listpayments"
-	CommandTrackPayment  = "trackpayment"
-	CommandQueryRoutes   = "queryroutes"
-	CommandFwdingHistory = "fwdinghistory"
-	CommandQueryMc       = "querymc"
-	CommandQueryProb     = "queryprob"
-	CommandResetMc       = "resetmc"
-	CommandBuildRoute    = "buildroute"
+	CommandSendToRoute   = "SendToRouteV2"
+	CommandListPayments  = "ListPayments"
+	CommandTrackPayment  = "TrackPaymentV2"
+	CommandQueryRoutes   = "QueryRoutes"
+	CommandFwdingHistory = "ForwardingHistory"
+	CommandQueryMc       = "QueryMissionControl"
+	CommandQueryProb     = "QueryProbability"
+	CommandResetMc       = "ResetMissionControl"
+	CommandBuildRoute    = "BuildRoute"
 	//	lightning/peer subCategory command
 	CommandConnectPeer    = "connectpeer"
 	CommandDisconnectPeer = "disconnectpeer"
@@ -111,7 +111,7 @@ const (
 	CommandVersion    = "version"
 	CommandCrash      = "crash"
 	//	wallet category command
-	CommandWalletBalance    = "walletbalance"
+	CommandWalletBalance    = "WalletBalance"
 	CommandChangePassphrase = "changePassphrase"
 	CommandCheckPassphrase  = "checkPassphrase"
 	CommandCreateWallet     = "createwallet"
@@ -168,208 +168,63 @@ type CommandInfo struct {
 var (
 	CommandInfoData map[string]CommandInfo = map[string]CommandInfo{
 		//	lightning/channel subCategory commands
-		CommandOpenChannel: {
-			Category:    SubcategoryChannel,
-			Description: "Open a channel to a node or an existing peer",
-			Path:        "/lightning/channel/open",
-			HelpInfo:    pkthelp.Lightning_OpenChannel,
-		},
-		CommandCloseChannel: {
-			Category:    SubcategoryChannel,
-			Description: "Close an existing channel",
-			Path:        "/lightning/channel/close",
-			HelpInfo:    pkthelp.Lightning_CloseChannel,
-		},
-		CommandAbandonChannel: {
-			Category:    SubcategoryChannel,
-			Description: "Abandons an existing channel",
-			Path:        "/lightning/channel/abandon",
-			HelpInfo:    pkthelp.Lightning_AbandonChannel,
-		},
-		CommandChannelBalance: {
-			Category:    SubcategoryChannel,
-			Description: "Returns the sum of the total available channel balance across all open channels",
-			Path:        "/lightning/channel/balance",
-			HelpInfo:    pkthelp.Lightning_ChannelBalance,
-		},
-		CommandPendingChannels: {
-			Category:    SubcategoryChannel,
-			Description: "Display information pertaining to pending channels",
-			Path:        "/lightning/channel/pending",
-			HelpInfo:    pkthelp.Lightning_PendingChannels,
-		},
+		CommandOpenChannel:     {Path: "/lightning/channel/open"},
+		CommandCloseChannel:    {Path: "/lightning/channel/close"},
+		CommandAbandonChannel:  {Path: "/lightning/channel/abandon"},
+		CommandChannelBalance:  {Path: "/lightning/channel/balance"},
+		CommandPendingChannels: {Path: "/lightning/channel/pending"},
 		CommandListChannels: {
-			Category:    SubcategoryChannel,
-			Description: "List all open channels",
-			Path:        "/lightning/channel",
-			AllowGet:    true,
-			HelpInfo:    pkthelp.Lightning_ListChannels,
+			Path:     "/lightning/channel",
+			AllowGet: true,
 		},
 		CommandClosedChannels: {
-			Category:    SubcategoryChannel,
-			Description: "List all closed channels",
-			Path:        "/lightning/channel/closed",
-			AllowGet:    true,
-			HelpInfo:    pkthelp.Lightning_ClosedChannels,
+			Path:     "/lightning/channel/closed",
+			AllowGet: true,
 		},
-		CommandGetNetworkInfo: {
-			Category:    SubcategoryChannel,
-			Description: "Get statistical information about the current state of the network",
-			Path:        "/lightning/channel/networkinfo",
-			HelpInfo:    pkthelp.Lightning_GetNetworkInfo,
-		},
-		CommandFeeReport: {
-			Category:    SubcategoryChannel,
-			Description: "Display the current fee policies of all active channels",
-			Path:        "/lightning/channel/feereport",
-			HelpInfo:    pkthelp.Lightning_FeeReport,
-		},
-		CommandUpdateChanPolicy: {
-			Category:    SubcategoryChannel,
-			Description: "Update the channel policy for all channels, or a single channel",
-			Path:        "/lightning/channel/policy",
-			HelpInfo:    pkthelp.Lightning_UpdateChannelPolicy,
-		},
+		CommandGetNetworkInfo:   {Path: "/lightning/channel/networkinfo"},
+		CommandFeeReport:        {Path: "/lightning/channel/feereport"},
+		CommandUpdateChanPolicy: {Path: "/lightning/channel/policy"},
 		//	lightning/channel/backup subCategory commands
-		CommandExportChanBackup: {
-			Category:    SubSubCategoryBackup,
-			Description: "Obtain a static channel back up for a selected channels, or all known channels",
-			Path:        "/lightning/channel/backup/export",
-			HelpInfo:    pkthelp.Lightning_ExportChannelBackup,
-		},
-		CommandRestoreChanBackup: {
-			Category:    SubSubCategoryBackup,
-			Description: "Verify an existing channel backup",
-			Path:        "/lightning/channel/backup/verify",
-			HelpInfo:    pkthelp.Lightning_VerifyChanBackup,
-		},
-		CommandVerifyChanBackup: {
-			Category:    SubSubCategoryBackup,
-			Description: "Restore an existing single or multi-channel static channel backup",
-			Path:        "/lightning/channel/backup/restore",
-			HelpInfo:    pkthelp.Lightning_RestoreChannelBackups,
-		},
+		CommandExportChanBackup:  {Path: "/lightning/channel/backup/export"},
+		CommandVerifyChanBackup:  {Path: "/lightning/channel/backup/verify"},
+		CommandRestoreChanBackup: {Path: "/lightning/channel/backup/restore"},
 		//	lightning/graph subCategory commands
 		CommandDescribeGraph: {
-			Category:    SubCategoryGraph,
-			Description: "Describe the network graph",
-			Path:        "/lightning/graph",
-			AllowGet:    true,
-			HelpInfo:    pkthelp.Lightning_DescribeGraph,
+			Path:     "/lightning/graph",
+			AllowGet: true,
 		},
 		CommandGetNodeMetrics: {
-			Category:    SubCategoryGraph,
-			Description: "Get node metrics",
-			Path:        "/lightning/graph/nodemetrics",
-			AllowGet:    true,
-			HelpInfo:    pkthelp.Lightning_GetNodeMetrics,
+			Path:     "/lightning/graph/nodemetrics",
+			AllowGet: true,
 		},
-		CommandGetChanInfo: {
-			Category:    SubCategoryGraph,
-			Description: "Get the state of a channel",
-			Path:        "/lightning/graph/channel",
-			HelpInfo:    pkthelp.Lightning_GetChanInfo,
-		},
-		CommandGetNodeInfo: {
-			Category:    SubCategoryGraph,
-			Description: "Get information on a specific node",
-			Path:        "/lightning/graph/nodeinfo",
-			HelpInfo:    pkthelp.Lightning_GetNodeInfo,
-		},
+		CommandGetChanInfo: {Path: "/lightning/graph/channel"},
+		CommandGetNodeInfo: {Path: "/lightning/graph/nodeinfo"},
 		//	lightning/invoice subCategory commands
-		CommandAddInvoice: {
-			Category:    SubCategoryInvoice,
-			Description: "Add a new invoice",
-			Path:        "/lightning/invoice/create",
-			HelpInfo:    pkthelp.Lightning_AddInvoice,
-		},
-		CommandLookupInvoice: {
-			Category:    SubCategoryInvoice,
-			Description: "Lookup an existing invoice by its payment hash",
-			Path:        "/lightning/invoice/lookup",
-			HelpInfo:    pkthelp.Lightning_LookupInvoice,
-		},
+		CommandAddInvoice:    {Path: "/lightning/invoice/create"},
+		CommandLookupInvoice: {Path: "/lightning/invoice/lookup"},
 		CommandListInvoices: {
-			Category:    SubCategoryInvoice,
-			Description: "List all invoices currently stored within the database. Any active debug invoices are ignored",
-			Path:        "/lightning/invoice",
-			AllowGet:    true,
-			HelpInfo:    pkthelp.Lightning_ListInvoices,
+			Path:     "/lightning/invoice",
+			AllowGet: true,
 		},
-		CommandDecodePayreq: {
-			Category:    SubCategoryInvoice,
-			Description: "Decode a payment request",
-			Path:        "/lightning/invoice/decodepayreq",
-			HelpInfo:    pkthelp.Lightning_DecodePayReq,
-		},
+		CommandDecodePayreq: {Path: "/lightning/invoice/decodepayreq"},
 		//	lightning/payment subCategory command
-		CommandSendPayment: {
-			Category:    SubCategoryPayment,
-			Description: "Send a payment over lightning",
-			Path:        "/lightning/payment/send",
-			HelpInfo:    pkthelp.Lightning_SendPaymentSync,
-		},
+		CommandSendPayment: {Path: "/lightning/payment/send"},
 		CommandPayInvoice: {
-			Category:    SubCategoryPayment,
 			Description: "Pay an invoice over lightning",
 			Path:        "/lightning/payment/payinvoice",
-			HelpInfo:    nil,
 		},
-		CommandSendToRoute: {
-			Category:    SubCategoryPayment,
-			Description: "Send a payment over a predefined route",
-			Path:        "/lightning/payment/sendtoroute",
-			HelpInfo:    pkthelp.Lightning_SendToRouteSync,
-		},
+		CommandSendToRoute: {Path: "/lightning/payment/sendtoroute"},
 		CommandListPayments: {
-			Category:    SubCategoryPayment,
-			Description: "List all outgoing payments",
-			Path:        "/lightning/payment",
-			AllowGet:    true,
-			HelpInfo:    pkthelp.Lightning_ListPayments,
+			Path:     "/lightning/payment",
+			AllowGet: true,
 		},
-		CommandTrackPayment: {
-			Category:    SubCategoryPayment,
-			Description: "Track payment",
-			Path:        "/lightning/payment/track",
-			HelpInfo:    nil,
-		},
-		CommandQueryRoutes: {
-			Category:    SubCategoryPayment,
-			Description: "Query a route to a destination",
-			Path:        "/lightning/payment/queryroutes",
-			HelpInfo:    pkthelp.Lightning_QueryRoutes,
-		},
-		CommandFwdingHistory: {
-			Category:    SubCategoryPayment,
-			Description: "Query the history of all forwarded HTLCs",
-			Path:        "/lightning/payment/fwdinghistory",
-			HelpInfo:    pkthelp.Lightning_ForwardingHistory,
-		},
-		CommandQueryMc: {
-			Category:    SubCategoryPayment,
-			Description: "Query the internal mission control state",
-			Path:        "/lightning/payment/querymc",
-			HelpInfo:    pkthelp.Router_QueryMissionControl,
-		},
-		CommandQueryProb: {
-			Category:    SubCategoryPayment,
-			Description: "Estimate a success probability",
-			Path:        "/lightning/payment/queryprob",
-			HelpInfo:    pkthelp.Router_QueryProbability,
-		},
-		CommandResetMc: {
-			Category:    SubCategoryPayment,
-			Description: "Reset internal mission control state",
-			Path:        "/lightning/payment/resetmc",
-			HelpInfo:    pkthelp.Router_ResetMissionControl,
-		},
-		CommandBuildRoute: {
-			Category:    SubCategoryPayment,
-			Description: "Build a route from a list of hop pubkeys",
-			Path:        "/lightning/payment/buildroute",
-			HelpInfo:    pkthelp.Router_BuildRoute,
-		},
+		CommandTrackPayment:  {Path: "/lightning/payment/track"},
+		CommandQueryRoutes:   {Path: "/lightning/payment/queryroutes"},
+		CommandFwdingHistory: {Path: "/lightning/payment/fwdinghistory"},
+		CommandQueryMc:       {Path: "/lightning/payment/querymc"},
+		CommandQueryProb:     {Path: "/lightning/payment/queryprob"},
+		CommandResetMc:       {Path: "/lightning/payment/resetmc"},
+		CommandBuildRoute:    {Path: "/lightning/payment/buildroute"},
 		//	lightning/peer subCategory command
 		CommandConnectPeer: {
 			Category:    SubCategoryPeer,
@@ -422,12 +277,7 @@ var (
 			HelpInfo:    pkthelp.MetaService_ForceCrash,
 		},
 		//	wallet category command
-		CommandWalletBalance: {
-			Category:    CategoryWallet,
-			Description: "Compute and display the wallet's current balance",
-			Path:        "/wallet/balance",
-			HelpInfo:    pkthelp.Lightning_WalletBalance,
-		},
+		CommandWalletBalance: {Path: "/wallet/balance"},
 		CommandChangePassphrase: {
 			Category:    CategoryWallet,
 			Description: "Change an encrypted wallet's password at startup",
@@ -646,6 +496,62 @@ var (
 		},
 	}
 )
+
+//	init command info data by getting meta fields from help based on command name
+func init() {
+
+	var commandHelpFunctions []func() pkthelp.Method = []func() pkthelp.Method{
+		pkthelp.Lightning_OpenChannel,
+		pkthelp.Lightning_CloseChannel,
+		pkthelp.Lightning_AbandonChannel,
+		pkthelp.Lightning_ChannelBalance,
+		pkthelp.Lightning_PendingChannels,
+		pkthelp.Lightning_ListChannels,
+		pkthelp.Lightning_ClosedChannels,
+		pkthelp.Lightning_GetNetworkInfo,
+		pkthelp.Lightning_FeeReport,
+		pkthelp.Lightning_UpdateChannelPolicy,
+
+		pkthelp.Lightning_ExportChannelBackup,
+		pkthelp.Lightning_VerifyChanBackup,
+		pkthelp.Lightning_RestoreChannelBackups,
+
+		pkthelp.Lightning_DescribeGraph,
+		pkthelp.Lightning_GetNodeMetrics,
+		pkthelp.Lightning_GetChanInfo,
+		pkthelp.Lightning_GetNodeInfo,
+
+		pkthelp.Lightning_AddInvoice,
+		pkthelp.Lightning_LookupInvoice,
+		pkthelp.Lightning_ListInvoices,
+		pkthelp.Lightning_DecodePayReq,
+
+		pkthelp.Router_SendPaymentV2,
+		pkthelp.Router_SendToRouteV2,
+		pkthelp.Lightning_ListPayments,
+		pkthelp.Router_TrackPaymentV2,
+		pkthelp.Lightning_QueryRoutes,
+		pkthelp.Lightning_ForwardingHistory,
+		pkthelp.Router_QueryMissionControl,
+		pkthelp.Router_QueryProbability,
+		pkthelp.Router_ResetMissionControl,
+		pkthelp.Router_BuildRoute,
+
+		pkthelp.Lightning_WalletBalance,
+	}
+
+	for _, helpFunction := range commandHelpFunctions {
+
+		var commandMethod = helpFunction()
+
+		CommandInfoData[commandMethod.Name] = CommandInfo{
+			Category:    commandMethod.Category,
+			Description: commandMethod.ShortDescription,
+			Path:        CommandInfoData[commandMethod.Name].Path,
+			HelpInfo:    helpFunction,
+		}
+	}
+}
 
 //	the category help in REST master
 func RESTCategory_help(category string, subCategory []*RestCommandCategory) *RestCommandCategory {

@@ -87,6 +87,9 @@ func (h *NeutrinoDBStore) FetchBlockHeaderAncestors(
 		startHeight = endEntry.Height - numHeaders
 		if headers, err = h.readBlockHeaderRange(tx, startHeight, endEntry.Height); err != nil {
 			return err
+		} else if len(headers) == 0 {
+			return er.Errorf("Fetching %v headers up to %v - no results",
+				numHeaders, stopHash)
 		} else if realHash := headers[len(headers)-1].BlockHash(); realHash != endEntry.Header.blockHeader.BlockHash() {
 			return er.Errorf("Fetching %v headers up to %v - hash mismatch, got %v",
 				numHeaders, stopHash, realHash)

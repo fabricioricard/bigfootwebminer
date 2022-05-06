@@ -97,7 +97,13 @@ func (conn *websocketConn) HandleJsonMessage(ctx *RpcContext, req []byte) {
 	//	log.Info("WebSocket JSon message received for endpoint: " + endpoint)
 
 	for _, rpcFunc := range rpcFunctions {
-		var commandInfo = help.CommandInfoData[rpcFunc.command]
+		var commandInfo help.CommandInfo
+
+		for _, commandInfo = range help.CommandInfoData {
+			if commandInfo.Command == rpcFunc.command {
+				break
+			}
+		}
 
 		if endpoint == commandInfo.Path {
 			var valueMessage protoiface.MessageV1 = nil
@@ -173,7 +179,13 @@ func (conn *websocketConn) HandleProtobufMessage(ctx *RpcContext, req []byte) {
 	//	log.Info("WebSocket Protobuf message received for endpoint: " + endpoint)
 
 	for _, rpcFunc := range rpcFunctions {
-		var commandInfo = help.CommandInfoData[rpcFunc.command]
+		var commandInfo help.CommandInfo
+
+		for _, commandInfo = range help.CommandInfoData {
+			if commandInfo.Command == rpcFunc.command {
+				break
+			}
+		}
 
 		if endpoint == commandInfo.Path {
 			var valueMessage protoiface.MessageV1 = nil

@@ -20,6 +20,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WalletKitClient interface {
 	//
+	//$pld.category: `Unspent`
+	//$pld.short_description: `List utxos available for spending`
+	//
 	//ListUnspent returns a list of all utxos spendable by the wallet with a
 	//number of confirmations between the specified minimum and maximum.
 	ListUnspent(ctx context.Context, in *ListUnspentRequest, opts ...grpc.CallOption) (*ListUnspentResponse, error)
@@ -293,6 +296,9 @@ func (c *walletKitClient) FinalizePsbt(ctx context.Context, in *FinalizePsbtRequ
 // All implementations should embed UnimplementedWalletKitServer
 // for forward compatibility
 type WalletKitServer interface {
+	//
+	//$pld.category: `Unspent`
+	//$pld.short_description: `List utxos available for spending`
 	//
 	//ListUnspent returns a list of all utxos spendable by the wallet with a
 	//number of confirmations between the specified minimum and maximum.

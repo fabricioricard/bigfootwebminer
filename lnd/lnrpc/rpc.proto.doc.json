@@ -12071,7 +12071,7 @@
             },
             {
               "name": "GetAddressBalances",
-              "description": "$pld.category: `Wallet`\n$pld.short_description: ``\nGetAddressBalances returns the balance for each of the addresses in the wallet.",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Compute and display balances for each address in the wallet`\n\nGetAddressBalances returns the balance for each of the addresses in the wallet.",
               "requestType": "GetAddressBalancesRequest",
               "requestLongType": "GetAddressBalancesRequest",
               "requestFullType": "lnrpc.GetAddressBalancesRequest",
@@ -12095,7 +12095,7 @@
             },
             {
               "name": "GetTransactions",
-              "description": "lncli: `listchaintxns`\n$pld.category: ``\n$pld.short_description: ``\nGetTransactions returns a list describing all the known transactions\nrelevant to the wallet.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `List transactions from the wallet`\n\nGetTransactions returns a list describing all the known transactions\nrelevant to the wallet.",
               "requestType": "GetTransactionsRequest",
               "requestLongType": "GetTransactionsRequest",
               "requestFullType": "lnrpc.GetTransactionsRequest",
@@ -12107,7 +12107,7 @@
             },
             {
               "name": "EstimateFee",
-              "description": "lncli: `estimatefee`\n$pld.category: ``\n$pld.short_description: ``\nEstimateFee asks the chain backend to estimate the fee rate and total fees\nfor a transaction that pays to multiple specified outputs.\n\nWhen using REST, the `AddrToAmount` map type can be set by appending\n`\u0026AddrToAmount[\u003caddress\u003e]=\u003camount_to_send\u003e` to the URL. Unfortunately this\nmap type doesn't appear in the REST API documentation because of a bug in\nthe grpc-gateway library.",
+              "description": "$pld.category: `Neutrino`\n$pld.short_description: `Get fee estimates for sending bitcoin on-chain to multiple addresses`\n\nEstimateFee asks the chain backend to estimate the fee rate and total fees\nfor a transaction that pays to multiple specified outputs.\n\nWhen using REST, the `AddrToAmount` map type can be set by appending\n`\u0026AddrToAmount[\u003caddress\u003e]=\u003camount_to_send\u003e` to the URL. Unfortunately this\nmap type doesn't appear in the REST API documentation because of a bug in\nthe grpc-gateway library.",
               "requestType": "EstimateFeeRequest",
               "requestLongType": "EstimateFeeRequest",
               "requestFullType": "lnrpc.EstimateFeeRequest",
@@ -12119,7 +12119,7 @@
             },
             {
               "name": "SendCoins",
-              "description": "lncli: `sendcoins`\n$pld.category: ``\n$pld.short_description: ``\nSendCoins executes a request to send coins to a particular address. Unlike\nSendMany, this RPC call only allows creating a single output at a time. If\nneither target_conf, or sat_per_byte are set, then the internal wallet will\nconsult its fee model to determine a fee for the default confirmation\ntarget.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Send bitcoin on-chain to an address`\n\nSendCoins executes a request to send coins to a particular address. Unlike\nSendMany, this RPC call only allows creating a single output at a time. If\nneither target_conf, or sat_per_byte are set, then the internal wallet will\nconsult its fee model to determine a fee for the default confirmation\ntarget.",
               "requestType": "SendCoinsRequest",
               "requestLongType": "SendCoinsRequest",
               "requestFullType": "lnrpc.SendCoinsRequest",
@@ -12131,7 +12131,7 @@
             },
             {
               "name": "ListUnspent",
-              "description": "lncli: `listunspent`\n$pld.category: ``\n$pld.short_description: ``\nDeprecated, use walletrpc.ListUnspent instead.\n\nListUnspent returns a list of all utxos spendable by the wallet with a\nnumber of confirmations between the specified minimum and maximum.",
+              "description": "lncli: `listunspent`\nDeprecated, use walletrpc.ListUnspent instead.\n\nListUnspent returns a list of all utxos spendable by the wallet with a\nnumber of confirmations between the specified minimum and maximum.",
               "requestType": "ListUnspentRequest",
               "requestLongType": "ListUnspentRequest",
               "requestFullType": "lnrpc.ListUnspentRequest",
@@ -12143,7 +12143,7 @@
             },
             {
               "name": "SubscribeTransactions",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nSubscribeTransactions creates a uni-directional stream from the server to\nthe client in which any newly discovered transactions relevant to the\nwallet are sent over.",
+              "description": "SubscribeTransactions creates a uni-directional stream from the server to\nthe client in which any newly discovered transactions relevant to the\nwallet are sent over.",
               "requestType": "GetTransactionsRequest",
               "requestLongType": "GetTransactionsRequest",
               "requestFullType": "lnrpc.GetTransactionsRequest",
@@ -12155,7 +12155,7 @@
             },
             {
               "name": "SendMany",
-              "description": "lncli: `sendmany`\n$pld.category: ``\n$pld.short_description: ``\nSendMany handles a request for a transaction that creates multiple specified\noutputs in parallel. If neither target_conf, or sat_per_byte are set, then\nthe internal wallet will consult its fee model to determine a fee for the\ndefault confirmation target.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Send bitcoin on-chain to multiple addresses`\n\nSendMany handles a request for a transaction that creates multiple specified\noutputs in parallel. If neither target_conf, or sat_per_byte are set, then\nthe internal wallet will consult its fee model to determine a fee for the\ndefault confirmation target.",
               "requestType": "SendManyRequest",
               "requestLongType": "SendManyRequest",
               "requestFullType": "lnrpc.SendManyRequest",
@@ -12167,7 +12167,7 @@
             },
             {
               "name": "NewAddress",
-              "description": "lncli: `newaddress`\n$pld.category: ``\n$pld.short_description: ``\nNewAddress creates a new address under control of the local wallet.",
+              "description": "NewAddress creates a new address under control of the local wallet.",
               "requestType": "NewAddressRequest",
               "requestLongType": "NewAddressRequest",
               "requestFullType": "lnrpc.NewAddressRequest",
@@ -12179,7 +12179,7 @@
             },
             {
               "name": "SignMessage",
-              "description": "lncli: `signmessage`\n$pld.category: ``\n$pld.short_description: ``\nSignMessage signs a message with this node's private key. The returned\nsignature string is `zbase32` encoded and pubkey recoverable, meaning that\nonly the message digest and signature are needed for verification.",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Signs a message using the private key of a payment address`\n\nSignMessage signs a message with this node's private key. The returned\nsignature string is `zbase32` encoded and pubkey recoverable, meaning that\nonly the message digest and signature are needed for verification.",
               "requestType": "SignMessageRequest",
               "requestLongType": "SignMessageRequest",
               "requestFullType": "lnrpc.SignMessageRequest",
@@ -12191,7 +12191,7 @@
             },
             {
               "name": "ConnectPeer",
-              "description": "lncli: `connect`\n$pld.category: ``\n$pld.short_description: ``\nConnectPeer attempts to establish a connection to a remote peer. This is at\nthe networking level, and is used for communication between nodes. This is\ndistinct from establishing a channel with a peer.",
+              "description": "$pld.category: `Peer`\n$pld.short_description: `Connect to a remote pld peer`\n\nConnectPeer attempts to establish a connection to a remote peer. This is at\nthe networking level, and is used for communication between nodes. This is\ndistinct from establishing a channel with a peer.",
               "requestType": "ConnectPeerRequest",
               "requestLongType": "ConnectPeerRequest",
               "requestFullType": "lnrpc.ConnectPeerRequest",
@@ -12203,7 +12203,7 @@
             },
             {
               "name": "DisconnectPeer",
-              "description": "lncli: `disconnect`\n$pld.category: ``\n$pld.short_description: ``\nDisconnectPeer attempts to disconnect one peer from another identified by a\ngiven pubKey. In the case that we currently have a pending or active channel\nwith the target peer, then this action will be not be allowed.",
+              "description": "$pld.category: `Peer`\n$pld.short_description: `Disconnect a remote pld peer identified by public key`\n\nDisconnectPeer attempts to disconnect one peer from another identified by a\ngiven pubKey. In the case that we currently have a pending or active channel\nwith the target peer, then this action will be not be allowed.",
               "requestType": "DisconnectPeerRequest",
               "requestLongType": "DisconnectPeerRequest",
               "requestFullType": "lnrpc.DisconnectPeerRequest",
@@ -12215,7 +12215,7 @@
             },
             {
               "name": "ListPeers",
-              "description": "lncli: `listpeers`\n$pld.category: ``\n$pld.short_description: ``\nListPeers returns a verbose listing of all currently active peers.",
+              "description": "$pld.category: `Peer`\n$pld.short_description: `List all active, currently connected peers`\n\nListPeers returns a verbose listing of all currently active peers.",
               "requestType": "ListPeersRequest",
               "requestLongType": "ListPeersRequest",
               "requestFullType": "lnrpc.ListPeersRequest",
@@ -12227,7 +12227,7 @@
             },
             {
               "name": "SubscribePeerEvents",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nSubscribePeerEvents creates a uni-directional stream from the server to\nthe client in which any events relevant to the state of peers are sent\nover. Events include peers going online and offline.",
+              "description": "SubscribePeerEvents creates a uni-directional stream from the server to\nthe client in which any events relevant to the state of peers are sent\nover. Events include peers going online and offline.",
               "requestType": "PeerEventSubscription",
               "requestLongType": "PeerEventSubscription",
               "requestFullType": "lnrpc.PeerEventSubscription",
@@ -12239,7 +12239,7 @@
             },
             {
               "name": "GetInfo",
-              "description": "lncli: `getinfo`\n$pld.category: ``\n$pld.short_description: ``\nGetInfo returns general information concerning the lightning node including\nit's identity pubkey, alias, the chains it is connected to, and information\nconcerning the number of open+pending channels.",
+              "description": "GetInfo returns general information concerning the lightning node including\nit's identity pubkey, alias, the chains it is connected to, and information\nconcerning the number of open+pending channels.",
               "requestType": "GetInfoRequest",
               "requestLongType": "GetInfoRequest",
               "requestFullType": "lnrpc.GetInfoRequest",
@@ -12251,7 +12251,7 @@
             },
             {
               "name": "GetRecoveryInfo",
-              "description": "lncli: `getrecoveryinfo`\n$pld.category: ``\n$pld.short_description: ``\nGetRecoveryInfo returns information concerning the recovery mode including\nwhether it's in a recovery mode, whether the recovery is finished, and the\nprogress made so far.",
+              "description": "lncli: `getrecoveryinfo`\nGetRecoveryInfo returns information concerning the recovery mode including\nwhether it's in a recovery mode, whether the recovery is finished, and the\nprogress made so far.",
               "requestType": "GetRecoveryInfoRequest",
               "requestLongType": "GetRecoveryInfoRequest",
               "requestFullType": "lnrpc.GetRecoveryInfoRequest",
@@ -12335,7 +12335,7 @@
             },
             {
               "name": "FundingStateStep",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nFundingStateStep is an advanced funding related call that allows the caller\nto either execute some preparatory steps for a funding workflow, or\nmanually progress a funding workflow. The primary way a funding flow is\nidentified is via its pending channel ID. As an example, this method can be\nused to specify that we're expecting a funding flow for a particular\npending channel ID, for which we need to use specific parameters.\nAlternatively, this can be used to interactively drive PSBT signing for\nfunding for partially complete funding transactions.",
+              "description": "FundingStateStep is an advanced funding related call that allows the caller\nto either execute some preparatory steps for a funding workflow, or\nmanually progress a funding workflow. The primary way a funding flow is\nidentified is via its pending channel ID. As an example, this method can be\nused to specify that we're expecting a funding flow for a particular\npending channel ID, for which we need to use specific parameters.\nAlternatively, this can be used to interactively drive PSBT signing for\nfunding for partially complete funding transactions.",
               "requestType": "FundingTransitionMsg",
               "requestLongType": "FundingTransitionMsg",
               "requestFullType": "lnrpc.FundingTransitionMsg",
@@ -12347,7 +12347,7 @@
             },
             {
               "name": "ChannelAcceptor",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nChannelAcceptor dispatches a bi-directional streaming RPC in which\nOpenChannel requests are sent to the client and the client responds with\na boolean that tells LND whether or not to accept the channel. This allows\nnode operators to specify their own criteria for accepting inbound channels\nthrough a single persistent connection.",
+              "description": "ChannelAcceptor dispatches a bi-directional streaming RPC in which\nOpenChannel requests are sent to the client and the client responds with\na boolean that tells LND whether or not to accept the channel. This allows\nnode operators to specify their own criteria for accepting inbound channels\nthrough a single persistent connection.",
               "requestType": "ChannelAcceptResponse",
               "requestLongType": "ChannelAcceptResponse",
               "requestFullType": "lnrpc.ChannelAcceptResponse",
@@ -12473,7 +12473,7 @@
             },
             {
               "name": "SubscribeInvoices",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nSubscribeInvoices returns a uni-directional stream (server -\u003e client) for\nnotifying the client of newly added/settled invoices. The caller can\noptionally specify the add_index and/or the settle_index. If the add_index\nis specified, then we'll first start by sending add invoice events for all\ninvoices with an add_index greater than the specified value. If the\nsettle_index is specified, the next, we'll send out all settle events for\ninvoices with a settle_index greater than the specified value. One or both\nof these fields can be set. If no fields are set, then we'll only send out\nthe latest add/settle events.",
+              "description": "SubscribeInvoices returns a uni-directional stream (server -\u003e client) for\nnotifying the client of newly added/settled invoices. The caller can\noptionally specify the add_index and/or the settle_index. If the add_index\nis specified, then we'll first start by sending add invoice events for all\ninvoices with an add_index greater than the specified value. If the\nsettle_index is specified, the next, we'll send out all settle events for\ninvoices with a settle_index greater than the specified value. One or both\nof these fields can be set. If no fields are set, then we'll only send out\nthe latest add/settle events.",
               "requestType": "InvoiceSubscription",
               "requestLongType": "InvoiceSubscription",
               "requestFullType": "lnrpc.InvoiceSubscription",
@@ -12593,7 +12593,7 @@
             },
             {
               "name": "StopDaemon",
-              "description": "lncli: `stop`\n$pld.category: ``\n$pld.short_description: ``\nStopDaemon will send a shutdown request to the interrupt handler, triggering\na graceful shutdown of the daemon.",
+              "description": "$pld.category: `Meta`\n$pld.short_description: `Stop and shutdown the daemon`\n\nStopDaemon will send a shutdown request to the interrupt handler, triggering\na graceful shutdown of the daemon.",
               "requestType": "StopRequest",
               "requestLongType": "StopRequest",
               "requestFullType": "lnrpc.StopRequest",
@@ -12617,7 +12617,7 @@
             },
             {
               "name": "DebugLevel",
-              "description": "lncli: `debuglevel`\n$pld.category: ``\n$pld.short_description: ``\nDebugLevel allows a caller to programmatically set the logging verbosity of\nlnd. The logging can be targeted according to a coarse daemon-wide logging\nlevel, or in a granular fashion to specify the logging for a target\nsub-system.",
+              "description": "$pld.category: `Meta`\n$pld.short_description: `Set the debug level`\n\nDebugLevel allows a caller to programmatically set the logging verbosity of\nlnd. The logging can be targeted according to a coarse daemon-wide logging\nlevel, or in a granular fashion to specify the logging for a target\nsub-system.",
               "requestType": "DebugLevelRequest",
               "requestLongType": "DebugLevelRequest",
               "requestFullType": "lnrpc.DebugLevelRequest",
@@ -12725,7 +12725,7 @@
             },
             {
               "name": "ReSync",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nScan over the chain to find any transactions which may not have been recorded in the wallet's database",
+              "description": "$pld.category: `Unspent`\n$pld.short_description: `Scan over the chain to find any transactions which may not have been recorded in the wallet's database`\n\nScan over the chain to find any transactions which may not have been recorded in the wallet's database",
               "requestType": "ReSyncChainRequest",
               "requestLongType": "ReSyncChainRequest",
               "requestFullType": "lnrpc.ReSyncChainRequest",
@@ -12737,7 +12737,7 @@
             },
             {
               "name": "StopReSync",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nStop a re-synchronization job before it's completion",
+              "description": "$pld.category: `Unspent`\n$pld.short_description: `Stop a re-synchronization job before it's completion`\n\nStop a re-synchronization job before it's completion",
               "requestType": "StopReSyncRequest",
               "requestLongType": "StopReSyncRequest",
               "requestFullType": "lnrpc.StopReSyncRequest",
@@ -12749,7 +12749,7 @@
             },
             {
               "name": "GetWalletSeed",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nGet the wallet seed words for this wallet",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Get the wallet seed words for this wallet`\n\nGet the wallet seed words for this wallet",
               "requestType": "GetWalletSeedRequest",
               "requestLongType": "GetWalletSeedRequest",
               "requestFullType": "lnrpc.GetWalletSeedRequest",
@@ -12761,7 +12761,7 @@
             },
             {
               "name": "ChangeSeedPassphrase",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nChange seed's passphrase",
+              "description": "$pld.category: `Seed`\n$pld.short_description: `Alter the passphrase which is used to encrypt a wallet seed`\n\nChange seed's passphrase",
               "requestType": "ChangeSeedPassphraseRequest",
               "requestLongType": "ChangeSeedPassphraseRequest",
               "requestFullType": "lnrpc.ChangeSeedPassphraseRequest",
@@ -12773,7 +12773,7 @@
             },
             {
               "name": "GetSecret",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nGet a secret seed which is generated using the wallet's private key, this can be used as a password for another application",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Get a secret seed`\n\nGet a secret seed which is generated using the wallet's private key, this can be used as a password for another application",
               "requestType": "GetSecretRequest",
               "requestLongType": "GetSecretRequest",
               "requestFullType": "lnrpc.GetSecretRequest",
@@ -12785,7 +12785,7 @@
             },
             {
               "name": "ImportPrivKey",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nImports a WIF-encoded private key to the 'imported' account.",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Imports a WIF-encoded private key to the 'imported' account`\n\nImports a WIF-encoded private key to the 'imported' account.",
               "requestType": "ImportPrivKeyRequest",
               "requestLongType": "ImportPrivKeyRequest",
               "requestFullType": "lnrpc.ImportPrivKeyRequest",
@@ -12797,7 +12797,7 @@
             },
             {
               "name": "DumpPrivKey",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nReturns the private key in WIF encoding that controls some wallet address.",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Returns the private key in WIF encoding that controls some wallet address`\n\nReturns the private key in WIF encoding that controls some wallet address.",
               "requestType": "DumpPrivKeyRequest",
               "requestLongType": "DumpPrivKeyRequest",
               "requestFullType": "lnrpc.DumpPrivKeyRequest",
@@ -12809,7 +12809,7 @@
             },
             {
               "name": "ListLockUnspent",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nReturns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.",
+              "description": "$pld.category: `Lock`\n$pld.short_description: `Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session`\n\nReturns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.",
               "requestType": "ListLockUnspentRequest",
               "requestLongType": "ListLockUnspentRequest",
               "requestFullType": "lnrpc.ListLockUnspentRequest",
@@ -12821,7 +12821,7 @@
             },
             {
               "name": "LockUnspent",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nLocks or unlocks an unspent output",
+              "description": "$pld.category: `Lock`\n$pld.short_description: `Locks or unlocks an unspent output`\n\nLocks or unlocks an unspent output",
               "requestType": "LockUnspentRequest",
               "requestLongType": "LockUnspentRequest",
               "requestFullType": "lnrpc.LockUnspentRequest",
@@ -12833,7 +12833,7 @@
             },
             {
               "name": "CreateTransaction",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nCreate a transaction but po not send it to the chain",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Create a transaction but do not send it to the chain`\n\nCreate a transaction but po not send it to the chain",
               "requestType": "CreateTransactionRequest",
               "requestLongType": "CreateTransactionRequest",
               "requestFullType": "lnrpc.CreateTransactionRequest",
@@ -12845,7 +12845,7 @@
             },
             {
               "name": "GetNewAddress",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nGenerates and returns a new payment address",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Generates a new address`\n\nGenerates and returns a new payment address",
               "requestType": "GetNewAddressRequest",
               "requestLongType": "GetNewAddressRequest",
               "requestFullType": "lnrpc.GetNewAddressRequest",
@@ -12857,7 +12857,7 @@
             },
             {
               "name": "GetTransaction",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nReturns a JSON object with details regarding a transaction relevant to this wallet.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Returns a JSON object with details regarding a transaction relevant to this wallet`\n\nReturns a JSON object with details regarding a transaction relevant to this wallet.",
               "requestType": "GetTransactionRequest",
               "requestLongType": "GetTransactionRequest",
               "requestFullType": "lnrpc.GetTransactionRequest",
@@ -12869,7 +12869,7 @@
             },
             {
               "name": "SetNetworkStewardVote",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nConfigure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)",
+              "description": "$pld.category: `Network Steward Vote`\n$pld.short_description: `Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)`\n\nConfigure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)",
               "requestType": "SetNetworkStewardVoteRequest",
               "requestLongType": "SetNetworkStewardVoteRequest",
               "requestFullType": "lnrpc.SetNetworkStewardVoteRequest",
@@ -12881,7 +12881,7 @@
             },
             {
               "name": "GetNetworkStewardVote",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nFind out how the wallet is currently configured to vote in a network steward election",
+              "description": "$pld.category: `Network Steward Vote`\n$pld.short_description: `Find out how the wallet is currently configured to vote in a network steward election`\n\nFind out how the wallet is currently configured to vote in a network steward election",
               "requestType": "GetNetworkStewardVoteRequest",
               "requestLongType": "GetNetworkStewardVoteRequest",
               "requestFullType": "lnrpc.GetNetworkStewardVoteRequest",
@@ -12893,7 +12893,7 @@
             },
             {
               "name": "BcastTransaction",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nBroadcast a transaction",
+              "description": "$pld.category: `Neutrino`\n$pld.short_description: `Broadcast a transaction onchain`\n\nBroadcast a transaction",
               "requestType": "BcastTransactionRequest",
               "requestLongType": "BcastTransactionRequest",
               "requestFullType": "lnrpc.BcastTransactionRequest",
@@ -12905,7 +12905,7 @@
             },
             {
               "name": "SendFrom",
-              "description": "$pld.category: ``\n$pld.short_description: ``\nSendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Authors, signs, and sends a transaction that outputs some amount to a payment address`\n\nSendFrom authors, signs, and sends a transaction that outputs some amount to a payment address.",
               "requestType": "SendFromRequest",
               "requestLongType": "SendFromRequest",
               "requestFullType": "lnrpc.SendFromRequest",

@@ -152,7 +152,7 @@
           "methods": [
             {
               "name": "GetVersion",
-              "description": "pldctl: `version`\nGetVersion returns the current version and build information of the running\ndaemon.",
+              "description": "$pld.category: `Meta`\n$pld.short_description: `Display pldctl and pld version info`\n\nGetVersion returns the current version and build information of the running\ndaemon.",
               "requestType": "VersionRequest",
               "requestLongType": "VersionRequest",
               "requestFullType": "verrpc.VersionRequest",

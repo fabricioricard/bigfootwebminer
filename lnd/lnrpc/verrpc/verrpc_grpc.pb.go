@@ -18,7 +18,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type VersionerClient interface {
-	// pldctl: `version`
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Display pldctl and pld version info`
+	//
 	//GetVersion returns the current version and build information of the running
 	//daemon.
 	GetVersion(ctx context.Context, in *VersionRequest, opts ...grpc.CallOption) (*Version, error)
@@ -45,7 +48,10 @@ func (c *versionerClient) GetVersion(ctx context.Context, in *VersionRequest, op
 // All implementations should embed UnimplementedVersionerServer
 // for forward compatibility
 type VersionerServer interface {
-	// pldctl: `version`
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Display pldctl and pld version info`
+	//
 	//GetVersion returns the current version and build information of the running
 	//daemon.
 	GetVersion(context.Context, *VersionRequest) (*Version, error)

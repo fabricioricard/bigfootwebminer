@@ -27,8 +27,9 @@ type LightningClient interface {
 	//of the wallet.
 	WalletBalance(ctx context.Context, in *WalletBalanceRequest, opts ...grpc.CallOption) (*WalletBalanceResponse, error)
 	//
-	//$pld.category: `Wallet`
-	//$pld.short_description: ``
+	//$pld.category: `Address`
+	//$pld.short_description: `Compute and display balances for each address in the wallet`
+	//
 	//GetAddressBalances returns the balance for each of the addresses in the wallet.
 	GetAddressBalances(ctx context.Context, in *GetAddressBalancesRequest, opts ...grpc.CallOption) (*GetAddressBalancesResponse, error)
 	//
@@ -39,15 +40,17 @@ type LightningClient interface {
 	//categorized in local/remote, pending local/remote and unsettled local/remote
 	//balances.
 	ChannelBalance(ctx context.Context, in *ChannelBalanceRequest, opts ...grpc.CallOption) (*ChannelBalanceResponse, error)
-	// lncli: `listchaintxns`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `List transactions from the wallet`
+	//
 	//GetTransactions returns a list describing all the known transactions
 	//relevant to the wallet.
 	GetTransactions(ctx context.Context, in *GetTransactionsRequest, opts ...grpc.CallOption) (*TransactionDetails, error)
-	// lncli: `estimatefee`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Neutrino`
+	//$pld.short_description: `Get fee estimates for sending bitcoin on-chain to multiple addresses`
+	//
 	//EstimateFee asks the chain backend to estimate the fee rate and total fees
 	//for a transaction that pays to multiple specified outputs.
 	//
@@ -56,9 +59,10 @@ type LightningClient interface {
 	//map type doesn't appear in the REST API documentation because of a bug in
 	//the grpc-gateway library.
 	EstimateFee(ctx context.Context, in *EstimateFeeRequest, opts ...grpc.CallOption) (*EstimateFeeResponse, error)
-	// lncli: `sendcoins`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Send bitcoin on-chain to an address`
+	//
 	//SendCoins executes a request to send coins to a particular address. Unlike
 	//SendMany, this RPC call only allows creating a single output at a time. If
 	//neither target_conf, or sat_per_byte are set, then the internal wallet will
@@ -66,76 +70,69 @@ type LightningClient interface {
 	//target.
 	SendCoins(ctx context.Context, in *SendCoinsRequest, opts ...grpc.CallOption) (*SendCoinsResponse, error)
 	// lncli: `listunspent`
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//Deprecated, use walletrpc.ListUnspent instead.
 	//
 	//ListUnspent returns a list of all utxos spendable by the wallet with a
 	//number of confirmations between the specified minimum and maximum.
 	ListUnspent(ctx context.Context, in *ListUnspentRequest, opts ...grpc.CallOption) (*ListUnspentResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//SubscribeTransactions creates a uni-directional stream from the server to
 	//the client in which any newly discovered transactions relevant to the
 	//wallet are sent over.
 	SubscribeTransactions(ctx context.Context, in *GetTransactionsRequest, opts ...grpc.CallOption) (Lightning_SubscribeTransactionsClient, error)
-	// lncli: `sendmany`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Send bitcoin on-chain to multiple addresses`
+	//
 	//SendMany handles a request for a transaction that creates multiple specified
 	//outputs in parallel. If neither target_conf, or sat_per_byte are set, then
 	//the internal wallet will consult its fee model to determine a fee for the
 	//default confirmation target.
 	SendMany(ctx context.Context, in *SendManyRequest, opts ...grpc.CallOption) (*SendManyResponse, error)
-	// lncli: `newaddress`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
 	//NewAddress creates a new address under control of the local wallet.
 	NewAddress(ctx context.Context, in *NewAddressRequest, opts ...grpc.CallOption) (*NewAddressResponse, error)
-	// lncli: `signmessage`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Signs a message using the private key of a payment address`
+	//
 	//SignMessage signs a message with this node's private key. The returned
 	//signature string is `zbase32` encoded and pubkey recoverable, meaning that
 	//only the message digest and signature are needed for verification.
 	SignMessage(ctx context.Context, in *SignMessageRequest, opts ...grpc.CallOption) (*SignMessageResponse, error)
-	// lncli: `connect`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `Connect to a remote pld peer`
+	//
 	//ConnectPeer attempts to establish a connection to a remote peer. This is at
 	//the networking level, and is used for communication between nodes. This is
 	//distinct from establishing a channel with a peer.
 	ConnectPeer(ctx context.Context, in *ConnectPeerRequest, opts ...grpc.CallOption) (*ConnectPeerResponse, error)
-	// lncli: `disconnect`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `Disconnect a remote pld peer identified by public key`
+	//
 	//DisconnectPeer attempts to disconnect one peer from another identified by a
 	//given pubKey. In the case that we currently have a pending or active channel
 	//with the target peer, then this action will be not be allowed.
 	DisconnectPeer(ctx context.Context, in *DisconnectPeerRequest, opts ...grpc.CallOption) (*DisconnectPeerResponse, error)
-	// lncli: `listpeers`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `List all active, currently connected peers`
+	//
 	//ListPeers returns a verbose listing of all currently active peers.
 	ListPeers(ctx context.Context, in *ListPeersRequest, opts ...grpc.CallOption) (*ListPeersResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//SubscribePeerEvents creates a uni-directional stream from the server to
 	//the client in which any events relevant to the state of peers are sent
 	//over. Events include peers going online and offline.
 	SubscribePeerEvents(ctx context.Context, in *PeerEventSubscription, opts ...grpc.CallOption) (Lightning_SubscribePeerEventsClient, error)
-	// lncli: `getinfo`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
 	//GetInfo returns general information concerning the lightning node including
 	//it's identity pubkey, alias, the chains it is connected to, and information
 	//concerning the number of open+pending channels.
 	GetInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*GetInfoResponse, error)
 	//* lncli: `getrecoveryinfo`
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//GetRecoveryInfo returns information concerning the recovery mode including
 	//whether it's in a recovery mode, whether the recovery is finished, and the
 	//progress made so far.
@@ -189,8 +186,6 @@ type LightningClient interface {
 	//then be used to manually progress the channel funding flow.
 	OpenChannel(ctx context.Context, in *OpenChannelRequest, opts ...grpc.CallOption) (Lightning_OpenChannelClient, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//FundingStateStep is an advanced funding related call that allows the caller
 	//to either execute some preparatory steps for a funding workflow, or
 	//manually progress a funding workflow. The primary way a funding flow is
@@ -201,8 +196,6 @@ type LightningClient interface {
 	//funding for partially complete funding transactions.
 	FundingStateStep(ctx context.Context, in *FundingTransitionMsg, opts ...grpc.CallOption) (*FundingStateStepResp, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//ChannelAcceptor dispatches a bi-directional streaming RPC in which
 	//OpenChannel requests are sent to the client and the client responds with
 	//a boolean that tells LND whether or not to accept the channel. This allows
@@ -287,8 +280,6 @@ type LightningClient interface {
 	//returned.
 	LookupInvoice(ctx context.Context, in *PaymentHash, opts ...grpc.CallOption) (*Invoice, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//SubscribeInvoices returns a uni-directional stream (server -> client) for
 	//notifying the client of newly added/settled invoices. The caller can
 	//optionally specify the add_index and/or the settle_index. If the add_index
@@ -372,9 +363,10 @@ type LightningClient interface {
 	//GetNetworkInfo returns some basic stats about the known channel graph from
 	//the point of view of the node.
 	GetNetworkInfo(ctx context.Context, in *NetworkInfoRequest, opts ...grpc.CallOption) (*NetworkInfo, error)
-	// lncli: `stop`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Stop and shutdown the daemon`
+	//
 	//StopDaemon will send a shutdown request to the interrupt handler, triggering
 	//a graceful shutdown of the daemon.
 	StopDaemon(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*StopResponse, error)
@@ -386,9 +378,10 @@ type LightningClient interface {
 	//channels being advertised, updates in the routing policy for a directional
 	//channel edge, and when channels are closed on-chain.
 	SubscribeChannelGraph(ctx context.Context, in *GraphTopologySubscription, opts ...grpc.CallOption) (Lightning_SubscribeChannelGraphClient, error)
-	// lncli: `debuglevel`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Set the debug level`
+	//
 	//DebugLevel allows a caller to programmatically set the logging verbosity of
 	//lnd. The logging can be targeted according to a coarse daemon-wide logging
 	//level, or in a granular fashion to specify the logging for a target
@@ -468,84 +461,100 @@ type LightningClient interface {
 	//channel(s) removed.
 	SubscribeChannelBackups(ctx context.Context, in *ChannelBackupSubscription, opts ...grpc.CallOption) (Lightning_SubscribeChannelBackupsClient, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Unspent`
+	//$pld.short_description: `Scan over the chain to find any transactions which may not have been recorded in the wallet's database`
+	//
 	//Scan over the chain to find any transactions which may not have been recorded in the wallet's database
 	ReSync(ctx context.Context, in *ReSyncChainRequest, opts ...grpc.CallOption) (*ReSyncChainResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Unspent`
+	//$pld.short_description: `Stop a re-synchronization job before it's completion`
+	//
 	//Stop a re-synchronization job before it's completion
 	StopReSync(ctx context.Context, in *StopReSyncRequest, opts ...grpc.CallOption) (*StopReSyncResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Get the wallet seed words for this wallet`
+	//
 	//Get the wallet seed words for this wallet
 	GetWalletSeed(ctx context.Context, in *GetWalletSeedRequest, opts ...grpc.CallOption) (*GetWalletSeedResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Seed`
+	//$pld.short_description: `Alter the passphrase which is used to encrypt a wallet seed`
+	//
 	//Change seed's passphrase
 	ChangeSeedPassphrase(ctx context.Context, in *ChangeSeedPassphraseRequest, opts ...grpc.CallOption) (*ChangeSeedPassphraseResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Get a secret seed`
+	//
 	//Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application
 	GetSecret(ctx context.Context, in *GetSecretRequest, opts ...grpc.CallOption) (*GetSecretResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Address`
+	//$pld.short_description: `Imports a WIF-encoded private key to the 'imported' account`
+	//
 	//Imports a WIF-encoded private key to the 'imported' account.
 	ImportPrivKey(ctx context.Context, in *ImportPrivKeyRequest, opts ...grpc.CallOption) (*ImportPrivKeyResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Address`
+	//$pld.short_description: `Returns the private key in WIF encoding that controls some wallet address`
+	//
 	//Returns the private key in WIF encoding that controls some wallet address.
 	DumpPrivKey(ctx context.Context, in *DumpPrivKeyRequest, opts ...grpc.CallOption) (*DumpPrivKeyResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Lock`
+	//$pld.short_description: `Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session`
+	//
 	//Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.
 	ListLockUnspent(ctx context.Context, in *ListLockUnspentRequest, opts ...grpc.CallOption) (*ListLockUnspentResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Lock`
+	//$pld.short_description: `Locks or unlocks an unspent output`
+	//
 	//Locks or unlocks an unspent output
 	LockUnspent(ctx context.Context, in *LockUnspentRequest, opts ...grpc.CallOption) (*LockUnspentResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Create a transaction but do not send it to the chain`
+	//
 	//Create a transaction but po not send it to the chain
 	CreateTransaction(ctx context.Context, in *CreateTransactionRequest, opts ...grpc.CallOption) (*CreateTransactionResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Address`
+	//$pld.short_description: `Generates a new address`
+	//
 	//Generates and returns a new payment address
 	GetNewAddress(ctx context.Context, in *GetNewAddressRequest, opts ...grpc.CallOption) (*GetNewAddressResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Returns a JSON object with details regarding a transaction relevant to this wallet`
+	//
 	//Returns a JSON object with details regarding a transaction relevant to this wallet.
 	GetTransaction(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Network Steward Vote`
+	//$pld.short_description: `Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)`
+	//
 	//Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)
 	SetNetworkStewardVote(ctx context.Context, in *SetNetworkStewardVoteRequest, opts ...grpc.CallOption) (*SetNetworkStewardVoteResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Network Steward Vote`
+	//$pld.short_description: `Find out how the wallet is currently configured to vote in a network steward election`
+	//
 	//Find out how the wallet is currently configured to vote in a network steward election
 	GetNetworkStewardVote(ctx context.Context, in *GetNetworkStewardVoteRequest, opts ...grpc.CallOption) (*GetNetworkStewardVoteResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Neutrino`
+	//$pld.short_description: `Broadcast a transaction onchain`
+	//
 	//Broadcast a transaction
 	BcastTransaction(ctx context.Context, in *BcastTransactionRequest, opts ...grpc.CallOption) (*BcastTransactionResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
-	//SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Authors, signs, and sends a transaction that outputs some amount to a payment address`
+	//
+	//SendFrom authors, signs, and sends a transaction that outputs some amount to a payment address.
 	SendFrom(ctx context.Context, in *SendFromRequest, opts ...grpc.CallOption) (*SendFromResponse, error)
 }
 
@@ -1461,8 +1470,9 @@ type LightningServer interface {
 	//of the wallet.
 	WalletBalance(context.Context, *WalletBalanceRequest) (*WalletBalanceResponse, error)
 	//
-	//$pld.category: `Wallet`
-	//$pld.short_description: ``
+	//$pld.category: `Address`
+	//$pld.short_description: `Compute and display balances for each address in the wallet`
+	//
 	//GetAddressBalances returns the balance for each of the addresses in the wallet.
 	GetAddressBalances(context.Context, *GetAddressBalancesRequest) (*GetAddressBalancesResponse, error)
 	//
@@ -1473,15 +1483,17 @@ type LightningServer interface {
 	//categorized in local/remote, pending local/remote and unsettled local/remote
 	//balances.
 	ChannelBalance(context.Context, *ChannelBalanceRequest) (*ChannelBalanceResponse, error)
-	// lncli: `listchaintxns`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `List transactions from the wallet`
+	//
 	//GetTransactions returns a list describing all the known transactions
 	//relevant to the wallet.
 	GetTransactions(context.Context, *GetTransactionsRequest) (*TransactionDetails, error)
-	// lncli: `estimatefee`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Neutrino`
+	//$pld.short_description: `Get fee estimates for sending bitcoin on-chain to multiple addresses`
+	//
 	//EstimateFee asks the chain backend to estimate the fee rate and total fees
 	//for a transaction that pays to multiple specified outputs.
 	//
@@ -1490,9 +1502,10 @@ type LightningServer interface {
 	//map type doesn't appear in the REST API documentation because of a bug in
 	//the grpc-gateway library.
 	EstimateFee(context.Context, *EstimateFeeRequest) (*EstimateFeeResponse, error)
-	// lncli: `sendcoins`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Send bitcoin on-chain to an address`
+	//
 	//SendCoins executes a request to send coins to a particular address. Unlike
 	//SendMany, this RPC call only allows creating a single output at a time. If
 	//neither target_conf, or sat_per_byte are set, then the internal wallet will
@@ -1500,76 +1513,69 @@ type LightningServer interface {
 	//target.
 	SendCoins(context.Context, *SendCoinsRequest) (*SendCoinsResponse, error)
 	// lncli: `listunspent`
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//Deprecated, use walletrpc.ListUnspent instead.
 	//
 	//ListUnspent returns a list of all utxos spendable by the wallet with a
 	//number of confirmations between the specified minimum and maximum.
 	ListUnspent(context.Context, *ListUnspentRequest) (*ListUnspentResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//SubscribeTransactions creates a uni-directional stream from the server to
 	//the client in which any newly discovered transactions relevant to the
 	//wallet are sent over.
 	SubscribeTransactions(*GetTransactionsRequest, Lightning_SubscribeTransactionsServer) error
-	// lncli: `sendmany`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Send bitcoin on-chain to multiple addresses`
+	//
 	//SendMany handles a request for a transaction that creates multiple specified
 	//outputs in parallel. If neither target_conf, or sat_per_byte are set, then
 	//the internal wallet will consult its fee model to determine a fee for the
 	//default confirmation target.
 	SendMany(context.Context, *SendManyRequest) (*SendManyResponse, error)
-	// lncli: `newaddress`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
 	//NewAddress creates a new address under control of the local wallet.
 	NewAddress(context.Context, *NewAddressRequest) (*NewAddressResponse, error)
-	// lncli: `signmessage`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Signs a message using the private key of a payment address`
+	//
 	//SignMessage signs a message with this node's private key. The returned
 	//signature string is `zbase32` encoded and pubkey recoverable, meaning that
 	//only the message digest and signature are needed for verification.
 	SignMessage(context.Context, *SignMessageRequest) (*SignMessageResponse, error)
-	// lncli: `connect`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `Connect to a remote pld peer`
+	//
 	//ConnectPeer attempts to establish a connection to a remote peer. This is at
 	//the networking level, and is used for communication between nodes. This is
 	//distinct from establishing a channel with a peer.
 	ConnectPeer(context.Context, *ConnectPeerRequest) (*ConnectPeerResponse, error)
-	// lncli: `disconnect`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `Disconnect a remote pld peer identified by public key`
+	//
 	//DisconnectPeer attempts to disconnect one peer from another identified by a
 	//given pubKey. In the case that we currently have a pending or active channel
 	//with the target peer, then this action will be not be allowed.
 	DisconnectPeer(context.Context, *DisconnectPeerRequest) (*DisconnectPeerResponse, error)
-	// lncli: `listpeers`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `List all active, currently connected peers`
+	//
 	//ListPeers returns a verbose listing of all currently active peers.
 	ListPeers(context.Context, *ListPeersRequest) (*ListPeersResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//SubscribePeerEvents creates a uni-directional stream from the server to
 	//the client in which any events relevant to the state of peers are sent
 	//over. Events include peers going online and offline.
 	SubscribePeerEvents(*PeerEventSubscription, Lightning_SubscribePeerEventsServer) error
-	// lncli: `getinfo`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
 	//GetInfo returns general information concerning the lightning node including
 	//it's identity pubkey, alias, the chains it is connected to, and information
 	//concerning the number of open+pending channels.
 	GetInfo(context.Context, *GetInfoRequest) (*GetInfoResponse, error)
 	//* lncli: `getrecoveryinfo`
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//GetRecoveryInfo returns information concerning the recovery mode including
 	//whether it's in a recovery mode, whether the recovery is finished, and the
 	//progress made so far.
@@ -1623,8 +1629,6 @@ type LightningServer interface {
 	//then be used to manually progress the channel funding flow.
 	OpenChannel(*OpenChannelRequest, Lightning_OpenChannelServer) error
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//FundingStateStep is an advanced funding related call that allows the caller
 	//to either execute some preparatory steps for a funding workflow, or
 	//manually progress a funding workflow. The primary way a funding flow is
@@ -1635,8 +1639,6 @@ type LightningServer interface {
 	//funding for partially complete funding transactions.
 	FundingStateStep(context.Context, *FundingTransitionMsg) (*FundingStateStepResp, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//ChannelAcceptor dispatches a bi-directional streaming RPC in which
 	//OpenChannel requests are sent to the client and the client responds with
 	//a boolean that tells LND whether or not to accept the channel. This allows
@@ -1721,8 +1723,6 @@ type LightningServer interface {
 	//returned.
 	LookupInvoice(context.Context, *PaymentHash) (*Invoice, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
 	//SubscribeInvoices returns a uni-directional stream (server -> client) for
 	//notifying the client of newly added/settled invoices. The caller can
 	//optionally specify the add_index and/or the settle_index. If the add_index
@@ -1806,9 +1806,10 @@ type LightningServer interface {
 	//GetNetworkInfo returns some basic stats about the known channel graph from
 	//the point of view of the node.
 	GetNetworkInfo(context.Context, *NetworkInfoRequest) (*NetworkInfo, error)
-	// lncli: `stop`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Stop and shutdown the daemon`
+	//
 	//StopDaemon will send a shutdown request to the interrupt handler, triggering
 	//a graceful shutdown of the daemon.
 	StopDaemon(context.Context, *StopRequest) (*StopResponse, error)
@@ -1820,9 +1821,10 @@ type LightningServer interface {
 	//channels being advertised, updates in the routing policy for a directional
 	//channel edge, and when channels are closed on-chain.
 	SubscribeChannelGraph(*GraphTopologySubscription, Lightning_SubscribeChannelGraphServer) error
-	// lncli: `debuglevel`
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Set the debug level`
+	//
 	//DebugLevel allows a caller to programmatically set the logging verbosity of
 	//lnd. The logging can be targeted according to a coarse daemon-wide logging
 	//level, or in a granular fashion to specify the logging for a target
@@ -1902,84 +1904,100 @@ type LightningServer interface {
 	//channel(s) removed.
 	SubscribeChannelBackups(*ChannelBackupSubscription, Lightning_SubscribeChannelBackupsServer) error
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Unspent`
+	//$pld.short_description: `Scan over the chain to find any transactions which may not have been recorded in the wallet's database`
+	//
 	//Scan over the chain to find any transactions which may not have been recorded in the wallet's database
 	ReSync(context.Context, *ReSyncChainRequest) (*ReSyncChainResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Unspent`
+	//$pld.short_description: `Stop a re-synchronization job before it's completion`
+	//
 	//Stop a re-synchronization job before it's completion
 	StopReSync(context.Context, *StopReSyncRequest) (*StopReSyncResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Get the wallet seed words for this wallet`
+	//
 	//Get the wallet seed words for this wallet
 	GetWalletSeed(context.Context, *GetWalletSeedRequest) (*GetWalletSeedResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Seed`
+	//$pld.short_description: `Alter the passphrase which is used to encrypt a wallet seed`
+	//
 	//Change seed's passphrase
 	ChangeSeedPassphrase(context.Context, *ChangeSeedPassphraseRequest) (*ChangeSeedPassphraseResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Get a secret seed`
+	//
 	//Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application
 	GetSecret(context.Context, *GetSecretRequest) (*GetSecretResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Address`
+	//$pld.short_description: `Imports a WIF-encoded private key to the 'imported' account`
+	//
 	//Imports a WIF-encoded private key to the 'imported' account.
 	ImportPrivKey(context.Context, *ImportPrivKeyRequest) (*ImportPrivKeyResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Address`
+	//$pld.short_description: `Returns the private key in WIF encoding that controls some wallet address`
+	//
 	//Returns the private key in WIF encoding that controls some wallet address.
 	DumpPrivKey(context.Context, *DumpPrivKeyRequest) (*DumpPrivKeyResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Lock`
+	//$pld.short_description: `Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session`
+	//
 	//Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.
 	ListLockUnspent(context.Context, *ListLockUnspentRequest) (*ListLockUnspentResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Lock`
+	//$pld.short_description: `Locks or unlocks an unspent output`
+	//
 	//Locks or unlocks an unspent output
 	LockUnspent(context.Context, *LockUnspentRequest) (*LockUnspentResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Create a transaction but do not send it to the chain`
+	//
 	//Create a transaction but po not send it to the chain
 	CreateTransaction(context.Context, *CreateTransactionRequest) (*CreateTransactionResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Address`
+	//$pld.short_description: `Generates a new address`
+	//
 	//Generates and returns a new payment address
 	GetNewAddress(context.Context, *GetNewAddressRequest) (*GetNewAddressResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Returns a JSON object with details regarding a transaction relevant to this wallet`
+	//
 	//Returns a JSON object with details regarding a transaction relevant to this wallet.
 	GetTransaction(context.Context, *GetTransactionRequest) (*GetTransactionResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Network Steward Vote`
+	//$pld.short_description: `Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)`
+	//
 	//Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)
 	SetNetworkStewardVote(context.Context, *SetNetworkStewardVoteRequest) (*SetNetworkStewardVoteResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Network Steward Vote`
+	//$pld.short_description: `Find out how the wallet is currently configured to vote in a network steward election`
+	//
 	//Find out how the wallet is currently configured to vote in a network steward election
 	GetNetworkStewardVote(context.Context, *GetNetworkStewardVoteRequest) (*GetNetworkStewardVoteResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
+	//$pld.category: `Neutrino`
+	//$pld.short_description: `Broadcast a transaction onchain`
+	//
 	//Broadcast a transaction
 	BcastTransaction(context.Context, *BcastTransactionRequest) (*BcastTransactionResponse, error)
 	//
-	//$pld.category: ``
-	//$pld.short_description: ``
-	//SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Authors, signs, and sends a transaction that outputs some amount to a payment address`
+	//
+	//SendFrom authors, signs, and sends a transaction that outputs some amount to a payment address.
 	SendFrom(context.Context, *SendFromRequest) (*SendFromResponse, error)
 }
 

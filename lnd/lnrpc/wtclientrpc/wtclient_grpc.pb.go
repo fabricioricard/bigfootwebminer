@@ -19,24 +19,46 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WatchtowerClientClient interface {
 	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Register a watchtower to use for future sessions/backups`
+	//
 	//AddTower adds a new watchtower reachable at the given address and
 	//considers it for new sessions. If the watchtower already exists, then
 	//any new addresses included will be considered when dialing it for
 	//session negotiations and backups.
 	AddTower(ctx context.Context, in *AddTowerRequest, opts ...grpc.CallOption) (*AddTowerResponse, error)
 	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Remove a watchtower to prevent its use for future sessions/backups`
+	//
 	//RemoveTower removes a watchtower from being considered for future session
 	//negotiations and from being used for any subsequent backups until it's added
 	//again. If an address is provided, then this RPC only serves as a way of
 	//removing the address from the watchtower instead.
 	RemoveTower(ctx context.Context, in *RemoveTowerRequest, opts ...grpc.CallOption) (*RemoveTowerResponse, error)
-	// ListTowers returns the list of watchtowers registered with the client.
+	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Display information about all registered watchtowers`
+	//
+	//ListTowers returns the list of watchtowers registered with the client.
 	ListTowers(ctx context.Context, in *ListTowersRequest, opts ...grpc.CallOption) (*ListTowersResponse, error)
-	// GetTowerInfo retrieves information for a registered watchtower.
+	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Display information about a specific registered watchtower`
+	//
+	//GetTowerInfo retrieves information for a registered watchtower.
 	GetTowerInfo(ctx context.Context, in *GetTowerInfoRequest, opts ...grpc.CallOption) (*Tower, error)
-	// Stats returns the in-memory statistics of the client since startup.
+	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Display the session stats of the watchtower client`
+	//
+	//Stats returns the in-memory statistics of the client since startup.
 	Stats(ctx context.Context, in *StatsRequest, opts ...grpc.CallOption) (*StatsResponse, error)
-	// Policy returns the active watchtower client policy configuration.
+	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Display the active watchtower client policy configuration`
+	//
+	//Policy returns the active watchtower client policy configuration.
 	Policy(ctx context.Context, in *PolicyRequest, opts ...grpc.CallOption) (*PolicyResponse, error)
 }
 
@@ -107,24 +129,46 @@ func (c *watchtowerClientClient) Policy(ctx context.Context, in *PolicyRequest, 
 // for forward compatibility
 type WatchtowerClientServer interface {
 	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Register a watchtower to use for future sessions/backups`
+	//
 	//AddTower adds a new watchtower reachable at the given address and
 	//considers it for new sessions. If the watchtower already exists, then
 	//any new addresses included will be considered when dialing it for
 	//session negotiations and backups.
 	AddTower(context.Context, *AddTowerRequest) (*AddTowerResponse, error)
 	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Remove a watchtower to prevent its use for future sessions/backups`
+	//
 	//RemoveTower removes a watchtower from being considered for future session
 	//negotiations and from being used for any subsequent backups until it's added
 	//again. If an address is provided, then this RPC only serves as a way of
 	//removing the address from the watchtower instead.
 	RemoveTower(context.Context, *RemoveTowerRequest) (*RemoveTowerResponse, error)
-	// ListTowers returns the list of watchtowers registered with the client.
+	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Display information about all registered watchtowers`
+	//
+	//ListTowers returns the list of watchtowers registered with the client.
 	ListTowers(context.Context, *ListTowersRequest) (*ListTowersResponse, error)
-	// GetTowerInfo retrieves information for a registered watchtower.
+	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Display information about a specific registered watchtower`
+	//
+	//GetTowerInfo retrieves information for a registered watchtower.
 	GetTowerInfo(context.Context, *GetTowerInfoRequest) (*Tower, error)
-	// Stats returns the in-memory statistics of the client since startup.
+	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Display the session stats of the watchtower client`
+	//
+	//Stats returns the in-memory statistics of the client since startup.
 	Stats(context.Context, *StatsRequest) (*StatsResponse, error)
-	// Policy returns the active watchtower client policy configuration.
+	//
+	//$pld.category: `Watchtower`
+	//$pld.short_description: `Display the active watchtower client policy configuration`
+	//
+	//Policy returns the active watchtower client policy configuration.
 	Policy(context.Context, *PolicyRequest) (*PolicyResponse, error)
 }
 

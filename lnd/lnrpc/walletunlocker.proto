@@ -140,6 +140,12 @@ message InitWalletRequest {
     recover the funds in each channel from a remote force closed transaction.
     */
     ChanBackupSnapshot channel_backups = 7;
+
+    /*
+    wallet_name is an optional argument that allows to define the 
+    wallet filename other than the default wallet.db
+    */
+    string wallet_name = 8;
 }
 message InitWalletResponse {
 }
@@ -175,6 +181,12 @@ message UnlockWalletRequest {
     recover the funds in each channel from a remote force closed transaction.
     */
     ChanBackupSnapshot channel_backups = 4;
+
+    /* 
+    wallet_name is optional when the user wants to load a specified wallet other 
+    than the default wallet.db
+    */
+    string wallet_name = 5;
 }
 message UnlockWalletResponse {
 }

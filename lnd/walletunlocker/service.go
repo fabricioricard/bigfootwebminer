@@ -171,21 +171,6 @@ func (u *UnlockerService) GenSeed(_ context.Context,
 func (u *UnlockerService) GenSeed0(_ context.Context,
 	in *lnrpc.GenSeedRequest) (*lnrpc.GenSeedResponse, er.R) {
 
-	// Before we start, we'll ensure that the wallet hasn't already created
-	// so we don't show a *new* seed to the user if one already exists.
-	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
-	if u.walletPath != "" {
-		netDir = u.walletPath
-	}
-	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, 0)
-	walletExists, err := loader.WalletExists()
-	if err != nil {
-		return nil, err
-	}
-	if walletExists {
-		return nil, er.Errorf("wallet already exists")
-	}
-
 	//var entropy [aezeed.EntropySize]byte
 
 	if len(in.SeedEntropy) != 0 {

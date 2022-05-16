@@ -1120,8 +1120,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	wg.Wait()
 
 	// Wait for user to provide the password.
-	log.Infof("Waiting for wallet (" + walletFilename + ") encryption password. Use `pldctl " +
-		"create` to create a wallet, `pldctl unlock` to unlock an " +
+	log.Infof("Waiting for wallet (" + walletFilename + ") encryption password. Use `pldctl create` to create a wallet, `pldctl unlock` to unlock an " +
 		"existing wallet, or `pldctl changepassword` to change the " +
 		"password of an existing wallet and unlock it.")
 
@@ -1137,6 +1136,10 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		password := initMsg.Passphrase
 		cipherSeed := initMsg.Seed
 		recoveryWindow := initMsg.RecoveryWindow
+
+		if initMsg.WalletName != "" {
+			walletFilename = initMsg.WalletName
+		}
 
 		loader := wallet.NewLoader(
 			cfg.ActiveNetParams.Params, walletPath, walletFilename, !cfg.SyncFreelist,

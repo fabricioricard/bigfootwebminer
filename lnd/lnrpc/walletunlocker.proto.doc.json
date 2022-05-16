@@ -176,6 +176,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "wallet_name",
+              "description": "wallet_name is an optional argument that allows to define the \nwallet filename other than the default wallet.db",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -243,6 +255,18 @@
               "type": "ChanBackupSnapshot",
               "longType": "ChanBackupSnapshot",
               "fullType": "lnrpc.ChanBackupSnapshot",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "wallet_name",
+              "description": "wallet_name is optional when the user wants to load a specified wallet other \nthan the default wallet.db",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

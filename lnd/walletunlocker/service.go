@@ -61,6 +61,8 @@ type WalletInitMsg struct {
 	// initialized stateless, which means no unencrypted macaroons should be
 	// written to disk.
 	StatelessInit bool
+
+	WalletName string
 }
 
 // WalletUnlockMsg is a message sent by the UnlockerService when a user wishes
@@ -302,7 +304,12 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 	if u.walletPath != "" {
 		netDir = u.walletPath
 	}
-	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, uint32(recoveryWindow))
+	//If wallet_name passed use it instead of default
+	walletFile := u.walletFile
+	if in.WalletName != "" {
+		walletFile = in.WalletName
+	}
+	loader := wallet.NewLoader(u.netParams, netDir, walletFile, u.noFreelistSync, uint32(recoveryWindow))
 
 	walletExists, err := loader.WalletExists()
 	if err != nil {
@@ -345,6 +352,7 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 		Seed:           seed,
 		RecoveryWindow: uint32(recoveryWindow),
 		StatelessInit:  true,
+		WalletName:     walletFile,
 	}
 
 	// Before we return the unlock payload, we'll check if we can extract
@@ -404,7 +412,11 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	if u.walletPath != "" {
 		netDir = u.walletPath
 	}
-	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, recoveryWindow)
+	walletFile := u.walletFile
+	if in.WalletName != "" {
+		walletFile = in.WalletName
+	}
+	loader := wallet.NewLoader(u.netParams, netDir, walletFile, u.noFreelistSync, recoveryWindow)
 
 	// Check if wallet already exists.
 	walletExists, err := loader.WalletExists()

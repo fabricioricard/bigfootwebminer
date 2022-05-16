@@ -2334,9 +2334,6 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 				return err
 			}
 		}
-	} else if r.Method != "GET" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return er.New("405 - Request should be a GET because the endpoint requires no input")
 	}
 	if res, err := s.rf.f(s.c, req); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

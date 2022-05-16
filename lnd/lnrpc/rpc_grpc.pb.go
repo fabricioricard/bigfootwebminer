@@ -18,24 +18,39 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LightningClient interface {
-	// lncli: `walletbalance`
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Compute and display the wallet's current balance`
+	//
 	//WalletBalance returns total unspent outputs(confirmed and unconfirmed), all
 	//confirmed unspent outputs and all unconfirmed unspent outputs under control
 	//of the wallet.
 	WalletBalance(ctx context.Context, in *WalletBalanceRequest, opts ...grpc.CallOption) (*WalletBalanceResponse, error)
-	// lncli: `getaddressbalances`
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Compute and display balances for each address in the wallet`
+	//
 	//GetAddressBalances returns the balance for each of the addresses in the wallet.
 	GetAddressBalances(ctx context.Context, in *GetAddressBalancesRequest, opts ...grpc.CallOption) (*GetAddressBalancesResponse, error)
-	// lncli: `channelbalance`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Returns the sum of the total available channel balance across all open channels`
+	//
 	//ChannelBalance returns a report on the total funds across all open channels,
 	//categorized in local/remote, pending local/remote and unsettled local/remote
 	//balances.
 	ChannelBalance(ctx context.Context, in *ChannelBalanceRequest, opts ...grpc.CallOption) (*ChannelBalanceResponse, error)
-	// lncli: `listchaintxns`
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `List transactions from the wallet`
+	//
 	//GetTransactions returns a list describing all the known transactions
 	//relevant to the wallet.
 	GetTransactions(ctx context.Context, in *GetTransactionsRequest, opts ...grpc.CallOption) (*TransactionDetails, error)
-	// lncli: `estimatefee`
+	//
+	//$pld.category: `Neutrino`
+	//$pld.short_description: `Get fee estimates for sending bitcoin on-chain to multiple addresses`
+	//
 	//EstimateFee asks the chain backend to estimate the fee rate and total fees
 	//for a transaction that pays to multiple specified outputs.
 	//
@@ -44,7 +59,10 @@ type LightningClient interface {
 	//map type doesn't appear in the REST API documentation because of a bug in
 	//the grpc-gateway library.
 	EstimateFee(ctx context.Context, in *EstimateFeeRequest, opts ...grpc.CallOption) (*EstimateFeeResponse, error)
-	// lncli: `sendcoins`
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Send bitcoin on-chain to an address`
+	//
 	//SendCoins executes a request to send coins to a particular address. Unlike
 	//SendMany, this RPC call only allows creating a single output at a time. If
 	//neither target_conf, or sat_per_byte are set, then the internal wallet will
@@ -62,31 +80,46 @@ type LightningClient interface {
 	//the client in which any newly discovered transactions relevant to the
 	//wallet are sent over.
 	SubscribeTransactions(ctx context.Context, in *GetTransactionsRequest, opts ...grpc.CallOption) (Lightning_SubscribeTransactionsClient, error)
-	// lncli: `sendmany`
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Send bitcoin on-chain to multiple addresses`
+	//
 	//SendMany handles a request for a transaction that creates multiple specified
 	//outputs in parallel. If neither target_conf, or sat_per_byte are set, then
 	//the internal wallet will consult its fee model to determine a fee for the
 	//default confirmation target.
 	SendMany(ctx context.Context, in *SendManyRequest, opts ...grpc.CallOption) (*SendManyResponse, error)
-	// lncli: `newaddress`
+	//
 	//NewAddress creates a new address under control of the local wallet.
 	NewAddress(ctx context.Context, in *NewAddressRequest, opts ...grpc.CallOption) (*NewAddressResponse, error)
-	// lncli: `signmessage`
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Signs a message using the private key of a payment address`
+	//
 	//SignMessage signs a message with this node's private key. The returned
 	//signature string is `zbase32` encoded and pubkey recoverable, meaning that
 	//only the message digest and signature are needed for verification.
 	SignMessage(ctx context.Context, in *SignMessageRequest, opts ...grpc.CallOption) (*SignMessageResponse, error)
-	// lncli: `connect`
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `Connect to a remote pld peer`
+	//
 	//ConnectPeer attempts to establish a connection to a remote peer. This is at
 	//the networking level, and is used for communication between nodes. This is
 	//distinct from establishing a channel with a peer.
 	ConnectPeer(ctx context.Context, in *ConnectPeerRequest, opts ...grpc.CallOption) (*ConnectPeerResponse, error)
-	// lncli: `disconnect`
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `Disconnect a remote pld peer identified by public key`
+	//
 	//DisconnectPeer attempts to disconnect one peer from another identified by a
 	//given pubKey. In the case that we currently have a pending or active channel
 	//with the target peer, then this action will be not be allowed.
 	DisconnectPeer(ctx context.Context, in *DisconnectPeerRequest, opts ...grpc.CallOption) (*DisconnectPeerResponse, error)
-	// lncli: `listpeers`
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `List all active, currently connected peers`
+	//
 	//ListPeers returns a verbose listing of all currently active peers.
 	ListPeers(ctx context.Context, in *ListPeersRequest, opts ...grpc.CallOption) (*ListPeersResponse, error)
 	//
@@ -94,7 +127,7 @@ type LightningClient interface {
 	//the client in which any events relevant to the state of peers are sent
 	//over. Events include peers going online and offline.
 	SubscribePeerEvents(ctx context.Context, in *PeerEventSubscription, opts ...grpc.CallOption) (Lightning_SubscribePeerEventsClient, error)
-	// lncli: `getinfo`
+	//
 	//GetInfo returns general information concerning the lightning node including
 	//it's identity pubkey, alias, the chains it is connected to, and information
 	//concerning the number of open+pending channels.
@@ -104,13 +137,19 @@ type LightningClient interface {
 	//whether it's in a recovery mode, whether the recovery is finished, and the
 	//progress made so far.
 	GetRecoveryInfo(ctx context.Context, in *GetRecoveryInfoRequest, opts ...grpc.CallOption) (*GetRecoveryInfoResponse, error)
-	// lncli: `pendingchannels`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Display information pertaining to pending channels`
+	//
 	//PendingChannels returns a list of all the channels that are currently
 	//considered "pending". A channel is pending if it has finished the funding
 	//workflow and is waiting for confirmations for the funding txn, or is in the
 	//process of closure, either initiated cooperatively or non-cooperatively.
 	PendingChannels(ctx context.Context, in *PendingChannelsRequest, opts ...grpc.CallOption) (*PendingChannelsResponse, error)
-	// lncli: `listchannels`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `List all open channels`
+	//
 	//ListChannels returns a description of all the open channels that this node
 	//is a participant in.
 	ListChannels(ctx context.Context, in *ListChannelsRequest, opts ...grpc.CallOption) (*ListChannelsResponse, error)
@@ -120,7 +159,10 @@ type LightningClient interface {
 	//sent over. Events include new active channels, inactive channels, and closed
 	//channels.
 	SubscribeChannelEvents(ctx context.Context, in *ChannelEventSubscription, opts ...grpc.CallOption) (Lightning_SubscribeChannelEventsClient, error)
-	// lncli: `closedchannels`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `List all closed channels`
+	//
 	//ClosedChannels returns a description of all the closed channels that
 	//this node was a participant in.
 	ClosedChannels(ctx context.Context, in *ClosedChannelsRequest, opts ...grpc.CallOption) (*ClosedChannelsResponse, error)
@@ -130,7 +172,10 @@ type LightningClient interface {
 	//other sync calls, all byte slices are intended to be populated as hex
 	//encoded strings.
 	OpenChannelSync(ctx context.Context, in *OpenChannelRequest, opts ...grpc.CallOption) (*ChannelPoint, error)
-	// lncli: `openchannel`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Open a channel to a node or an existing peer`
+	//
 	//OpenChannel attempts to open a singly funded channel specified in the
 	//request to a remote peer. Users are able to specify a target number of
 	//blocks that the funding transaction should be confirmed in, or a manual fee
@@ -157,7 +202,10 @@ type LightningClient interface {
 	//node operators to specify their own criteria for accepting inbound channels
 	//through a single persistent connection.
 	ChannelAcceptor(ctx context.Context, opts ...grpc.CallOption) (Lightning_ChannelAcceptorClient, error)
-	// lncli: `closechannel`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Close an existing channel`
+	//
 	//CloseChannel attempts to close an active channel identified by its channel
 	//outpoint (ChannelPoint). The actions of this method can additionally be
 	//augmented to attempt a force close after a timeout period in the case of an
@@ -166,7 +214,10 @@ type LightningClient interface {
 	//closure transaction is confirmed, or a manual fee rate. If neither are
 	//specified, then a default lax, block confirmation target is used.
 	CloseChannel(ctx context.Context, in *CloseChannelRequest, opts ...grpc.CallOption) (Lightning_CloseChannelClient, error)
-	// lncli: `abandonchannel`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Abandons an existing channel`
+	//
 	//AbandonChannel removes all channel state from the database except for a
 	//close summary. This method can be used to get rid of permanently unusable
 	//channels due to bugs fixed in newer versions of lnd. This method can also be
@@ -175,7 +226,7 @@ type LightningClient interface {
 	//build.
 	AbandonChannel(ctx context.Context, in *AbandonChannelRequest, opts ...grpc.CallOption) (*AbandonChannelResponse, error)
 	// Deprecated: Do not use.
-	// lncli: `sendpayment`
+	//
 	//Deprecated, use routerrpc.SendPaymentV2. SendPayment dispatches a
 	//bi-directional streaming RPC for sending payments through the Lightning
 	//Network. A single RPC invocation creates a persistent bi-directional
@@ -200,12 +251,18 @@ type LightningClient interface {
 	//SendToRouteSync is a synchronous version of SendToRoute. It Will block
 	//until the payment either fails or succeeds.
 	SendToRouteSync(ctx context.Context, in *SendToRouteRequest, opts ...grpc.CallOption) (*SendResponse, error)
-	// lncli: `addinvoice`
+	//
+	//$pld.category: `Invoice`
+	//$pld.short_description: `Add a new invoice`
+	//
 	//AddInvoice attempts to add a new invoice to the invoice database. Any
 	//duplicated invoices are rejected, therefore all invoices *must* have a
 	//unique payment preimage.
 	AddInvoice(ctx context.Context, in *Invoice, opts ...grpc.CallOption) (*AddInvoiceResponse, error)
-	// lncli: `listinvoices`
+	//
+	//$pld.category: `Invoice`
+	//$pld.short_description: `List all invoices currently stored within the database. Any active debug invoices are ignored`
+	//
 	//ListInvoices returns a list of all the invoices currently stored within the
 	//database. Any active debug invoices are ignored. It has full support for
 	//paginated responses, allowing users to query for specific invoices through
@@ -214,7 +271,10 @@ type LightningClient interface {
 	//next request. By default, the first 100 invoices created will be returned.
 	//Backwards pagination is also supported through the Reversed flag.
 	ListInvoices(ctx context.Context, in *ListInvoiceRequest, opts ...grpc.CallOption) (*ListInvoiceResponse, error)
-	// lncli: `lookupinvoice`
+	//
+	//$pld.category: `Invoice`
+	//$pld.short_description: `Lookup an existing invoice by its payment hash`
+	//
 	//LookupInvoice attempts to look up an invoice according to its payment hash.
 	//The passed payment hash *must* be exactly 32 bytes, if not, an error is
 	//returned.
@@ -230,18 +290,27 @@ type LightningClient interface {
 	//of these fields can be set. If no fields are set, then we'll only send out
 	//the latest add/settle events.
 	SubscribeInvoices(ctx context.Context, in *InvoiceSubscription, opts ...grpc.CallOption) (Lightning_SubscribeInvoicesClient, error)
-	// lncli: `decodepayreq`
+	//
+	//$pld.category: `Invoice`
+	//$pld.short_description: `Decode a payment request`
+	//
 	//DecodePayReq takes an encoded payment request string and attempts to decode
 	//it, returning a full description of the conditions encoded within the
 	//payment request.
 	DecodePayReq(ctx context.Context, in *PayReqString, opts ...grpc.CallOption) (*PayReq, error)
-	// lncli: `listpayments`
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `List all outgoing payments`
+	//
 	//ListPayments returns a list of all outgoing payments.
 	ListPayments(ctx context.Context, in *ListPaymentsRequest, opts ...grpc.CallOption) (*ListPaymentsResponse, error)
 	//
 	//DeleteAllPayments deletes all outgoing payments from DB.
 	DeleteAllPayments(ctx context.Context, in *DeleteAllPaymentsRequest, opts ...grpc.CallOption) (*DeleteAllPaymentsResponse, error)
-	// lncli: `describegraph`
+	//
+	//$pld.category: `Graph`
+	//$pld.short_description: `Describe the network graph`
+	//
 	//DescribeGraph returns a description of the latest graph state from the
 	//point of view of the node. The graph information is partitioned into two
 	//components: all the nodes/vertexes, and all the edges that connect the
@@ -249,21 +318,33 @@ type LightningClient interface {
 	//the node directional specific routing policy which includes: the time lock
 	//delta, fee information, etc.
 	DescribeGraph(ctx context.Context, in *ChannelGraphRequest, opts ...grpc.CallOption) (*ChannelGraph, error)
-	// lncli: `getnodemetrics`
+	//
+	//$pld.category: `Graph`
+	//$pld.short_description: `Get node metrics`
+	//
 	//GetNodeMetrics returns node metrics calculated from the graph. Currently
 	//the only supported metric is betweenness centrality of individual nodes.
 	GetNodeMetrics(ctx context.Context, in *NodeMetricsRequest, opts ...grpc.CallOption) (*NodeMetricsResponse, error)
-	// lncli: `getchaninfo`
+	//
+	//$pld.category: `Graph`
+	//$pld.short_description: `Get the state of a channel`
+	//
 	//GetChanInfo returns the latest authenticated network announcement for the
 	//given channel identified by its channel ID: an 8-byte integer which
 	//uniquely identifies the location of transaction's funding output within the
 	//blockchain.
 	GetChanInfo(ctx context.Context, in *ChanInfoRequest, opts ...grpc.CallOption) (*ChannelEdge, error)
-	// lncli: `getnodeinfo`
+	//
+	//$pld.category: `Graph`
+	//$pld.short_description: `Get information on a specific node`
+	//
 	//GetNodeInfo returns the latest advertised, aggregated, and authenticated
 	//channel information for the specified node identified by its public key.
 	GetNodeInfo(ctx context.Context, in *NodeInfoRequest, opts ...grpc.CallOption) (*NodeInfo, error)
-	// lncli: `queryroutes`
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Query a route to a destination`
+	//
 	//QueryRoutes attempts to query the daemon's Channel Router for a possible
 	//route to a target destination capable of carrying a specific amount of
 	//satoshis. The returned route contains the full details required to craft and
@@ -275,11 +356,17 @@ type LightningClient interface {
 	//to the URL. Unfortunately this map type doesn't appear in the REST API
 	//documentation because of a bug in the grpc-gateway library.
 	QueryRoutes(ctx context.Context, in *QueryRoutesRequest, opts ...grpc.CallOption) (*QueryRoutesResponse, error)
-	// lncli: `getnetworkinfo`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Get statistical information about the current state of the network`
+	//
 	//GetNetworkInfo returns some basic stats about the known channel graph from
 	//the point of view of the node.
 	GetNetworkInfo(ctx context.Context, in *NetworkInfoRequest, opts ...grpc.CallOption) (*NetworkInfo, error)
-	// lncli: `stop`
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Stop and shutdown the daemon`
+	//
 	//StopDaemon will send a shutdown request to the interrupt handler, triggering
 	//a graceful shutdown of the daemon.
 	StopDaemon(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*StopResponse, error)
@@ -291,21 +378,33 @@ type LightningClient interface {
 	//channels being advertised, updates in the routing policy for a directional
 	//channel edge, and when channels are closed on-chain.
 	SubscribeChannelGraph(ctx context.Context, in *GraphTopologySubscription, opts ...grpc.CallOption) (Lightning_SubscribeChannelGraphClient, error)
-	// lncli: `debuglevel`
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Set the debug level`
+	//
 	//DebugLevel allows a caller to programmatically set the logging verbosity of
 	//lnd. The logging can be targeted according to a coarse daemon-wide logging
 	//level, or in a granular fashion to specify the logging for a target
 	//sub-system.
 	DebugLevel(ctx context.Context, in *DebugLevelRequest, opts ...grpc.CallOption) (*DebugLevelResponse, error)
-	// lncli: `feereport`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Display the current fee policies of all active channels`
+	//
 	//FeeReport allows the caller to obtain a report detailing the current fee
 	//schedule enforced by the node globally for each channel.
 	FeeReport(ctx context.Context, in *FeeReportRequest, opts ...grpc.CallOption) (*FeeReportResponse, error)
-	// lncli: `updatechanpolicy`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Update the channel policy for all channels, or a single channel`
+	//
 	//UpdateChannelPolicy allows the caller to update the fee schedule and
 	//channel policies for all channels globally, or a particular channel.
 	UpdateChannelPolicy(ctx context.Context, in *PolicyUpdateRequest, opts ...grpc.CallOption) (*PolicyUpdateResponse, error)
-	// lncli: `fwdinghistory`
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Query the history of all forwarded HTLCs`
+	//
 	//ForwardingHistory allows the caller to query the htlcswitch for a record of
 	//all HTLCs forwarded within the target time range, and integer offset
 	//within that time range. If no time-range is specified, then the first chunk
@@ -317,7 +416,10 @@ type LightningClient interface {
 	//the index offset of the last entry. The index offset can be provided to the
 	//request to allow the caller to skip a series of records.
 	ForwardingHistory(ctx context.Context, in *ForwardingHistoryRequest, opts ...grpc.CallOption) (*ForwardingHistoryResponse, error)
-	// lncli: `exportchanbackup`
+	//
+	//$pld.category: `Backup`
+	//$pld.short_description: `Obtain a static channel back up for a selected channels, or all known channels`
+	//
 	//ExportChannelBackup attempts to return an encrypted static channel backup
 	//for the target channel identified by it channel point. The backup is
 	//encrypted with a key generated from the aezeed seed of the user. The
@@ -333,11 +435,17 @@ type LightningClient interface {
 	//each channel.
 	ExportAllChannelBackups(ctx context.Context, in *ChanBackupExportRequest, opts ...grpc.CallOption) (*ChanBackupSnapshot, error)
 	//
+	//$pld.category: `Backup`
+	//$pld.short_description: `Verify an existing channel backup`
+	//
 	//VerifyChanBackup allows a caller to verify the integrity of a channel backup
 	//snapshot. This method will accept either a packed Single or a packed Multi.
 	//Specifying both will result in an error.
 	VerifyChanBackup(ctx context.Context, in *ChanBackupSnapshot, opts ...grpc.CallOption) (*VerifyChanBackupResponse, error)
-	// lncli: `restorechanbackup`
+	//
+	//$pld.category: `Backup`
+	//$pld.short_description: `Restore an existing single or multi-channel static channel backup`
+	//
 	//RestoreChannelBackups accepts a set of singular channel backups, or a
 	//single encrypted multi-chan backup and attempts to recover any funds
 	//remaining within the channel. If we are able to unpack the backup, then the
@@ -352,37 +460,101 @@ type LightningClient interface {
 	//ups, but the updated set of encrypted multi-chan backups with the closed
 	//channel(s) removed.
 	SubscribeChannelBackups(ctx context.Context, in *ChannelBackupSubscription, opts ...grpc.CallOption) (Lightning_SubscribeChannelBackupsClient, error)
+	//
+	//$pld.category: `Unspent`
+	//$pld.short_description: `Scan over the chain to find any transactions which may not have been recorded in the wallet's database`
+	//
 	//Scan over the chain to find any transactions which may not have been recorded in the wallet's database
 	ReSync(ctx context.Context, in *ReSyncChainRequest, opts ...grpc.CallOption) (*ReSyncChainResponse, error)
+	//
+	//$pld.category: `Unspent`
+	//$pld.short_description: `Stop a re-synchronization job before it's completion`
+	//
 	//Stop a re-synchronization job before it's completion
 	StopReSync(ctx context.Context, in *StopReSyncRequest, opts ...grpc.CallOption) (*StopReSyncResponse, error)
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Get the wallet seed words for this wallet`
+	//
 	//Get the wallet seed words for this wallet
 	GetWalletSeed(ctx context.Context, in *GetWalletSeedRequest, opts ...grpc.CallOption) (*GetWalletSeedResponse, error)
-	//  Change seed's passphrase
+	//
+	//$pld.category: `Seed`
+	//$pld.short_description: `Alter the passphrase which is used to encrypt a wallet seed`
+	//
+	//Change seed's passphrase
 	ChangeSeedPassphrase(ctx context.Context, in *ChangeSeedPassphraseRequest, opts ...grpc.CallOption) (*ChangeSeedPassphraseResponse, error)
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Get a secret seed`
+	//
 	//Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application
 	GetSecret(ctx context.Context, in *GetSecretRequest, opts ...grpc.CallOption) (*GetSecretResponse, error)
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Imports a WIF-encoded private key to the 'imported' account`
+	//
 	//Imports a WIF-encoded private key to the 'imported' account.
 	ImportPrivKey(ctx context.Context, in *ImportPrivKeyRequest, opts ...grpc.CallOption) (*ImportPrivKeyResponse, error)
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Returns the private key in WIF encoding that controls some wallet address`
+	//
 	//Returns the private key in WIF encoding that controls some wallet address.
 	DumpPrivKey(ctx context.Context, in *DumpPrivKeyRequest, opts ...grpc.CallOption) (*DumpPrivKeyResponse, error)
+	//
+	//$pld.category: `Lock`
+	//$pld.short_description: `Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session`
+	//
 	//Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.
 	ListLockUnspent(ctx context.Context, in *ListLockUnspentRequest, opts ...grpc.CallOption) (*ListLockUnspentResponse, error)
+	//
+	//$pld.category: `Lock`
+	//$pld.short_description: `Locks or unlocks an unspent output`
+	//
 	//Locks or unlocks an unspent output
 	LockUnspent(ctx context.Context, in *LockUnspentRequest, opts ...grpc.CallOption) (*LockUnspentResponse, error)
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Create a transaction but do not send it to the chain`
+	//
 	//Create a transaction but po not send it to the chain
 	CreateTransaction(ctx context.Context, in *CreateTransactionRequest, opts ...grpc.CallOption) (*CreateTransactionResponse, error)
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Generates a new address`
+	//
 	//Generates and returns a new payment address
 	GetNewAddress(ctx context.Context, in *GetNewAddressRequest, opts ...grpc.CallOption) (*GetNewAddressResponse, error)
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Returns a JSON object with details regarding a transaction relevant to this wallet`
+	//
 	//Returns a JSON object with details regarding a transaction relevant to this wallet.
 	GetTransaction(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponse, error)
+	//
+	//$pld.category: `Network Steward Vote`
+	//$pld.short_description: `Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)`
+	//
 	//Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)
 	SetNetworkStewardVote(ctx context.Context, in *SetNetworkStewardVoteRequest, opts ...grpc.CallOption) (*SetNetworkStewardVoteResponse, error)
+	//
+	//$pld.category: `Network Steward Vote`
+	//$pld.short_description: `Find out how the wallet is currently configured to vote in a network steward election`
+	//
 	//Find out how the wallet is currently configured to vote in a network steward election
 	GetNetworkStewardVote(ctx context.Context, in *GetNetworkStewardVoteRequest, opts ...grpc.CallOption) (*GetNetworkStewardVoteResponse, error)
+	//
+	//$pld.category: `Neutrino`
+	//$pld.short_description: `Broadcast a transaction onchain`
+	//
 	//Broadcast a transaction
 	BcastTransaction(ctx context.Context, in *BcastTransactionRequest, opts ...grpc.CallOption) (*BcastTransactionResponse, error)
-	//SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Authors, signs, and sends a transaction that outputs some amount to a payment address`
+	//
+	//SendFrom authors, signs, and sends a transaction that outputs some amount to a payment address.
 	SendFrom(ctx context.Context, in *SendFromRequest, opts ...grpc.CallOption) (*SendFromResponse, error)
 }
 
@@ -1289,24 +1461,39 @@ func (c *lightningClient) SendFrom(ctx context.Context, in *SendFromRequest, opt
 // All implementations should embed UnimplementedLightningServer
 // for forward compatibility
 type LightningServer interface {
-	// lncli: `walletbalance`
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Compute and display the wallet's current balance`
+	//
 	//WalletBalance returns total unspent outputs(confirmed and unconfirmed), all
 	//confirmed unspent outputs and all unconfirmed unspent outputs under control
 	//of the wallet.
 	WalletBalance(context.Context, *WalletBalanceRequest) (*WalletBalanceResponse, error)
-	// lncli: `getaddressbalances`
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Compute and display balances for each address in the wallet`
+	//
 	//GetAddressBalances returns the balance for each of the addresses in the wallet.
 	GetAddressBalances(context.Context, *GetAddressBalancesRequest) (*GetAddressBalancesResponse, error)
-	// lncli: `channelbalance`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Returns the sum of the total available channel balance across all open channels`
+	//
 	//ChannelBalance returns a report on the total funds across all open channels,
 	//categorized in local/remote, pending local/remote and unsettled local/remote
 	//balances.
 	ChannelBalance(context.Context, *ChannelBalanceRequest) (*ChannelBalanceResponse, error)
-	// lncli: `listchaintxns`
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `List transactions from the wallet`
+	//
 	//GetTransactions returns a list describing all the known transactions
 	//relevant to the wallet.
 	GetTransactions(context.Context, *GetTransactionsRequest) (*TransactionDetails, error)
-	// lncli: `estimatefee`
+	//
+	//$pld.category: `Neutrino`
+	//$pld.short_description: `Get fee estimates for sending bitcoin on-chain to multiple addresses`
+	//
 	//EstimateFee asks the chain backend to estimate the fee rate and total fees
 	//for a transaction that pays to multiple specified outputs.
 	//
@@ -1315,7 +1502,10 @@ type LightningServer interface {
 	//map type doesn't appear in the REST API documentation because of a bug in
 	//the grpc-gateway library.
 	EstimateFee(context.Context, *EstimateFeeRequest) (*EstimateFeeResponse, error)
-	// lncli: `sendcoins`
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Send bitcoin on-chain to an address`
+	//
 	//SendCoins executes a request to send coins to a particular address. Unlike
 	//SendMany, this RPC call only allows creating a single output at a time. If
 	//neither target_conf, or sat_per_byte are set, then the internal wallet will
@@ -1333,31 +1523,46 @@ type LightningServer interface {
 	//the client in which any newly discovered transactions relevant to the
 	//wallet are sent over.
 	SubscribeTransactions(*GetTransactionsRequest, Lightning_SubscribeTransactionsServer) error
-	// lncli: `sendmany`
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Send bitcoin on-chain to multiple addresses`
+	//
 	//SendMany handles a request for a transaction that creates multiple specified
 	//outputs in parallel. If neither target_conf, or sat_per_byte are set, then
 	//the internal wallet will consult its fee model to determine a fee for the
 	//default confirmation target.
 	SendMany(context.Context, *SendManyRequest) (*SendManyResponse, error)
-	// lncli: `newaddress`
+	//
 	//NewAddress creates a new address under control of the local wallet.
 	NewAddress(context.Context, *NewAddressRequest) (*NewAddressResponse, error)
-	// lncli: `signmessage`
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Signs a message using the private key of a payment address`
+	//
 	//SignMessage signs a message with this node's private key. The returned
 	//signature string is `zbase32` encoded and pubkey recoverable, meaning that
 	//only the message digest and signature are needed for verification.
 	SignMessage(context.Context, *SignMessageRequest) (*SignMessageResponse, error)
-	// lncli: `connect`
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `Connect to a remote pld peer`
+	//
 	//ConnectPeer attempts to establish a connection to a remote peer. This is at
 	//the networking level, and is used for communication between nodes. This is
 	//distinct from establishing a channel with a peer.
 	ConnectPeer(context.Context, *ConnectPeerRequest) (*ConnectPeerResponse, error)
-	// lncli: `disconnect`
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `Disconnect a remote pld peer identified by public key`
+	//
 	//DisconnectPeer attempts to disconnect one peer from another identified by a
 	//given pubKey. In the case that we currently have a pending or active channel
 	//with the target peer, then this action will be not be allowed.
 	DisconnectPeer(context.Context, *DisconnectPeerRequest) (*DisconnectPeerResponse, error)
-	// lncli: `listpeers`
+	//
+	//$pld.category: `Peer`
+	//$pld.short_description: `List all active, currently connected peers`
+	//
 	//ListPeers returns a verbose listing of all currently active peers.
 	ListPeers(context.Context, *ListPeersRequest) (*ListPeersResponse, error)
 	//
@@ -1365,7 +1570,7 @@ type LightningServer interface {
 	//the client in which any events relevant to the state of peers are sent
 	//over. Events include peers going online and offline.
 	SubscribePeerEvents(*PeerEventSubscription, Lightning_SubscribePeerEventsServer) error
-	// lncli: `getinfo`
+	//
 	//GetInfo returns general information concerning the lightning node including
 	//it's identity pubkey, alias, the chains it is connected to, and information
 	//concerning the number of open+pending channels.
@@ -1375,13 +1580,19 @@ type LightningServer interface {
 	//whether it's in a recovery mode, whether the recovery is finished, and the
 	//progress made so far.
 	GetRecoveryInfo(context.Context, *GetRecoveryInfoRequest) (*GetRecoveryInfoResponse, error)
-	// lncli: `pendingchannels`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Display information pertaining to pending channels`
+	//
 	//PendingChannels returns a list of all the channels that are currently
 	//considered "pending". A channel is pending if it has finished the funding
 	//workflow and is waiting for confirmations for the funding txn, or is in the
 	//process of closure, either initiated cooperatively or non-cooperatively.
 	PendingChannels(context.Context, *PendingChannelsRequest) (*PendingChannelsResponse, error)
-	// lncli: `listchannels`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `List all open channels`
+	//
 	//ListChannels returns a description of all the open channels that this node
 	//is a participant in.
 	ListChannels(context.Context, *ListChannelsRequest) (*ListChannelsResponse, error)
@@ -1391,7 +1602,10 @@ type LightningServer interface {
 	//sent over. Events include new active channels, inactive channels, and closed
 	//channels.
 	SubscribeChannelEvents(*ChannelEventSubscription, Lightning_SubscribeChannelEventsServer) error
-	// lncli: `closedchannels`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `List all closed channels`
+	//
 	//ClosedChannels returns a description of all the closed channels that
 	//this node was a participant in.
 	ClosedChannels(context.Context, *ClosedChannelsRequest) (*ClosedChannelsResponse, error)
@@ -1401,7 +1615,10 @@ type LightningServer interface {
 	//other sync calls, all byte slices are intended to be populated as hex
 	//encoded strings.
 	OpenChannelSync(context.Context, *OpenChannelRequest) (*ChannelPoint, error)
-	// lncli: `openchannel`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Open a channel to a node or an existing peer`
+	//
 	//OpenChannel attempts to open a singly funded channel specified in the
 	//request to a remote peer. Users are able to specify a target number of
 	//blocks that the funding transaction should be confirmed in, or a manual fee
@@ -1428,7 +1645,10 @@ type LightningServer interface {
 	//node operators to specify their own criteria for accepting inbound channels
 	//through a single persistent connection.
 	ChannelAcceptor(Lightning_ChannelAcceptorServer) error
-	// lncli: `closechannel`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Close an existing channel`
+	//
 	//CloseChannel attempts to close an active channel identified by its channel
 	//outpoint (ChannelPoint). The actions of this method can additionally be
 	//augmented to attempt a force close after a timeout period in the case of an
@@ -1437,7 +1657,10 @@ type LightningServer interface {
 	//closure transaction is confirmed, or a manual fee rate. If neither are
 	//specified, then a default lax, block confirmation target is used.
 	CloseChannel(*CloseChannelRequest, Lightning_CloseChannelServer) error
-	// lncli: `abandonchannel`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Abandons an existing channel`
+	//
 	//AbandonChannel removes all channel state from the database except for a
 	//close summary. This method can be used to get rid of permanently unusable
 	//channels due to bugs fixed in newer versions of lnd. This method can also be
@@ -1446,7 +1669,7 @@ type LightningServer interface {
 	//build.
 	AbandonChannel(context.Context, *AbandonChannelRequest) (*AbandonChannelResponse, error)
 	// Deprecated: Do not use.
-	// lncli: `sendpayment`
+	//
 	//Deprecated, use routerrpc.SendPaymentV2. SendPayment dispatches a
 	//bi-directional streaming RPC for sending payments through the Lightning
 	//Network. A single RPC invocation creates a persistent bi-directional
@@ -1471,12 +1694,18 @@ type LightningServer interface {
 	//SendToRouteSync is a synchronous version of SendToRoute. It Will block
 	//until the payment either fails or succeeds.
 	SendToRouteSync(context.Context, *SendToRouteRequest) (*SendResponse, error)
-	// lncli: `addinvoice`
+	//
+	//$pld.category: `Invoice`
+	//$pld.short_description: `Add a new invoice`
+	//
 	//AddInvoice attempts to add a new invoice to the invoice database. Any
 	//duplicated invoices are rejected, therefore all invoices *must* have a
 	//unique payment preimage.
 	AddInvoice(context.Context, *Invoice) (*AddInvoiceResponse, error)
-	// lncli: `listinvoices`
+	//
+	//$pld.category: `Invoice`
+	//$pld.short_description: `List all invoices currently stored within the database. Any active debug invoices are ignored`
+	//
 	//ListInvoices returns a list of all the invoices currently stored within the
 	//database. Any active debug invoices are ignored. It has full support for
 	//paginated responses, allowing users to query for specific invoices through
@@ -1485,7 +1714,10 @@ type LightningServer interface {
 	//next request. By default, the first 100 invoices created will be returned.
 	//Backwards pagination is also supported through the Reversed flag.
 	ListInvoices(context.Context, *ListInvoiceRequest) (*ListInvoiceResponse, error)
-	// lncli: `lookupinvoice`
+	//
+	//$pld.category: `Invoice`
+	//$pld.short_description: `Lookup an existing invoice by its payment hash`
+	//
 	//LookupInvoice attempts to look up an invoice according to its payment hash.
 	//The passed payment hash *must* be exactly 32 bytes, if not, an error is
 	//returned.
@@ -1501,18 +1733,27 @@ type LightningServer interface {
 	//of these fields can be set. If no fields are set, then we'll only send out
 	//the latest add/settle events.
 	SubscribeInvoices(*InvoiceSubscription, Lightning_SubscribeInvoicesServer) error
-	// lncli: `decodepayreq`
+	//
+	//$pld.category: `Invoice`
+	//$pld.short_description: `Decode a payment request`
+	//
 	//DecodePayReq takes an encoded payment request string and attempts to decode
 	//it, returning a full description of the conditions encoded within the
 	//payment request.
 	DecodePayReq(context.Context, *PayReqString) (*PayReq, error)
-	// lncli: `listpayments`
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `List all outgoing payments`
+	//
 	//ListPayments returns a list of all outgoing payments.
 	ListPayments(context.Context, *ListPaymentsRequest) (*ListPaymentsResponse, error)
 	//
 	//DeleteAllPayments deletes all outgoing payments from DB.
 	DeleteAllPayments(context.Context, *DeleteAllPaymentsRequest) (*DeleteAllPaymentsResponse, error)
-	// lncli: `describegraph`
+	//
+	//$pld.category: `Graph`
+	//$pld.short_description: `Describe the network graph`
+	//
 	//DescribeGraph returns a description of the latest graph state from the
 	//point of view of the node. The graph information is partitioned into two
 	//components: all the nodes/vertexes, and all the edges that connect the
@@ -1520,21 +1761,33 @@ type LightningServer interface {
 	//the node directional specific routing policy which includes: the time lock
 	//delta, fee information, etc.
 	DescribeGraph(context.Context, *ChannelGraphRequest) (*ChannelGraph, error)
-	// lncli: `getnodemetrics`
+	//
+	//$pld.category: `Graph`
+	//$pld.short_description: `Get node metrics`
+	//
 	//GetNodeMetrics returns node metrics calculated from the graph. Currently
 	//the only supported metric is betweenness centrality of individual nodes.
 	GetNodeMetrics(context.Context, *NodeMetricsRequest) (*NodeMetricsResponse, error)
-	// lncli: `getchaninfo`
+	//
+	//$pld.category: `Graph`
+	//$pld.short_description: `Get the state of a channel`
+	//
 	//GetChanInfo returns the latest authenticated network announcement for the
 	//given channel identified by its channel ID: an 8-byte integer which
 	//uniquely identifies the location of transaction's funding output within the
 	//blockchain.
 	GetChanInfo(context.Context, *ChanInfoRequest) (*ChannelEdge, error)
-	// lncli: `getnodeinfo`
+	//
+	//$pld.category: `Graph`
+	//$pld.short_description: `Get information on a specific node`
+	//
 	//GetNodeInfo returns the latest advertised, aggregated, and authenticated
 	//channel information for the specified node identified by its public key.
 	GetNodeInfo(context.Context, *NodeInfoRequest) (*NodeInfo, error)
-	// lncli: `queryroutes`
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Query a route to a destination`
+	//
 	//QueryRoutes attempts to query the daemon's Channel Router for a possible
 	//route to a target destination capable of carrying a specific amount of
 	//satoshis. The returned route contains the full details required to craft and
@@ -1546,11 +1799,17 @@ type LightningServer interface {
 	//to the URL. Unfortunately this map type doesn't appear in the REST API
 	//documentation because of a bug in the grpc-gateway library.
 	QueryRoutes(context.Context, *QueryRoutesRequest) (*QueryRoutesResponse, error)
-	// lncli: `getnetworkinfo`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Get statistical information about the current state of the network`
+	//
 	//GetNetworkInfo returns some basic stats about the known channel graph from
 	//the point of view of the node.
 	GetNetworkInfo(context.Context, *NetworkInfoRequest) (*NetworkInfo, error)
-	// lncli: `stop`
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Stop and shutdown the daemon`
+	//
 	//StopDaemon will send a shutdown request to the interrupt handler, triggering
 	//a graceful shutdown of the daemon.
 	StopDaemon(context.Context, *StopRequest) (*StopResponse, error)
@@ -1562,21 +1821,33 @@ type LightningServer interface {
 	//channels being advertised, updates in the routing policy for a directional
 	//channel edge, and when channels are closed on-chain.
 	SubscribeChannelGraph(*GraphTopologySubscription, Lightning_SubscribeChannelGraphServer) error
-	// lncli: `debuglevel`
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Set the debug level`
+	//
 	//DebugLevel allows a caller to programmatically set the logging verbosity of
 	//lnd. The logging can be targeted according to a coarse daemon-wide logging
 	//level, or in a granular fashion to specify the logging for a target
 	//sub-system.
 	DebugLevel(context.Context, *DebugLevelRequest) (*DebugLevelResponse, error)
-	// lncli: `feereport`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Display the current fee policies of all active channels`
+	//
 	//FeeReport allows the caller to obtain a report detailing the current fee
 	//schedule enforced by the node globally for each channel.
 	FeeReport(context.Context, *FeeReportRequest) (*FeeReportResponse, error)
-	// lncli: `updatechanpolicy`
+	//
+	//$pld.category: `Channel`
+	//$pld.short_description: `Update the channel policy for all channels, or a single channel`
+	//
 	//UpdateChannelPolicy allows the caller to update the fee schedule and
 	//channel policies for all channels globally, or a particular channel.
 	UpdateChannelPolicy(context.Context, *PolicyUpdateRequest) (*PolicyUpdateResponse, error)
-	// lncli: `fwdinghistory`
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Query the history of all forwarded HTLCs`
+	//
 	//ForwardingHistory allows the caller to query the htlcswitch for a record of
 	//all HTLCs forwarded within the target time range, and integer offset
 	//within that time range. If no time-range is specified, then the first chunk
@@ -1588,7 +1859,10 @@ type LightningServer interface {
 	//the index offset of the last entry. The index offset can be provided to the
 	//request to allow the caller to skip a series of records.
 	ForwardingHistory(context.Context, *ForwardingHistoryRequest) (*ForwardingHistoryResponse, error)
-	// lncli: `exportchanbackup`
+	//
+	//$pld.category: `Backup`
+	//$pld.short_description: `Obtain a static channel back up for a selected channels, or all known channels`
+	//
 	//ExportChannelBackup attempts to return an encrypted static channel backup
 	//for the target channel identified by it channel point. The backup is
 	//encrypted with a key generated from the aezeed seed of the user. The
@@ -1604,11 +1878,17 @@ type LightningServer interface {
 	//each channel.
 	ExportAllChannelBackups(context.Context, *ChanBackupExportRequest) (*ChanBackupSnapshot, error)
 	//
+	//$pld.category: `Backup`
+	//$pld.short_description: `Verify an existing channel backup`
+	//
 	//VerifyChanBackup allows a caller to verify the integrity of a channel backup
 	//snapshot. This method will accept either a packed Single or a packed Multi.
 	//Specifying both will result in an error.
 	VerifyChanBackup(context.Context, *ChanBackupSnapshot) (*VerifyChanBackupResponse, error)
-	// lncli: `restorechanbackup`
+	//
+	//$pld.category: `Backup`
+	//$pld.short_description: `Restore an existing single or multi-channel static channel backup`
+	//
 	//RestoreChannelBackups accepts a set of singular channel backups, or a
 	//single encrypted multi-chan backup and attempts to recover any funds
 	//remaining within the channel. If we are able to unpack the backup, then the
@@ -1623,37 +1903,101 @@ type LightningServer interface {
 	//ups, but the updated set of encrypted multi-chan backups with the closed
 	//channel(s) removed.
 	SubscribeChannelBackups(*ChannelBackupSubscription, Lightning_SubscribeChannelBackupsServer) error
+	//
+	//$pld.category: `Unspent`
+	//$pld.short_description: `Scan over the chain to find any transactions which may not have been recorded in the wallet's database`
+	//
 	//Scan over the chain to find any transactions which may not have been recorded in the wallet's database
 	ReSync(context.Context, *ReSyncChainRequest) (*ReSyncChainResponse, error)
+	//
+	//$pld.category: `Unspent`
+	//$pld.short_description: `Stop a re-synchronization job before it's completion`
+	//
 	//Stop a re-synchronization job before it's completion
 	StopReSync(context.Context, *StopReSyncRequest) (*StopReSyncResponse, error)
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Get the wallet seed words for this wallet`
+	//
 	//Get the wallet seed words for this wallet
 	GetWalletSeed(context.Context, *GetWalletSeedRequest) (*GetWalletSeedResponse, error)
-	//  Change seed's passphrase
+	//
+	//$pld.category: `Seed`
+	//$pld.short_description: `Alter the passphrase which is used to encrypt a wallet seed`
+	//
+	//Change seed's passphrase
 	ChangeSeedPassphrase(context.Context, *ChangeSeedPassphraseRequest) (*ChangeSeedPassphraseResponse, error)
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Get a secret seed`
+	//
 	//Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application
 	GetSecret(context.Context, *GetSecretRequest) (*GetSecretResponse, error)
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Imports a WIF-encoded private key to the 'imported' account`
+	//
 	//Imports a WIF-encoded private key to the 'imported' account.
 	ImportPrivKey(context.Context, *ImportPrivKeyRequest) (*ImportPrivKeyResponse, error)
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Returns the private key in WIF encoding that controls some wallet address`
+	//
 	//Returns the private key in WIF encoding that controls some wallet address.
 	DumpPrivKey(context.Context, *DumpPrivKeyRequest) (*DumpPrivKeyResponse, error)
+	//
+	//$pld.category: `Lock`
+	//$pld.short_description: `Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session`
+	//
 	//Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.
 	ListLockUnspent(context.Context, *ListLockUnspentRequest) (*ListLockUnspentResponse, error)
+	//
+	//$pld.category: `Lock`
+	//$pld.short_description: `Locks or unlocks an unspent output`
+	//
 	//Locks or unlocks an unspent output
 	LockUnspent(context.Context, *LockUnspentRequest) (*LockUnspentResponse, error)
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Create a transaction but do not send it to the chain`
+	//
 	//Create a transaction but po not send it to the chain
 	CreateTransaction(context.Context, *CreateTransactionRequest) (*CreateTransactionResponse, error)
+	//
+	//$pld.category: `Address`
+	//$pld.short_description: `Generates a new address`
+	//
 	//Generates and returns a new payment address
 	GetNewAddress(context.Context, *GetNewAddressRequest) (*GetNewAddressResponse, error)
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Returns a JSON object with details regarding a transaction relevant to this wallet`
+	//
 	//Returns a JSON object with details regarding a transaction relevant to this wallet.
 	GetTransaction(context.Context, *GetTransactionRequest) (*GetTransactionResponse, error)
+	//
+	//$pld.category: `Network Steward Vote`
+	//$pld.short_description: `Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)`
+	//
 	//Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)
 	SetNetworkStewardVote(context.Context, *SetNetworkStewardVoteRequest) (*SetNetworkStewardVoteResponse, error)
+	//
+	//$pld.category: `Network Steward Vote`
+	//$pld.short_description: `Find out how the wallet is currently configured to vote in a network steward election`
+	//
 	//Find out how the wallet is currently configured to vote in a network steward election
 	GetNetworkStewardVote(context.Context, *GetNetworkStewardVoteRequest) (*GetNetworkStewardVoteResponse, error)
+	//
+	//$pld.category: `Neutrino`
+	//$pld.short_description: `Broadcast a transaction onchain`
+	//
 	//Broadcast a transaction
 	BcastTransaction(context.Context, *BcastTransactionRequest) (*BcastTransactionResponse, error)
-	//SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.
+	//
+	//$pld.category: `Transaction`
+	//$pld.short_description: `Authors, signs, and sends a transaction that outputs some amount to a payment address`
+	//
+	//SendFrom authors, signs, and sends a transaction that outputs some amount to a payment address.
 	SendFrom(context.Context, *SendFromRequest) (*SendFromResponse, error)
 }
 

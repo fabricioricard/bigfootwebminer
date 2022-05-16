@@ -18,15 +18,32 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetaServiceClient interface {
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Returns basic information related to the active daemon`
+	//
+	//GetInfo returns general information concerning the lightning node including
+	//it's identity pubkey, alias, the chains it is connected to, and information
+	//concerning the number of open+pending channels.
 	GetInfo2(ctx context.Context, in *GetInfo2Request, opts ...grpc.CallOption) (*GetInfo2Response, error)
-	// lncli: `changepassword`
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Change an encrypted wallet's password at startup`
+	//
 	//ChangePassword changes the password of the encrypted wallet. This will
 	//automatically unlock the wallet database if successful.
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
-	// lncli: `checkPassword`
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Check the wallet's password`
+	//
 	//CheckPassword verify that the password in the request is valid for the wallet.
 	CheckPassword(ctx context.Context, in *CheckPasswordRequest, opts ...grpc.CallOption) (*CheckPasswordResponse, error)
-	//  Force a pld crash (for debug purposes)
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Force pld to crash (for debugging purposes)`
+	//
+	//Force a pld crash (for debugging purposes)
 	ForceCrash(ctx context.Context, in *CrashRequest, opts ...grpc.CallOption) (*CrashResponse, error)
 }
 
@@ -78,15 +95,32 @@ func (c *metaServiceClient) ForceCrash(ctx context.Context, in *CrashRequest, op
 // All implementations should embed UnimplementedMetaServiceServer
 // for forward compatibility
 type MetaServiceServer interface {
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Returns basic information related to the active daemon`
+	//
+	//GetInfo returns general information concerning the lightning node including
+	//it's identity pubkey, alias, the chains it is connected to, and information
+	//concerning the number of open+pending channels.
 	GetInfo2(context.Context, *GetInfo2Request) (*GetInfo2Response, error)
-	// lncli: `changepassword`
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Change an encrypted wallet's password at startup`
+	//
 	//ChangePassword changes the password of the encrypted wallet. This will
 	//automatically unlock the wallet database if successful.
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
-	// lncli: `checkPassword`
+	//
+	//$pld.category: `Wallet`
+	//$pld.short_description: `Check the wallet's password`
+	//
 	//CheckPassword verify that the password in the request is valid for the wallet.
 	CheckPassword(context.Context, *CheckPasswordRequest) (*CheckPasswordResponse, error)
-	//  Force a pld crash (for debug purposes)
+	//
+	//$pld.category: `Meta`
+	//$pld.short_description: `Force pld to crash (for debugging purposes)`
+	//
+	//Force a pld crash (for debugging purposes)
 	ForceCrash(context.Context, *CrashRequest) (*CrashResponse, error)
 }
 

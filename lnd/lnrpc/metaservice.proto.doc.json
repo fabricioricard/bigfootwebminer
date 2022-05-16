@@ -233,7 +233,7 @@
           "methods": [
             {
               "name": "GetInfo2",
-              "description": "",
+              "description": "$pld.category: `Meta`\n$pld.short_description: `Returns basic information related to the active daemon`\n\nGetInfo returns general information concerning the lightning node including\nit's identity pubkey, alias, the chains it is connected to, and information\nconcerning the number of open+pending channels.",
               "requestType": "GetInfo2Request",
               "requestLongType": "GetInfo2Request",
               "requestFullType": "lnrpc.GetInfo2Request",
@@ -245,7 +245,7 @@
             },
             {
               "name": "ChangePassword",
-              "description": "lncli: `changepassword`\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Change an encrypted wallet's password at startup`\n\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
               "requestType": "ChangePasswordRequest",
               "requestLongType": "ChangePasswordRequest",
               "requestFullType": "lnrpc.ChangePasswordRequest",
@@ -257,7 +257,7 @@
             },
             {
               "name": "CheckPassword",
-              "description": "lncli: `checkPassword`\nCheckPassword verify that the password in the request is valid for the wallet.",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Check the wallet's password`\n\nCheckPassword verify that the password in the request is valid for the wallet.",
               "requestType": "CheckPasswordRequest",
               "requestLongType": "CheckPasswordRequest",
               "requestFullType": "lnrpc.CheckPasswordRequest",
@@ -269,7 +269,7 @@
             },
             {
               "name": "ForceCrash",
-              "description": "Force a pld crash (for debug purposes)",
+              "description": "$pld.category: `Meta`\n$pld.short_description: `Force pld to crash (for debugging purposes)`\n\nForce a pld crash (for debugging purposes)",
               "requestType": "CrashRequest",
               "requestLongType": "CrashRequest",
               "requestFullType": "lnrpc.CrashRequest",

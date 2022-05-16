@@ -44,15 +44,6 @@ for file in $PROTOS; do
     --doc_opt="json,${file}.doc.json" \
     "${file}"
 
-  #protoc -I/usr/local/include -I. \
-  #  --go_out=. \
-  #  --go_opt='paths=source_relative' \
-  #  --go-grpc_out=. \
-  #  --go-grpc_opt=paths=source_relative,require_unimplemented_servers=false \
-  #  --doc_out=. \
-  #  --doc_opt="json,${file}.doc.json" \
-  #  "${file}"
-
   if [ $? -ne 0 ]
   then
     echo "${0}: fail attempting to generate the protos for file ${file}"

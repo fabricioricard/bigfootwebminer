@@ -1652,7 +1652,7 @@
           "methods": [
             {
               "name": "SendPaymentV2",
-              "description": "SendPaymentV2 attempts to route a payment described by the passed\nPaymentRequest to the final destination. The call returns a stream of\npayment updates.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `Send a payment over lightning`\n\nSendPaymentV2 attempts to route a payment described by the passed\nPaymentRequest to the final destination. The call returns a stream of\npayment updates.",
               "requestType": "SendPaymentRequest",
               "requestLongType": "SendPaymentRequest",
               "requestFullType": "routerrpc.SendPaymentRequest",
@@ -1664,7 +1664,7 @@
             },
             {
               "name": "TrackPaymentV2",
-              "description": "TrackPaymentV2 returns an update stream for the payment identified by the\npayment hash.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `Track payment`\n\nTrackPaymentV2 returns an update stream for the payment identified by the\npayment hash.",
               "requestType": "TrackPaymentRequest",
               "requestLongType": "TrackPaymentRequest",
               "requestFullType": "routerrpc.TrackPaymentRequest",
@@ -1703,7 +1703,7 @@
             },
             {
               "name": "SendToRouteV2",
-              "description": "SendToRouteV2 attempts to make a payment via the specified route. This\nmethod differs from SendPayment in that it allows users to specify a full\nroute manually. This can be used for things like rebalancing, and atomic\nswaps.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `Send a payment over a predefined route`\n\nSendToRouteV2 attempts to make a payment via the specified route. This\nmethod differs from SendPayment in that it allows users to specify a full\nroute manually. This can be used for things like rebalancing, and atomic\nswaps.",
               "requestType": "SendToRouteRequest",
               "requestLongType": "SendToRouteRequest",
               "requestFullType": "routerrpc.SendToRouteRequest",
@@ -1715,7 +1715,7 @@
             },
             {
               "name": "ResetMissionControl",
-              "description": "ResetMissionControl clears all mission control state and starts with a clean\nslate.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `Reset internal mission control state`\n\nResetMissionControl clears all mission control state and starts with a clean\nslate.",
               "requestType": "ResetMissionControlRequest",
               "requestLongType": "ResetMissionControlRequest",
               "requestFullType": "routerrpc.ResetMissionControlRequest",
@@ -1727,7 +1727,7 @@
             },
             {
               "name": "QueryMissionControl",
-              "description": "QueryMissionControl exposes the internal mission control state to callers.\nIt is a development feature.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `Query the internal mission control state`\n\nQueryMissionControl exposes the internal mission control state to callers.\nIt is a development feature.",
               "requestType": "QueryMissionControlRequest",
               "requestLongType": "QueryMissionControlRequest",
               "requestFullType": "routerrpc.QueryMissionControlRequest",
@@ -1739,7 +1739,7 @@
             },
             {
               "name": "QueryProbability",
-              "description": "QueryProbability returns the current success probability estimate for a\ngiven node pair and amount.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `Estimate a success probability`\n\nQueryProbability returns the current success probability estimate for a\ngiven node pair and amount.",
               "requestType": "QueryProbabilityRequest",
               "requestLongType": "QueryProbabilityRequest",
               "requestFullType": "routerrpc.QueryProbabilityRequest",
@@ -1751,7 +1751,7 @@
             },
             {
               "name": "BuildRoute",
-              "description": "BuildRoute builds a fully specified route based on a list of hop public\nkeys. It retrieves the relevant channel policies from the graph in order to\ncalculate the correct fees and time locks.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `Build a route from a list of hop pubkeys`\n\nBuildRoute builds a fully specified route based on a list of hop public\nkeys. It retrieves the relevant channel policies from the graph in order to\ncalculate the correct fees and time locks.",
               "requestType": "BuildRouteRequest",
               "requestLongType": "BuildRouteRequest",
               "requestFullType": "routerrpc.BuildRouteRequest",

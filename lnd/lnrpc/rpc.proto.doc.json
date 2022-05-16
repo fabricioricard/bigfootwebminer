@@ -12059,7 +12059,7 @@
           "methods": [
             {
               "name": "WalletBalance",
-              "description": "lncli: `walletbalance`\nWalletBalance returns total unspent outputs(confirmed and unconfirmed), all\nconfirmed unspent outputs and all unconfirmed unspent outputs under control\nof the wallet.",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Compute and display the wallet's current balance`\n\nWalletBalance returns total unspent outputs(confirmed and unconfirmed), all\nconfirmed unspent outputs and all unconfirmed unspent outputs under control\nof the wallet.",
               "requestType": "WalletBalanceRequest",
               "requestLongType": "WalletBalanceRequest",
               "requestFullType": "lnrpc.WalletBalanceRequest",
@@ -12071,7 +12071,7 @@
             },
             {
               "name": "GetAddressBalances",
-              "description": "lncli: `getaddressbalances`\nGetAddressBalances returns the balance for each of the addresses in the wallet.",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Compute and display balances for each address in the wallet`\n\nGetAddressBalances returns the balance for each of the addresses in the wallet.",
               "requestType": "GetAddressBalancesRequest",
               "requestLongType": "GetAddressBalancesRequest",
               "requestFullType": "lnrpc.GetAddressBalancesRequest",
@@ -12083,7 +12083,7 @@
             },
             {
               "name": "ChannelBalance",
-              "description": "lncli: `channelbalance`\nChannelBalance returns a report on the total funds across all open channels,\ncategorized in local/remote, pending local/remote and unsettled local/remote\nbalances.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `Returns the sum of the total available channel balance across all open channels`\n\nChannelBalance returns a report on the total funds across all open channels,\ncategorized in local/remote, pending local/remote and unsettled local/remote\nbalances.",
               "requestType": "ChannelBalanceRequest",
               "requestLongType": "ChannelBalanceRequest",
               "requestFullType": "lnrpc.ChannelBalanceRequest",
@@ -12095,7 +12095,7 @@
             },
             {
               "name": "GetTransactions",
-              "description": "lncli: `listchaintxns`\nGetTransactions returns a list describing all the known transactions\nrelevant to the wallet.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `List transactions from the wallet`\n\nGetTransactions returns a list describing all the known transactions\nrelevant to the wallet.",
               "requestType": "GetTransactionsRequest",
               "requestLongType": "GetTransactionsRequest",
               "requestFullType": "lnrpc.GetTransactionsRequest",
@@ -12107,7 +12107,7 @@
             },
             {
               "name": "EstimateFee",
-              "description": "lncli: `estimatefee`\nEstimateFee asks the chain backend to estimate the fee rate and total fees\nfor a transaction that pays to multiple specified outputs.\n\nWhen using REST, the `AddrToAmount` map type can be set by appending\n`\u0026AddrToAmount[\u003caddress\u003e]=\u003camount_to_send\u003e` to the URL. Unfortunately this\nmap type doesn't appear in the REST API documentation because of a bug in\nthe grpc-gateway library.",
+              "description": "$pld.category: `Neutrino`\n$pld.short_description: `Get fee estimates for sending bitcoin on-chain to multiple addresses`\n\nEstimateFee asks the chain backend to estimate the fee rate and total fees\nfor a transaction that pays to multiple specified outputs.\n\nWhen using REST, the `AddrToAmount` map type can be set by appending\n`\u0026AddrToAmount[\u003caddress\u003e]=\u003camount_to_send\u003e` to the URL. Unfortunately this\nmap type doesn't appear in the REST API documentation because of a bug in\nthe grpc-gateway library.",
               "requestType": "EstimateFeeRequest",
               "requestLongType": "EstimateFeeRequest",
               "requestFullType": "lnrpc.EstimateFeeRequest",
@@ -12119,7 +12119,7 @@
             },
             {
               "name": "SendCoins",
-              "description": "lncli: `sendcoins`\nSendCoins executes a request to send coins to a particular address. Unlike\nSendMany, this RPC call only allows creating a single output at a time. If\nneither target_conf, or sat_per_byte are set, then the internal wallet will\nconsult its fee model to determine a fee for the default confirmation\ntarget.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Send bitcoin on-chain to an address`\n\nSendCoins executes a request to send coins to a particular address. Unlike\nSendMany, this RPC call only allows creating a single output at a time. If\nneither target_conf, or sat_per_byte are set, then the internal wallet will\nconsult its fee model to determine a fee for the default confirmation\ntarget.",
               "requestType": "SendCoinsRequest",
               "requestLongType": "SendCoinsRequest",
               "requestFullType": "lnrpc.SendCoinsRequest",
@@ -12155,7 +12155,7 @@
             },
             {
               "name": "SendMany",
-              "description": "lncli: `sendmany`\nSendMany handles a request for a transaction that creates multiple specified\noutputs in parallel. If neither target_conf, or sat_per_byte are set, then\nthe internal wallet will consult its fee model to determine a fee for the\ndefault confirmation target.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Send bitcoin on-chain to multiple addresses`\n\nSendMany handles a request for a transaction that creates multiple specified\noutputs in parallel. If neither target_conf, or sat_per_byte are set, then\nthe internal wallet will consult its fee model to determine a fee for the\ndefault confirmation target.",
               "requestType": "SendManyRequest",
               "requestLongType": "SendManyRequest",
               "requestFullType": "lnrpc.SendManyRequest",
@@ -12167,7 +12167,7 @@
             },
             {
               "name": "NewAddress",
-              "description": "lncli: `newaddress`\nNewAddress creates a new address under control of the local wallet.",
+              "description": "NewAddress creates a new address under control of the local wallet.",
               "requestType": "NewAddressRequest",
               "requestLongType": "NewAddressRequest",
               "requestFullType": "lnrpc.NewAddressRequest",
@@ -12179,7 +12179,7 @@
             },
             {
               "name": "SignMessage",
-              "description": "lncli: `signmessage`\nSignMessage signs a message with this node's private key. The returned\nsignature string is `zbase32` encoded and pubkey recoverable, meaning that\nonly the message digest and signature are needed for verification.",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Signs a message using the private key of a payment address`\n\nSignMessage signs a message with this node's private key. The returned\nsignature string is `zbase32` encoded and pubkey recoverable, meaning that\nonly the message digest and signature are needed for verification.",
               "requestType": "SignMessageRequest",
               "requestLongType": "SignMessageRequest",
               "requestFullType": "lnrpc.SignMessageRequest",
@@ -12191,7 +12191,7 @@
             },
             {
               "name": "ConnectPeer",
-              "description": "lncli: `connect`\nConnectPeer attempts to establish a connection to a remote peer. This is at\nthe networking level, and is used for communication between nodes. This is\ndistinct from establishing a channel with a peer.",
+              "description": "$pld.category: `Peer`\n$pld.short_description: `Connect to a remote pld peer`\n\nConnectPeer attempts to establish a connection to a remote peer. This is at\nthe networking level, and is used for communication between nodes. This is\ndistinct from establishing a channel with a peer.",
               "requestType": "ConnectPeerRequest",
               "requestLongType": "ConnectPeerRequest",
               "requestFullType": "lnrpc.ConnectPeerRequest",
@@ -12203,7 +12203,7 @@
             },
             {
               "name": "DisconnectPeer",
-              "description": "lncli: `disconnect`\nDisconnectPeer attempts to disconnect one peer from another identified by a\ngiven pubKey. In the case that we currently have a pending or active channel\nwith the target peer, then this action will be not be allowed.",
+              "description": "$pld.category: `Peer`\n$pld.short_description: `Disconnect a remote pld peer identified by public key`\n\nDisconnectPeer attempts to disconnect one peer from another identified by a\ngiven pubKey. In the case that we currently have a pending or active channel\nwith the target peer, then this action will be not be allowed.",
               "requestType": "DisconnectPeerRequest",
               "requestLongType": "DisconnectPeerRequest",
               "requestFullType": "lnrpc.DisconnectPeerRequest",
@@ -12215,7 +12215,7 @@
             },
             {
               "name": "ListPeers",
-              "description": "lncli: `listpeers`\nListPeers returns a verbose listing of all currently active peers.",
+              "description": "$pld.category: `Peer`\n$pld.short_description: `List all active, currently connected peers`\n\nListPeers returns a verbose listing of all currently active peers.",
               "requestType": "ListPeersRequest",
               "requestLongType": "ListPeersRequest",
               "requestFullType": "lnrpc.ListPeersRequest",
@@ -12239,7 +12239,7 @@
             },
             {
               "name": "GetInfo",
-              "description": "lncli: `getinfo`\nGetInfo returns general information concerning the lightning node including\nit's identity pubkey, alias, the chains it is connected to, and information\nconcerning the number of open+pending channels.",
+              "description": "GetInfo returns general information concerning the lightning node including\nit's identity pubkey, alias, the chains it is connected to, and information\nconcerning the number of open+pending channels.",
               "requestType": "GetInfoRequest",
               "requestLongType": "GetInfoRequest",
               "requestFullType": "lnrpc.GetInfoRequest",
@@ -12263,7 +12263,7 @@
             },
             {
               "name": "PendingChannels",
-              "description": "lncli: `pendingchannels`\nPendingChannels returns a list of all the channels that are currently\nconsidered \"pending\". A channel is pending if it has finished the funding\nworkflow and is waiting for confirmations for the funding txn, or is in the\nprocess of closure, either initiated cooperatively or non-cooperatively.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `Display information pertaining to pending channels`\n\nPendingChannels returns a list of all the channels that are currently\nconsidered \"pending\". A channel is pending if it has finished the funding\nworkflow and is waiting for confirmations for the funding txn, or is in the\nprocess of closure, either initiated cooperatively or non-cooperatively.",
               "requestType": "PendingChannelsRequest",
               "requestLongType": "PendingChannelsRequest",
               "requestFullType": "lnrpc.PendingChannelsRequest",
@@ -12275,7 +12275,7 @@
             },
             {
               "name": "ListChannels",
-              "description": "lncli: `listchannels`\nListChannels returns a description of all the open channels that this node\nis a participant in.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `List all open channels`\n\nListChannels returns a description of all the open channels that this node\nis a participant in.",
               "requestType": "ListChannelsRequest",
               "requestLongType": "ListChannelsRequest",
               "requestFullType": "lnrpc.ListChannelsRequest",
@@ -12299,7 +12299,7 @@
             },
             {
               "name": "ClosedChannels",
-              "description": "lncli: `closedchannels`\nClosedChannels returns a description of all the closed channels that\nthis node was a participant in.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `List all closed channels`\n\nClosedChannels returns a description of all the closed channels that\nthis node was a participant in.",
               "requestType": "ClosedChannelsRequest",
               "requestLongType": "ClosedChannelsRequest",
               "requestFullType": "lnrpc.ClosedChannelsRequest",
@@ -12323,7 +12323,7 @@
             },
             {
               "name": "OpenChannel",
-              "description": "lncli: `openchannel`\nOpenChannel attempts to open a singly funded channel specified in the\nrequest to a remote peer. Users are able to specify a target number of\nblocks that the funding transaction should be confirmed in, or a manual fee\nrate to us for the funding transaction. If neither are specified, then a\nlax block confirmation target is used. Each OpenStatusUpdate will return\nthe pending channel ID of the in-progress channel. Depending on the\narguments specified in the OpenChannelRequest, this pending channel ID can\nthen be used to manually progress the channel funding flow.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `Open a channel to a node or an existing peer`\n\nOpenChannel attempts to open a singly funded channel specified in the\nrequest to a remote peer. Users are able to specify a target number of\nblocks that the funding transaction should be confirmed in, or a manual fee\nrate to us for the funding transaction. If neither are specified, then a\nlax block confirmation target is used. Each OpenStatusUpdate will return\nthe pending channel ID of the in-progress channel. Depending on the\narguments specified in the OpenChannelRequest, this pending channel ID can\nthen be used to manually progress the channel funding flow.",
               "requestType": "OpenChannelRequest",
               "requestLongType": "OpenChannelRequest",
               "requestFullType": "lnrpc.OpenChannelRequest",
@@ -12359,7 +12359,7 @@
             },
             {
               "name": "CloseChannel",
-              "description": "lncli: `closechannel`\nCloseChannel attempts to close an active channel identified by its channel\noutpoint (ChannelPoint). The actions of this method can additionally be\naugmented to attempt a force close after a timeout period in the case of an\ninactive peer. If a non-force close (cooperative closure) is requested,\nthen the user can specify either a target number of blocks until the\nclosure transaction is confirmed, or a manual fee rate. If neither are\nspecified, then a default lax, block confirmation target is used.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `Close an existing channel`\n\nCloseChannel attempts to close an active channel identified by its channel\noutpoint (ChannelPoint). The actions of this method can additionally be\naugmented to attempt a force close after a timeout period in the case of an\ninactive peer. If a non-force close (cooperative closure) is requested,\nthen the user can specify either a target number of blocks until the\nclosure transaction is confirmed, or a manual fee rate. If neither are\nspecified, then a default lax, block confirmation target is used.",
               "requestType": "CloseChannelRequest",
               "requestLongType": "CloseChannelRequest",
               "requestFullType": "lnrpc.CloseChannelRequest",
@@ -12371,7 +12371,7 @@
             },
             {
               "name": "AbandonChannel",
-              "description": "lncli: `abandonchannel`\nAbandonChannel removes all channel state from the database except for a\nclose summary. This method can be used to get rid of permanently unusable\nchannels due to bugs fixed in newer versions of lnd. This method can also be\nused to remove externally funded channels where the funding transaction was\nnever broadcast. Only available for non-externally funded channels in dev\nbuild.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `Abandons an existing channel`\n\nAbandonChannel removes all channel state from the database except for a\nclose summary. This method can be used to get rid of permanently unusable\nchannels due to bugs fixed in newer versions of lnd. This method can also be\nused to remove externally funded channels where the funding transaction was\nnever broadcast. Only available for non-externally funded channels in dev\nbuild.",
               "requestType": "AbandonChannelRequest",
               "requestLongType": "AbandonChannelRequest",
               "requestFullType": "lnrpc.AbandonChannelRequest",
@@ -12383,7 +12383,7 @@
             },
             {
               "name": "SendPayment",
-              "description": "lncli: `sendpayment`\nDeprecated, use routerrpc.SendPaymentV2. SendPayment dispatches a\nbi-directional streaming RPC for sending payments through the Lightning\nNetwork. A single RPC invocation creates a persistent bi-directional\nstream allowing clients to rapidly send payments through the Lightning\nNetwork with a single persistent connection.",
+              "description": "Deprecated, use routerrpc.SendPaymentV2. SendPayment dispatches a\nbi-directional streaming RPC for sending payments through the Lightning\nNetwork. A single RPC invocation creates a persistent bi-directional\nstream allowing clients to rapidly send payments through the Lightning\nNetwork with a single persistent connection.",
               "requestType": "SendRequest",
               "requestLongType": "SendRequest",
               "requestFullType": "lnrpc.SendRequest",
@@ -12437,7 +12437,7 @@
             },
             {
               "name": "AddInvoice",
-              "description": "lncli: `addinvoice`\nAddInvoice attempts to add a new invoice to the invoice database. Any\nduplicated invoices are rejected, therefore all invoices *must* have a\nunique payment preimage.",
+              "description": "$pld.category: `Invoice`\n$pld.short_description: `Add a new invoice`\n\nAddInvoice attempts to add a new invoice to the invoice database. Any\nduplicated invoices are rejected, therefore all invoices *must* have a\nunique payment preimage.",
               "requestType": "Invoice",
               "requestLongType": "Invoice",
               "requestFullType": "lnrpc.Invoice",
@@ -12449,7 +12449,7 @@
             },
             {
               "name": "ListInvoices",
-              "description": "lncli: `listinvoices`\nListInvoices returns a list of all the invoices currently stored within the\ndatabase. Any active debug invoices are ignored. It has full support for\npaginated responses, allowing users to query for specific invoices through\ntheir add_index. This can be done by using either the first_index_offset or\nlast_index_offset fields included in the response as the index_offset of the\nnext request. By default, the first 100 invoices created will be returned.\nBackwards pagination is also supported through the Reversed flag.",
+              "description": "$pld.category: `Invoice`\n$pld.short_description: `List all invoices currently stored within the database. Any active debug invoices are ignored`\n\nListInvoices returns a list of all the invoices currently stored within the\ndatabase. Any active debug invoices are ignored. It has full support for\npaginated responses, allowing users to query for specific invoices through\ntheir add_index. This can be done by using either the first_index_offset or\nlast_index_offset fields included in the response as the index_offset of the\nnext request. By default, the first 100 invoices created will be returned.\nBackwards pagination is also supported through the Reversed flag.",
               "requestType": "ListInvoiceRequest",
               "requestLongType": "ListInvoiceRequest",
               "requestFullType": "lnrpc.ListInvoiceRequest",
@@ -12461,7 +12461,7 @@
             },
             {
               "name": "LookupInvoice",
-              "description": "lncli: `lookupinvoice`\nLookupInvoice attempts to look up an invoice according to its payment hash.\nThe passed payment hash *must* be exactly 32 bytes, if not, an error is\nreturned.",
+              "description": "$pld.category: `Invoice`\n$pld.short_description: `Lookup an existing invoice by its payment hash`\n\nLookupInvoice attempts to look up an invoice according to its payment hash.\nThe passed payment hash *must* be exactly 32 bytes, if not, an error is\nreturned.",
               "requestType": "PaymentHash",
               "requestLongType": "PaymentHash",
               "requestFullType": "lnrpc.PaymentHash",
@@ -12485,7 +12485,7 @@
             },
             {
               "name": "DecodePayReq",
-              "description": "lncli: `decodepayreq`\nDecodePayReq takes an encoded payment request string and attempts to decode\nit, returning a full description of the conditions encoded within the\npayment request.",
+              "description": "$pld.category: `Invoice`\n$pld.short_description: `Decode a payment request`\n\nDecodePayReq takes an encoded payment request string and attempts to decode\nit, returning a full description of the conditions encoded within the\npayment request.",
               "requestType": "PayReqString",
               "requestLongType": "PayReqString",
               "requestFullType": "lnrpc.PayReqString",
@@ -12497,7 +12497,7 @@
             },
             {
               "name": "ListPayments",
-              "description": "lncli: `listpayments`\nListPayments returns a list of all outgoing payments.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `List all outgoing payments`\n\nListPayments returns a list of all outgoing payments.",
               "requestType": "ListPaymentsRequest",
               "requestLongType": "ListPaymentsRequest",
               "requestFullType": "lnrpc.ListPaymentsRequest",
@@ -12521,7 +12521,7 @@
             },
             {
               "name": "DescribeGraph",
-              "description": "lncli: `describegraph`\nDescribeGraph returns a description of the latest graph state from the\npoint of view of the node. The graph information is partitioned into two\ncomponents: all the nodes/vertexes, and all the edges that connect the\nvertexes themselves. As this is a directed graph, the edges also contain\nthe node directional specific routing policy which includes: the time lock\ndelta, fee information, etc.",
+              "description": "$pld.category: `Graph`\n$pld.short_description: `Describe the network graph`\n\nDescribeGraph returns a description of the latest graph state from the\npoint of view of the node. The graph information is partitioned into two\ncomponents: all the nodes/vertexes, and all the edges that connect the\nvertexes themselves. As this is a directed graph, the edges also contain\nthe node directional specific routing policy which includes: the time lock\ndelta, fee information, etc.",
               "requestType": "ChannelGraphRequest",
               "requestLongType": "ChannelGraphRequest",
               "requestFullType": "lnrpc.ChannelGraphRequest",
@@ -12533,7 +12533,7 @@
             },
             {
               "name": "GetNodeMetrics",
-              "description": "lncli: `getnodemetrics`\nGetNodeMetrics returns node metrics calculated from the graph. Currently\nthe only supported metric is betweenness centrality of individual nodes.",
+              "description": "$pld.category: `Graph`\n$pld.short_description: `Get node metrics`\n\nGetNodeMetrics returns node metrics calculated from the graph. Currently\nthe only supported metric is betweenness centrality of individual nodes.",
               "requestType": "NodeMetricsRequest",
               "requestLongType": "NodeMetricsRequest",
               "requestFullType": "lnrpc.NodeMetricsRequest",
@@ -12545,7 +12545,7 @@
             },
             {
               "name": "GetChanInfo",
-              "description": "lncli: `getchaninfo`\nGetChanInfo returns the latest authenticated network announcement for the\ngiven channel identified by its channel ID: an 8-byte integer which\nuniquely identifies the location of transaction's funding output within the\nblockchain.",
+              "description": "$pld.category: `Graph`\n$pld.short_description: `Get the state of a channel`\n\nGetChanInfo returns the latest authenticated network announcement for the\ngiven channel identified by its channel ID: an 8-byte integer which\nuniquely identifies the location of transaction's funding output within the\nblockchain.",
               "requestType": "ChanInfoRequest",
               "requestLongType": "ChanInfoRequest",
               "requestFullType": "lnrpc.ChanInfoRequest",
@@ -12557,7 +12557,7 @@
             },
             {
               "name": "GetNodeInfo",
-              "description": "lncli: `getnodeinfo`\nGetNodeInfo returns the latest advertised, aggregated, and authenticated\nchannel information for the specified node identified by its public key.",
+              "description": "$pld.category: `Graph`\n$pld.short_description: `Get information on a specific node`\n\nGetNodeInfo returns the latest advertised, aggregated, and authenticated\nchannel information for the specified node identified by its public key.",
               "requestType": "NodeInfoRequest",
               "requestLongType": "NodeInfoRequest",
               "requestFullType": "lnrpc.NodeInfoRequest",
@@ -12569,7 +12569,7 @@
             },
             {
               "name": "QueryRoutes",
-              "description": "lncli: `queryroutes`\nQueryRoutes attempts to query the daemon's Channel Router for a possible\nroute to a target destination capable of carrying a specific amount of\nsatoshis. The returned route contains the full details required to craft and\nsend an HTLC, also including the necessary information that should be\npresent within the Sphinx packet encapsulated within the HTLC.\n\nWhen using REST, the `dest_custom_records` map type can be set by appending\n`\u0026dest_custom_records[\u003crecord_number\u003e]=\u003crecord_data_base64_url_encoded\u003e`\nto the URL. Unfortunately this map type doesn't appear in the REST API\ndocumentation because of a bug in the grpc-gateway library.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `Query a route to a destination`\n\nQueryRoutes attempts to query the daemon's Channel Router for a possible\nroute to a target destination capable of carrying a specific amount of\nsatoshis. The returned route contains the full details required to craft and\nsend an HTLC, also including the necessary information that should be\npresent within the Sphinx packet encapsulated within the HTLC.\n\nWhen using REST, the `dest_custom_records` map type can be set by appending\n`\u0026dest_custom_records[\u003crecord_number\u003e]=\u003crecord_data_base64_url_encoded\u003e`\nto the URL. Unfortunately this map type doesn't appear in the REST API\ndocumentation because of a bug in the grpc-gateway library.",
               "requestType": "QueryRoutesRequest",
               "requestLongType": "QueryRoutesRequest",
               "requestFullType": "lnrpc.QueryRoutesRequest",
@@ -12581,7 +12581,7 @@
             },
             {
               "name": "GetNetworkInfo",
-              "description": "lncli: `getnetworkinfo`\nGetNetworkInfo returns some basic stats about the known channel graph from\nthe point of view of the node.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `Get statistical information about the current state of the network`\n\nGetNetworkInfo returns some basic stats about the known channel graph from\nthe point of view of the node.",
               "requestType": "NetworkInfoRequest",
               "requestLongType": "NetworkInfoRequest",
               "requestFullType": "lnrpc.NetworkInfoRequest",
@@ -12593,7 +12593,7 @@
             },
             {
               "name": "StopDaemon",
-              "description": "lncli: `stop`\nStopDaemon will send a shutdown request to the interrupt handler, triggering\na graceful shutdown of the daemon.",
+              "description": "$pld.category: `Meta`\n$pld.short_description: `Stop and shutdown the daemon`\n\nStopDaemon will send a shutdown request to the interrupt handler, triggering\na graceful shutdown of the daemon.",
               "requestType": "StopRequest",
               "requestLongType": "StopRequest",
               "requestFullType": "lnrpc.StopRequest",
@@ -12617,7 +12617,7 @@
             },
             {
               "name": "DebugLevel",
-              "description": "lncli: `debuglevel`\nDebugLevel allows a caller to programmatically set the logging verbosity of\nlnd. The logging can be targeted according to a coarse daemon-wide logging\nlevel, or in a granular fashion to specify the logging for a target\nsub-system.",
+              "description": "$pld.category: `Meta`\n$pld.short_description: `Set the debug level`\n\nDebugLevel allows a caller to programmatically set the logging verbosity of\nlnd. The logging can be targeted according to a coarse daemon-wide logging\nlevel, or in a granular fashion to specify the logging for a target\nsub-system.",
               "requestType": "DebugLevelRequest",
               "requestLongType": "DebugLevelRequest",
               "requestFullType": "lnrpc.DebugLevelRequest",
@@ -12629,7 +12629,7 @@
             },
             {
               "name": "FeeReport",
-              "description": "lncli: `feereport`\nFeeReport allows the caller to obtain a report detailing the current fee\nschedule enforced by the node globally for each channel.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `Display the current fee policies of all active channels`\n\nFeeReport allows the caller to obtain a report detailing the current fee\nschedule enforced by the node globally for each channel.",
               "requestType": "FeeReportRequest",
               "requestLongType": "FeeReportRequest",
               "requestFullType": "lnrpc.FeeReportRequest",
@@ -12641,7 +12641,7 @@
             },
             {
               "name": "UpdateChannelPolicy",
-              "description": "lncli: `updatechanpolicy`\nUpdateChannelPolicy allows the caller to update the fee schedule and\nchannel policies for all channels globally, or a particular channel.",
+              "description": "$pld.category: `Channel`\n$pld.short_description: `Update the channel policy for all channels, or a single channel`\n\nUpdateChannelPolicy allows the caller to update the fee schedule and\nchannel policies for all channels globally, or a particular channel.",
               "requestType": "PolicyUpdateRequest",
               "requestLongType": "PolicyUpdateRequest",
               "requestFullType": "lnrpc.PolicyUpdateRequest",
@@ -12653,7 +12653,7 @@
             },
             {
               "name": "ForwardingHistory",
-              "description": "lncli: `fwdinghistory`\nForwardingHistory allows the caller to query the htlcswitch for a record of\nall HTLCs forwarded within the target time range, and integer offset\nwithin that time range. If no time-range is specified, then the first chunk\nof the past 24 hrs of forwarding history are returned.\n\nA list of forwarding events are returned. The size of each forwarding event\nis 40 bytes, and the max message size able to be returned in gRPC is 4 MiB.\nAs a result each message can only contain 50k entries. Each response has\nthe index offset of the last entry. The index offset can be provided to the\nrequest to allow the caller to skip a series of records.",
+              "description": "$pld.category: `Payment`\n$pld.short_description: `Query the history of all forwarded HTLCs`\n\nForwardingHistory allows the caller to query the htlcswitch for a record of\nall HTLCs forwarded within the target time range, and integer offset\nwithin that time range. If no time-range is specified, then the first chunk\nof the past 24 hrs of forwarding history are returned.\n\nA list of forwarding events are returned. The size of each forwarding event\nis 40 bytes, and the max message size able to be returned in gRPC is 4 MiB.\nAs a result each message can only contain 50k entries. Each response has\nthe index offset of the last entry. The index offset can be provided to the\nrequest to allow the caller to skip a series of records.",
               "requestType": "ForwardingHistoryRequest",
               "requestLongType": "ForwardingHistoryRequest",
               "requestFullType": "lnrpc.ForwardingHistoryRequest",
@@ -12665,7 +12665,7 @@
             },
             {
               "name": "ExportChannelBackup",
-              "description": "lncli: `exportchanbackup`\nExportChannelBackup attempts to return an encrypted static channel backup\nfor the target channel identified by it channel point. The backup is\nencrypted with a key generated from the aezeed seed of the user. The\nreturned backup can either be restored using the RestoreChannelBackup\nmethod once lnd is running, or via the InitWallet and UnlockWallet methods\nfrom the WalletUnlocker service.",
+              "description": "$pld.category: `Backup`\n$pld.short_description: `Obtain a static channel back up for a selected channels, or all known channels`\n\nExportChannelBackup attempts to return an encrypted static channel backup\nfor the target channel identified by it channel point. The backup is\nencrypted with a key generated from the aezeed seed of the user. The\nreturned backup can either be restored using the RestoreChannelBackup\nmethod once lnd is running, or via the InitWallet and UnlockWallet methods\nfrom the WalletUnlocker service.",
               "requestType": "ExportChannelBackupRequest",
               "requestLongType": "ExportChannelBackupRequest",
               "requestFullType": "lnrpc.ExportChannelBackupRequest",
@@ -12689,7 +12689,7 @@
             },
             {
               "name": "VerifyChanBackup",
-              "description": "VerifyChanBackup allows a caller to verify the integrity of a channel backup\nsnapshot. This method will accept either a packed Single or a packed Multi.\nSpecifying both will result in an error.",
+              "description": "$pld.category: `Backup`\n$pld.short_description: `Verify an existing channel backup`\n\nVerifyChanBackup allows a caller to verify the integrity of a channel backup\nsnapshot. This method will accept either a packed Single or a packed Multi.\nSpecifying both will result in an error.",
               "requestType": "ChanBackupSnapshot",
               "requestLongType": "ChanBackupSnapshot",
               "requestFullType": "lnrpc.ChanBackupSnapshot",
@@ -12701,7 +12701,7 @@
             },
             {
               "name": "RestoreChannelBackups",
-              "description": "lncli: `restorechanbackup`\nRestoreChannelBackups accepts a set of singular channel backups, or a\nsingle encrypted multi-chan backup and attempts to recover any funds\nremaining within the channel. If we are able to unpack the backup, then the\nnew channel will be shown under listchannels, as well as pending channels.",
+              "description": "$pld.category: `Backup`\n$pld.short_description: `Restore an existing single or multi-channel static channel backup`\n\nRestoreChannelBackups accepts a set of singular channel backups, or a\nsingle encrypted multi-chan backup and attempts to recover any funds\nremaining within the channel. If we are able to unpack the backup, then the\nnew channel will be shown under listchannels, as well as pending channels.",
               "requestType": "RestoreChanBackupRequest",
               "requestLongType": "RestoreChanBackupRequest",
               "requestFullType": "lnrpc.RestoreChanBackupRequest",
@@ -12725,7 +12725,7 @@
             },
             {
               "name": "ReSync",
-              "description": "Scan over the chain to find any transactions which may not have been recorded in the wallet's database",
+              "description": "$pld.category: `Unspent`\n$pld.short_description: `Scan over the chain to find any transactions which may not have been recorded in the wallet's database`\n\nScan over the chain to find any transactions which may not have been recorded in the wallet's database",
               "requestType": "ReSyncChainRequest",
               "requestLongType": "ReSyncChainRequest",
               "requestFullType": "lnrpc.ReSyncChainRequest",
@@ -12737,7 +12737,7 @@
             },
             {
               "name": "StopReSync",
-              "description": "Stop a re-synchronization job before it's completion",
+              "description": "$pld.category: `Unspent`\n$pld.short_description: `Stop a re-synchronization job before it's completion`\n\nStop a re-synchronization job before it's completion",
               "requestType": "StopReSyncRequest",
               "requestLongType": "StopReSyncRequest",
               "requestFullType": "lnrpc.StopReSyncRequest",
@@ -12749,7 +12749,7 @@
             },
             {
               "name": "GetWalletSeed",
-              "description": "Get the wallet seed words for this wallet",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Get the wallet seed words for this wallet`\n\nGet the wallet seed words for this wallet",
               "requestType": "GetWalletSeedRequest",
               "requestLongType": "GetWalletSeedRequest",
               "requestFullType": "lnrpc.GetWalletSeedRequest",
@@ -12761,7 +12761,7 @@
             },
             {
               "name": "ChangeSeedPassphrase",
-              "description": "Change seed's passphrase",
+              "description": "$pld.category: `Seed`\n$pld.short_description: `Alter the passphrase which is used to encrypt a wallet seed`\n\nChange seed's passphrase",
               "requestType": "ChangeSeedPassphraseRequest",
               "requestLongType": "ChangeSeedPassphraseRequest",
               "requestFullType": "lnrpc.ChangeSeedPassphraseRequest",
@@ -12773,7 +12773,7 @@
             },
             {
               "name": "GetSecret",
-              "description": "Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Get a secret seed`\n\nGet a secret seed which is generated using the wallet's private key, this can be used as a password for another application",
               "requestType": "GetSecretRequest",
               "requestLongType": "GetSecretRequest",
               "requestFullType": "lnrpc.GetSecretRequest",
@@ -12785,7 +12785,7 @@
             },
             {
               "name": "ImportPrivKey",
-              "description": "Imports a WIF-encoded private key to the 'imported' account.",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Imports a WIF-encoded private key to the 'imported' account`\n\nImports a WIF-encoded private key to the 'imported' account.",
               "requestType": "ImportPrivKeyRequest",
               "requestLongType": "ImportPrivKeyRequest",
               "requestFullType": "lnrpc.ImportPrivKeyRequest",
@@ -12797,7 +12797,7 @@
             },
             {
               "name": "DumpPrivKey",
-              "description": "Returns the private key in WIF encoding that controls some wallet address.",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Returns the private key in WIF encoding that controls some wallet address`\n\nReturns the private key in WIF encoding that controls some wallet address.",
               "requestType": "DumpPrivKeyRequest",
               "requestLongType": "DumpPrivKeyRequest",
               "requestFullType": "lnrpc.DumpPrivKeyRequest",
@@ -12809,7 +12809,7 @@
             },
             {
               "name": "ListLockUnspent",
-              "description": "Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.",
+              "description": "$pld.category: `Lock`\n$pld.short_description: `Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session`\n\nReturns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.",
               "requestType": "ListLockUnspentRequest",
               "requestLongType": "ListLockUnspentRequest",
               "requestFullType": "lnrpc.ListLockUnspentRequest",
@@ -12821,7 +12821,7 @@
             },
             {
               "name": "LockUnspent",
-              "description": "Locks or unlocks an unspent output",
+              "description": "$pld.category: `Lock`\n$pld.short_description: `Locks or unlocks an unspent output`\n\nLocks or unlocks an unspent output",
               "requestType": "LockUnspentRequest",
               "requestLongType": "LockUnspentRequest",
               "requestFullType": "lnrpc.LockUnspentRequest",
@@ -12833,7 +12833,7 @@
             },
             {
               "name": "CreateTransaction",
-              "description": "Create a transaction but po not send it to the chain",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Create a transaction but do not send it to the chain`\n\nCreate a transaction but po not send it to the chain",
               "requestType": "CreateTransactionRequest",
               "requestLongType": "CreateTransactionRequest",
               "requestFullType": "lnrpc.CreateTransactionRequest",
@@ -12845,7 +12845,7 @@
             },
             {
               "name": "GetNewAddress",
-              "description": "Generates and returns a new payment address",
+              "description": "$pld.category: `Address`\n$pld.short_description: `Generates a new address`\n\nGenerates and returns a new payment address",
               "requestType": "GetNewAddressRequest",
               "requestLongType": "GetNewAddressRequest",
               "requestFullType": "lnrpc.GetNewAddressRequest",
@@ -12857,7 +12857,7 @@
             },
             {
               "name": "GetTransaction",
-              "description": "Returns a JSON object with details regarding a transaction relevant to this wallet.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Returns a JSON object with details regarding a transaction relevant to this wallet`\n\nReturns a JSON object with details regarding a transaction relevant to this wallet.",
               "requestType": "GetTransactionRequest",
               "requestLongType": "GetTransactionRequest",
               "requestFullType": "lnrpc.GetTransactionRequest",
@@ -12869,7 +12869,7 @@
             },
             {
               "name": "SetNetworkStewardVote",
-              "description": "Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)",
+              "description": "$pld.category: `Network Steward Vote`\n$pld.short_description: `Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)`\n\nConfigure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)",
               "requestType": "SetNetworkStewardVoteRequest",
               "requestLongType": "SetNetworkStewardVoteRequest",
               "requestFullType": "lnrpc.SetNetworkStewardVoteRequest",
@@ -12881,7 +12881,7 @@
             },
             {
               "name": "GetNetworkStewardVote",
-              "description": "Find out how the wallet is currently configured to vote in a network steward election",
+              "description": "$pld.category: `Network Steward Vote`\n$pld.short_description: `Find out how the wallet is currently configured to vote in a network steward election`\n\nFind out how the wallet is currently configured to vote in a network steward election",
               "requestType": "GetNetworkStewardVoteRequest",
               "requestLongType": "GetNetworkStewardVoteRequest",
               "requestFullType": "lnrpc.GetNetworkStewardVoteRequest",
@@ -12893,7 +12893,7 @@
             },
             {
               "name": "BcastTransaction",
-              "description": "Broadcast a transaction",
+              "description": "$pld.category: `Neutrino`\n$pld.short_description: `Broadcast a transaction onchain`\n\nBroadcast a transaction",
               "requestType": "BcastTransactionRequest",
               "requestLongType": "BcastTransactionRequest",
               "requestFullType": "lnrpc.BcastTransactionRequest",
@@ -12905,7 +12905,7 @@
             },
             {
               "name": "SendFrom",
-              "description": "SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.",
+              "description": "$pld.category: `Transaction`\n$pld.short_description: `Authors, signs, and sends a transaction that outputs some amount to a payment address`\n\nSendFrom authors, signs, and sends a transaction that outputs some amount to a payment address.",
               "requestType": "SendFromRequest",
               "requestLongType": "SendFromRequest",
               "requestFullType": "lnrpc.SendFromRequest",

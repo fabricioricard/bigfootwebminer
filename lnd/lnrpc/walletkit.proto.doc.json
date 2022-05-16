@@ -1199,7 +1199,7 @@
           "methods": [
             {
               "name": "ListUnspent",
-              "description": "ListUnspent returns a list of all utxos spendable by the wallet with a\nnumber of confirmations between the specified minimum and maximum.",
+              "description": "$pld.category: `Unspent`\n$pld.short_description: `List utxos available for spending`\n\nListUnspent returns a list of all utxos spendable by the wallet with a\nnumber of confirmations between the specified minimum and maximum.",
               "requestType": "ListUnspentRequest",
               "requestLongType": "ListUnspentRequest",
               "requestFullType": "walletrpc.ListUnspentRequest",

@@ -2283,8 +2283,13 @@ func marshal(w http.ResponseWriter, m proto.Message, isJson bool) er.R {
 }
 
 func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, isJson bool) er.R {
-	var commandInfo = help.CommandInfoData[s.rf.command]
-	var req proto.Message
+	var commandInfo help.CommandInfo
+
+	for _, commandInfo = range help.CommandInfoData {
+		if commandInfo.Command == s.rf.command {
+			break
+		}
+	}
 
 	//	check if the URI is for command help
 	if r.RequestURI == help.URI_prefix+helpURI_prefix+commandInfo.Path {
@@ -2307,6 +2312,8 @@ func (s *SimpleHandler) ServeHttpOrErr(w http.ResponseWriter, r *http.Request, i
 	}
 
 	//	command URI handler
+	var req proto.Message
+
 	if s.rf.req != nil {
 		if r.Method != "POST" {
 			//	if it's not a POST, check if the endpoint allows GET
@@ -2372,7 +2379,20 @@ func (s *SimpleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func RestHandlers(c *RpcContext) *mux.Router {
 	r := mux.NewRouter()
 	for _, rf := range rpcFunctions {
-		var commandInfo = help.CommandInfoData[rf.command]
+		var commandInfo help.CommandInfo
+		var commandFound bool
+
+		for _, commandInfo = range help.CommandInfoData {
+			if commandInfo.Command == rf.command {
+				commandFound = true
+				break
+			}
+		}
+		//	if all commands in s.rf (rpcFunctions) slice have an entry in help.CommandInfoData
+		//		this panic condition will never be reached
+		if !commandFound {
+			panic("[panic] Command info about command " + rf.command + "not found")
+		}
 
 		r.Handle(help.URI_prefix+commandInfo.Path, &SimpleHandler{c: c, rf: rf})
 		r.Handle(help.URI_prefix+helpURI_prefix+commandInfo.Path, &SimpleHandler{c: c, rf: rf})

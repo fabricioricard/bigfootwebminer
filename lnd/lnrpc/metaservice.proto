@@ -56,6 +56,9 @@ message ChangePasswordRequest {
     When using JSON, this field must be encoded as base64.
     */
     bytes new_passphrase_bin = 4;
+
+    /*wallet_name is optional, if specified will override default wallet.db*/
+    string wallet_name = 5;
 }
 
 message ChangePasswordResponse {}
@@ -71,6 +74,9 @@ message CheckPasswordRequest {
     When using JSON, this field must be encoded as base64.
     */
     bytes wallet_password_bin = 2;
+
+    /*wallet_name is optional, if specified will override default wallet.db*/
+    string wallet_name = 3;
 }
 
 message CheckPasswordResponse {

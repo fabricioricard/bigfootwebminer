@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
 
-mkdir -p lib/ios
+mkdir -p lib
 
 echo "Building for arm64..."
 CGO_ENABLED=1 \
-GOOS=darwin \
+GOOS=ios \
 GOARCH=arm64 \
 SDK=iphoneos \
 CGO_ENABLED=1 \
@@ -14,7 +14,7 @@ go build -buildmode=c-archive -tags ios -trimpath -o lib/pld_arm64.a lnd/cmd/lnd
 
 echo "Building for x86_64..."
 CGO_ENABLED=1 \
-GOOS=darwin \
+GOOS=ios \
 GOARCH=amd64 \
 SDK=iphonesimulator \
 CGO_ENABLED=1 \

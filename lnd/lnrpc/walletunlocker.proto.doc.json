@@ -176,6 +176,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "wallet_name",
+              "description": "wallet_name is an optional argument that allows to define the \nwallet filename other than the default wallet.db",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -247,6 +259,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "wallet_name",
+              "description": "wallet_name is optional when the user wants to load a specified wallet other \nthan the default wallet.db",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -271,7 +295,7 @@
           "methods": [
             {
               "name": "GenSeed",
-              "description": "GenSeed is the first method that should be used to instantiate a new lnd\ninstance. This method allows a caller to generate a new aezeed cipher seed\ngiven an optional passphrase. If provided, the passphrase will be necessary\nto decrypt the cipherseed to expose the internal wallet seed.\n\nOnce the cipherseed is obtained and verified by the user, the InitWallet\nmethod should be used to commit the newly generated seed, and create the\nwallet.",
+              "description": "$pld.category: `Seed`\n$pld.short_description: `Create a secret seed`\n\nGenSeed is the first method that should be used to instantiate a new lnd\ninstance. This method allows a caller to generate a new aezeed cipher seed\ngiven an optional passphrase. If provided, the passphrase will be necessary\nto decrypt the cipherseed to expose the internal wallet seed.\n\nOnce the cipherseed is obtained and verified by the user, the InitWallet\nmethod should be used to commit the newly generated seed, and create the\nwallet.",
               "requestType": "GenSeedRequest",
               "requestLongType": "GenSeedRequest",
               "requestFullType": "lnrpc.GenSeedRequest",
@@ -283,7 +307,7 @@
             },
             {
               "name": "InitWallet",
-              "description": "InitWallet is used when lnd is starting up for the first time to fully\ninitialize the daemon and its internal wallet. At the very least a wallet\npassword must be provided. This will be used to encrypt sensitive material\non disk.\n\nIn the case of a recovery scenario, the user can also specify their aezeed\nmnemonic and passphrase. If set, then the daemon will use this prior state\nto initialize its internal wallet.\n\nAlternatively, this can be used along with the GenSeed RPC to obtain a\nseed, then present it to the user. Once it has been verified by the user,\nthe seed can be fed into this RPC in order to commit the new wallet.",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Initialize a wallet when starting lnd for the first time`\n\nInitWallet is used when lnd is starting up for the first time to fully\ninitialize the daemon and its internal wallet. At the very least a wallet\npassword must be provided. This will be used to encrypt sensitive material\non disk.\n\nIn the case of a recovery scenario, the user can also specify their aezeed\nmnemonic and passphrase. If set, then the daemon will use this prior state\nto initialize its internal wallet.\n\nAlternatively, this can be used along with the GenSeed RPC to obtain a\nseed, then present it to the user. Once it has been verified by the user,\nthe seed can be fed into this RPC in order to commit the new wallet.",
               "requestType": "InitWalletRequest",
               "requestLongType": "InitWalletRequest",
               "requestFullType": "lnrpc.InitWalletRequest",
@@ -295,7 +319,7 @@
             },
             {
               "name": "UnlockWallet",
-              "description": "lncli: `unlock`\nUnlockWallet is used at startup of lnd to provide a password to unlock\nthe wallet database.",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Unlock an encrypted wallet at startup`\n\nUnlockWallet is used at startup of lnd to provide a password to unlock\nthe wallet database.",
               "requestType": "UnlockWalletRequest",
               "requestLongType": "UnlockWalletRequest",
               "requestFullType": "lnrpc.UnlockWalletRequest",

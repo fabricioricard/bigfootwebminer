@@ -230,63 +230,6 @@ func TestChangeWalletPasswordWithWrongPassphrase(t *testing.T) {
 
 //	Test that we can successfully change the wallet's password needed to unlock
 //	it and rotate the root key for the macaroons in the same process.
-func TestChangeWalletPasswordWithInvalidNewPassphrase(t *testing.T) {
-	t.Parallel()
-
-	log.Debugf(">>>>> running TestChangeWalletPasswordWithInvalidNewPassphrase()")
-
-	//	create a temporary directory, initialize an empty walletdb with an SPV chain
-	//	namespace, and create a configuration for the ChainService
-	testDir, err := ioutil.TempDir("", "neutrino")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(testDir)
-	}()
-
-	walletDb, errr := walletdb.Create("bdb", testDir+"/testNeutrino.db", true)
-	util.RequireNoErr(t, errr)
-	defer walletDb.Close()
-
-	config := neutrino.Config{
-		DataDir:     testDir,
-		Database:    walletDb,
-		ChainParams: *testNetParams,
-	}
-	testChainService, errr := neutrino.NewChainService(config)
-	util.RequireNoErr(t, errr)
-
-	//	create a new MetaService with our test file
-	metaService := NewMetaService(testChainService)
-	metaService.walletPath = btcwallet.NetworkDir(testDir, testNetParams)
-	metaService.walletFile = testWalletFilename
-
-	ctx := context.Background()
-
-	// Create a wallet to test changing the password.
-	loader := createTestWallet(t, testDir, testNetParams)
-
-	//	unload wallet
-	errr = loader.UnloadWallet()
-	util.RequireNoErr(t, errr)
-
-	//	changing the wallet's password using an incorrect current password should fail
-	newPassword := []byte("hunter2???")
-
-	wrongReq := &lnrpc.ChangePasswordRequest{
-		CurrentPasswordBin: []byte("wrong-ofc"),
-		NewPassphraseBin:   newPassword,
-	}
-	//	changing the wallet's password using an invalid new password should fail
-	log.Debugf("[4] attempt to change passwaord using an invalid new password")
-
-	wrongReq.NewPassphraseBin = []byte("8")
-	_, err = metaService.ChangePassword(ctx, wrongReq)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "custom password must have at least 8 characters")
-}
-
-//	Test that we can successfully change the wallet's password needed to unlock
-//	it and rotate the root key for the macaroons in the same process.
 func TestChangeWalletPasswordNewRootkey(t *testing.T) {
 	t.Parallel()
 

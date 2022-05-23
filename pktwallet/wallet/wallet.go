@@ -119,6 +119,7 @@ type Wallet struct {
 	lockState          chan bool
 	changePassphrase   chan changePassphraseRequest
 	changePassphrases  chan changePassphrasesRequest
+	checkPassphrase    chan checkPassphrasesRequest
 
 	NtfnServer *NotificationServer
 
@@ -716,6 +717,12 @@ type (
 		err                    chan er.R
 	}
 
+	checkPassphrasesRequest struct {
+		publicPassphrase  []byte
+		privatePassphrase []byte
+		err               chan er.R
+	}
+
 	// heldUnlock is a tool to prevent the wallet from automatically
 	// locking after some timeout before an operation which needed
 	// the unlocked wallet has finished.  Any aquired heldUnlock
@@ -776,6 +783,15 @@ out:
 					addrmgrNs, req.privateOld, req.privateNew,
 					true, &waddrmgr.DefaultScryptOptions,
 				)
+			})
+			req.err <- err
+			continue
+
+		case req := <-w.checkPassphrase:
+			err := walletdb.View(w.db, func(tx walletdb.ReadTx) er.R {
+				addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
+
+				return w.Manager.CheckPassphrase(addrmgrNs, req.privatePassphrase)
 			})
 			req.err <- err
 			continue
@@ -902,6 +918,19 @@ func (w *Wallet) ChangePassphrases(publicOld, publicNew, privateOld,
 		privateNew: privateNew,
 		err:        err,
 	}
+	return <-err
+}
+
+//	CheckPassphrases verifies the public and private passphrase of the wallet
+func (w *Wallet) CheckPassphrase(publicPw, walletPassphrase []byte) er.R {
+
+	err := make(chan er.R, 1)
+	w.checkPassphrase <- checkPassphrasesRequest{
+		publicPassphrase:  publicPw,
+		privatePassphrase: walletPassphrase,
+		err:               err,
+	}
+
 	return <-err
 }
 
@@ -1592,7 +1621,7 @@ type GetTransactionsResult struct {
 func (w *Wallet) GetTransactions(
 	startBlock, endBlock *BlockIdentifier,
 	limit, skip, //0 means no limit imposed
-	coinbase int32,
+	coinbase int32, reversed bool,
 	cancel <-chan struct{},
 ) (*GetTransactionsResult, er.R) {
 	var start, end int32 = 0, -1
@@ -1722,7 +1751,10 @@ func (w *Wallet) GetTransactions(
 				return false, nil
 			}
 		}
-		return w.TxStore.RangeTransactions(txmgrNs, start, end, rangeFn)
+		if !reversed {
+			return w.TxStore.RangeTransactions(txmgrNs, start, end, rangeFn)
+		}
+		return w.TxStore.RangeTransactions(txmgrNs, end, start, rangeFn)
 	})
 	return &res, err
 }
@@ -3351,6 +3383,7 @@ func Open(db walletdb.DB, pubPass []byte, cbs *waddrmgr.OpenCallbacks,
 		lockState:          make(chan bool),
 		changePassphrase:   make(chan changePassphraseRequest),
 		changePassphrases:  make(chan changePassphrasesRequest),
+		checkPassphrase:    make(chan checkPassphrasesRequest),
 		chainParams:        params,
 		quit:               make(chan struct{}),
 		watch:              watcher.New(),

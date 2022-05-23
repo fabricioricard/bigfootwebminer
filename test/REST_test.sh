@@ -5,9 +5,18 @@
 ################################################################################
 
 export  PLD_REST_SERVER='http://localhost:8080'
+export  PLD_REST_CONTEXT='/api/v1'
 export  REST_ERRORS_FILE='./rest.err'
 export  JSON_OUTPUT=''
+export  WALLET_PASSPHRASE='w4ll3tP@sswd'
 export  VERBOSE='false'
+
+#   color commands
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+LIGHTGRAY='\033[0;37m'
+NOCOLOR='\033[0m'
 
 #   use curl to execute a command
 executeCommand() {
@@ -16,37 +25,46 @@ executeCommand() {
     local URI="${3}"
     local PAYLOAD="${4}"
 
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    LIGHTGRAY='\033[0;37m'
-    NOCOLOR='\033[0m'
+
+    JSON_OUTPUT=""
+    HTTP_RESPONSE_CODE=""
 
     if [ "${HTTP_METHOD}" == "GET" ]
     then
         if [ "${VERBOSE}" == 'true' ]
         then
-            echo -e "[trace] ${LIGHTGRAY}curl \"${PLD_REST_SERVER}${URI}\"${NOCOLOR}"
+            echo -e "[trace] ${LIGHTGRAY}curl \"${PLD_REST_SERVER}${PLD_REST_CONTEXT}${URI}\"${NOCOLOR}"
         fi
 
-        JSON_OUTPUT=$( curl "${PLD_REST_SERVER}${URI}" 2>> ${REST_ERRORS_FILE} )
+        OUTPUT=$( curl --write-out '|%{response_code}' "${PLD_REST_SERVER}${PLD_REST_CONTEXT}${URI}" 2>> ${REST_ERRORS_FILE} | tr -d '\n' )
+        JSON_OUTPUT=$( echo "${OUTPUT}" | perl -ne 'if( $_ =~ /^(.+)\|(\d{3})$/ ) { print qq/$1\n/; }' )
+        HTTP_RESPONSE_CODE=$( echo "${OUTPUT}" | perl -ne 'if( $_ =~ /^(.+)\|(\d{3})$/ ) { print qq/$2\n/; }' )
     elif [ "${HTTP_METHOD}" == "POST" ]
     then
         if [ "${VERBOSE}" == 'true' ]
         then
-            echo -e "[trace] ${LIGHTGRAY}curl -H \"Content-Type: application/json\" -X POST -d '${PAYLOAD}' \"${PLD_REST_SERVER}${URI}\"${NOCOLOR}"
+            echo -e "[trace] ${LIGHTGRAY}curl -H \"Content-Type: application/json\" -X POST -d '${PAYLOAD}' \"${PLD_REST_SERVER}${PLD_REST_CONTEXT}${URI}\"${NOCOLOR}"
         fi
 
-        JSON_OUTPUT=$( curl -H "Content-Type: application/json" -X POST -d "${PAYLOAD}" "${PLD_REST_SERVER}${URI}" 2>> ${REST_ERRORS_FILE} )
+        OUTPUT=$( curl --write-out '|%{response_code}' -H "Content-Type: application/json" -X POST -d "${PAYLOAD}" "${PLD_REST_SERVER}${PLD_REST_CONTEXT}${URI}" 2>> ${REST_ERRORS_FILE} | tr -d '\n' )
+        JSON_OUTPUT=$( echo "${OUTPUT}" | perl -ne 'if( $_ =~ /^(.+)\|(\d{3})$/ ) { print qq/$1\n/; }' )
+        HTTP_RESPONSE_CODE=$( echo "${OUTPUT}" | perl -ne 'if( $_ =~ /^(.+)\|(\d{3})$/ ) { print qq/$2\n/; }' )
     else
         echo -e "${RED}error: invalid HTTP method \"${HTTP_METHOD}\"${NOCOLOR}"
         return 1
     fi
 
-    if [ $? -eq 0 ]
+    if [ "${VERBOSE}" == 'true' ]
     then
-        echo -e ">>> ${COMMAND}: ${GREEN}command successfully executed${NOCOLOR}"
+        echo -e "[trace] ${LIGHTGRAY}response: ${JSON_OUTPUT}${NOCOLOR}"
+    fi
+
+    if [ "${HTTP_RESPONSE_CODE}" == "200" ]
+    then
+        echo -e ">>> ${CYAN}[${COMMAND}]${NOCOLOR}: ${GREEN}command successfully executed${NOCOLOR}"
     else
-        echo -e "${RED}error: fail attempting to run command \"${COMMAND} ${ARGUMENTS}\": $?${NOCOLOR}"
+        ERROR_MESSAGE=$( echo "${JSON_OUTPUT}" | jq '.message' )
+        echo -e ">>> ${CYAN}[${COMMAND}]${NOCOLOR}: ${RED}error running pld command: HTTP response: ${HTTP_RESPONSE_CODE}\n\t${ERROR_MESSAGE}${NOCOLOR}"
         JSON_OUTPUT=''
         return 1
     fi
@@ -65,7 +83,7 @@ showCommandResult() {
         else
             RESULT=$( echo "${JSON_OUTPUT}" | jq "${FILTER}" )
         fi
-        echo -e "    >>> ${TITLE}: ${RESULT}"
+        echo -e "    >>> ${TITLE}: ${LIGHTGRAYNOCOLOR}${RESULT}${NOCOLOR}"
     fi
 }
 
@@ -119,299 +137,442 @@ do
 done
 
 #
-#   test commands to get info about the running pld daemon
+#   test commands of "meta" group
 #
 
-executeCommand 'getinfo' 'GET' '/api/v1/meta/getinfo'
-showCommandResult '#neutrino peers' '.neutrino.peers | length'
+echo -e ">>> Group ${CYAN}[meta]${NOCOLOR} API endpoints which are relevant to the entire pld node, not any specific part"
+echo
 
-executeCommand 'debuglevel' 'POST' '/api/v1/meta/debuglevel' '{ "show": true, "level_spec": "debug" }'
+executeCommand 'debuglevel' 'POST' '/meta/debuglevel' '{ "show": true, "level_spec": "debug" }'
 showCommandResult 'subsystems' '.subSystems'
 
-executeCommand 'version' 'GET' '/api/v1/meta/version'
+executeCommand 'getinfo' 'GET' '/meta/getinfo'
+showCommandResult '#neutrino peers' '.neutrino.peers | length'
+
+#   this needs be the last of all tests
+#executeCommand 'stop' 'GET' '/meta/stop'
+#showCommandResult 'result' ''
+
+executeCommand 'version' 'GET' '/meta/version'
 showCommandResult 'result' ''
 
+echo "----------"
+echo
+
 #
+#   test commands of "util/seed" group
+#
+
+echo -e ">>> Group ${CYAN}[util/seed]${NOCOLOR} Manipulation of mnemonic seed phrases which represent wallet keys"
+echo
+
+executeCommand 'changepassphrase' 'POST' '/util/seed/changepassphrase' '{ "current_seed_passphrase_bin": "cGFzc3dvcmQ=", "current_seed": [ "plastic",  "hollow",  "mansion",  "keep",  "into",  "cloth",  "awesome",  "salmon",  "reopen",  "inner",  "replace",  "dice",  "life",  "example",  "around" ], "new_seed_passphrase": "password" }'
+showCommandResult 'new ciphered seed' '.seed'
+
+#   this test is meant to fail, since seed creation can only be ordered before wallet's creation
+executeCommand 'genseed' 'POST' '/util/seed/create' '{ "seed_passphrase_bin": "cGFzc3dvcmQ=" }'
+showCommandResult 'ciphered seed' '.seed'
+
+echo "----------"
+echo
+
+#
+#   test commands of "Lightning/Channel" group
+#
+
+echo -e ">>> Group ${CYAN}[lightning/channel]${NOCOLOR} Management of lightning channels to direct peers of this pld node"
+echo
+
 #   fetch a public key for the channels tests
-#
-
-executeCommand 'describegraph' 'POST' '/api/v1/lightning/graph' '{ "includeUnannounced": true }'
+executeCommand 'describegraph' 'POST' '/lightning/graph' '{ "includeUnannounced": true }'
+showCommandResult 'public key' '.nodes | .[0] | .pubKey'
 PUBLIC_KEY="$( getCommandResult '.nodes | .[0] | .pubKey ' | tr -d '\"' | cut --characters=3- )"
-echo -e "    >>> using public key: ${PUBLIC_KEY}"
-
-#
-#   test commands to manage channels
-#
 
 AMOUNT="100000"
-
-executeCommand 'openchannel' 'POST' '/api/v1/channels/open' "{ \"node_pubkey\": \"${PUBLIC_KEY}\", \"local_funding_amount\": ${AMOUNT} }"
+executeCommand 'openchannel' 'POST' '/lightning/channel/open' "{ \"node_pubkey\": \"${PUBLIC_KEY}\", \"local_funding_amount\": ${AMOUNT} }"
 showCommandResult 'result' ''
 
 CHANNEL_POINT="XPTO"
-
-executeCommand 'closechannel' 'POST' '/api/v1/channels/close' "{ \"channel_point\": \"${CHANNEL_POINT}\" }"
+executeCommand 'closechannel' 'POST' '/lightning/channel/close' "{ \"channel_point\": \"${CHANNEL_POINT}\" }"
 showCommandResult 'result' ''
-
-#executeCommand 'closeallchannels'
-#showCommandResult 'result' ''
 
 FUNDING_TXID="934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f"
-
-executeCommand 'abandonchannel' 'POST' '/api/v1/lightning/channel/abandon' "{ \"channelPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
+executeCommand 'abandonchannel' 'POST' '/lightning/channel/abandon' "{ \"channelPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
 showCommandResult 'result' ''
 
-showCommandResult 'result' ''
-echo "++++++++++++++++++++++++++++++++"
-exit 0
-
-executeCommand 'channelbalance' 'GET' '/api/v1/channels/balance'
+executeCommand 'channelbalance' 'GET' '/lightning/channel/balance'
 showCommandResult 'channel balance' '.balance'
 
-executeCommand 'pendingchannels' 'GET' '/api/v1/channels/pending'
+executeCommand 'pendingchannels' 'GET' '/lightning/channel/pending'
 showCommandResult '#pending open channels' '.pendingOpenChannels | length'
 showCommandResult '#pending closing channels' '.pendingClosingChannels | length'
 showCommandResult 'limbo balance' '.totalLimboBalance'
 
-executeCommand 'listchannels' 'POST' '/api/v1/channels' '{  }'
+executeCommand 'listchannels' 'POST' '/lightning/channel' '{  }'
 showCommandResult '#open channels' '.channels | length'
 
-executeCommand 'closedchannels' 'POST' '/api/v1/channels/closed' '{  }'
+executeCommand 'closedchannels' 'POST' '/lightning/channel/closed' '{  }'
 showCommandResult '#closed channels' '.channels | length'
 
-executeCommand 'getnetworkinfo' 'GET' '/api/v1/channels/networkinfo'
+executeCommand 'getnetworkinfo' 'GET' '/lightning/channel/networkinfo'
 showCommandResult 'nodes' '.numNodes'
 showCommandResult 'channels' '.numChannels'
 
-executeCommand 'feereport' 'GET' '/api/v1/channels/feereport'
+executeCommand 'feereport' 'GET' '/lightning/channel/feereport'
 showCommandResult '#channel fees' '.channelFees | length'
 showCommandResult 'week fee sum' '.weekFeeSum'
 
-executeCommand 'updatechanpolicy' 'POST' '/api/v1/channels/policy' '{ "baseFeeMsat": 10, "feeRate": 10, "timeLockDelta": 20, "maxHtlcMsat": 30, "minHtlcMsat": 1, "minHtlcMsatSpecified": false }'
+executeCommand 'updatechanpolicy' 'POST' '/lightning/channel/policy' '{ "baseFeeMsat": 10, "feeRate": 10, "timeLockDelta": 20, "maxHtlcMsat": 30, "minHtlcMsat": 1, "minHtlcMsatSpecified": false }'
 showCommandResult 'result' ''
 
-executeCommand 'exportchanbackup' 'POST' '/api/v1/channels/backup/export' "{ \"chanPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
+echo "----------"
+echo
+
+#
+#   test commands of "Lightning/Channel/Backup" group
+#
+
+echo -e ">>> Group ${CYAN}[lightning/channel/backup]${NOCOLOR} Backup and recovery of the state of active Lightning channels to and from this pld node"
+echo
+
+executeCommand 'exportchanbackup' 'POST' '/lightning/channel/backup/export' "{ \"chanPoint\": { \"funding_txid_str\": \"${FUNDING_TXID}\" } }"
 showCommandResult 'result' '.multi_chan_backup.multi_chan_backup'
 
-executeCommand 'verifychanbackup' 'POST' '/api/v1/channels/backup/verify' "{ \"singleChanBackups\": { \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] } }"
+executeCommand 'restorechanbackup' 'POST' '/lightning/channel/backup/restore' "{ \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] }"
 showCommandResult 'result' ''
 
-executeCommand 'restorechanbackup' 'POST' '/api/v1/channels/backup/restore' "{ \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] }"
+executeCommand 'verifychanbackup' 'POST' '/lightning/channel/backup/verify' "{ \"singleChanBackups\": { \"chanBackups\": [ { \"chanPoint\": { \"fundingTxidStr\": \"${FUNDING_TXID}\", \"outputIndex\": 1000 }, \"chanBackup\": \"RW5jcnlwdGVkIENoYW4gQmFja3Vw\" } ] } }"
 showCommandResult 'result' ''
 
+echo "----------"
+echo
+
 #
-#   test commands to get graph info
+#   test commands of "Lightning/Graph" group
 #
-executeCommand 'describegraph' 'POST' '/api/v1/lightning/graph' '{ "includeUnannounced": true }'
+
+echo -e ">>> Group ${CYAN}[lightning/graph]${NOCOLOR} Information about the global known Lightning Network"
+echo
+
+#   fetch a public key for the graph tests
+executeCommand 'describegraph' 'POST' '/lightning/graph' '{ "includeUnannounced": true }'
 showCommandResult 'last update' '.nodes | .[0] | .lastUpdate '
+showCommandResult 'public key' '.nodes | .[0] | .pubKey'
 PUBLIC_KEY="$( getCommandResult '.nodes | .[0] | .pubKey ' | tr -d '\"' )"
-echo -e "    >>> public key: ${PUBLIC_KEY}"
 
-executeCommand 'getnodemetrics' 'POST' '/api/v1/graph/nodemetrics' '{ "types": [ 0, 1 ] }'
+executeCommand 'getnodemetrics' 'POST' '/lightning/graph/nodemetrics' '{ "types": [ 0, 1 ] }'
 showCommandResult 'betweenness centrality' '.betweennessCentrality'
 
 CHAN_ID=123
-executeCommand 'getchaninfo' 'POST' '/api/v1/graph/channel' "{ \"chanId\": ${CHAN_ID} }"
+executeCommand 'getchaninfo' 'POST' '/lightning/graph/channel' "{ \"chanId\": ${CHAN_ID} }"
 showCommandResult 'result' ''
 
-executeCommand 'getnodeinfo' 'POST' '/api/v1/graph/nodeinfo' "{ \"pubKey\": \"${PUBLIC_KEY}\", \"includeChannels\": true }"
+executeCommand 'getnodeinfo' 'POST' '/lightning/graph/nodeinfo' "{ \"pubKey\": \"${PUBLIC_KEY}\", \"includeChannels\": true }"
 showCommandResult 'last update' '.node.lastUpdate'
 showCommandResult '#channels' '.node.channels | length'
 
+echo "----------"
+echo
+
 #
-#   test commands to manage invoices
+#   test commands of "Lightning/Invoice" group
 #
 
-executeCommand 'addinvoice' 'POST' '/api/v1/invoice/add' '{ "memo": "xpto", "value": 10, "expiry": 3600 }'
+echo -e ">>> Group ${CYAN}[lightning/invoice]${NOCOLOR} Management of invoices which are used to request payment over Lightning"
+echo
+
+executeCommand 'addinvoice' 'POST' '/lightning/invoice/create' '{ "memo": "xpto", "value": 10, "expiry": 3600 }'
+showCommandResult 'rHash' '.rHash'
+showCommandResult 'payment request' '.paymentRequest'
 RHASH="$( getCommandResult '.rHash' | tr -d '\"' )"
 PAYREQ="$( getCommandResult '.paymentRequest' | tr -d '\"' )"
-echo -e "    >>> rHash: ${RHASH}"
-echo -e "    >>> payment request: ${PAYREQ}"
 
-executeCommand 'lookupinvoice' 'POST' '/api/v1/invoice/lookup' "{ \"rHash\": \"${RHASH}\" }"
+executeCommand 'lookupinvoice' 'POST' '/lightning/invoice/lookup' "{ \"rHash\": \"${RHASH}\" }"
 showCommandResult 'last update' '.lastUpdate'
 showCommandResult 'index' '.addIndex'
 showCommandResult 'state' '.state'
 
-executeCommand 'listinvoices' 'POST' '/api/v1/invoice' '{ "indexOffset": 1, "numMaxInvoices": 10 }'
+executeCommand 'listinvoices' 'POST' '/lightning/invoice' '{ "indexOffset": 1, "numMaxInvoices": 10 }'
 showCommandResult '#invoices' '.invoices | length'
 
-executeCommand 'decodepayreq' 'POST' '/api/v1/invoice/decodepayreq' "{ \"payReq\": \"${PAYREQ}\" }"
+executeCommand 'decodepayreq' 'POST' '/lightning/invoice/decodepayreq' "{ \"payReq\": \"${PAYREQ}\" }"
 showCommandResult 'destination' '.destination'
 showCommandResult 'payment Hash' '.paymentHash'
 showCommandResult '#satoshis' '.numSatoshis'
 
-#
-#   test commands to manage on-chain transactions
-#
-
-TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
-
-executeCommand 'estimatefee' 'POST' '/api/v1/transaction/estimatefee' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
-showCommandResult 'fee sat' '.feeSat'
-
-executeCommand 'sendmany' 'POST' '/api/v1/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": 100000 } }"
-TXID="$( getCommandResult '.txid' | tr -d '\"' )"
-echo -e "    >>> transaction ID: ${TXID}"
-
-executeCommand 'sendcoins' 'POST' '/api/v1/transaction/sendcoins' "{ \"addr\": \"${TARGET_WALLET}\", \"amount\": 10000000 }"
-showCommandResult 'transaction ID' '.txid'
-
-executeCommand 'listunspent' 'POST' '/api/v1/transaction/listunspent' '{ "minConfs": 1, "maxConfs": 100 }'
-showCommandResult '#utxos' '.utxos | length'
-
-executeCommand 'listchaintrns' 'POST' '/api/v1/transaction' '{ "startHeight": 1000000, "endHeight": 1347381 }'
-showCommandResult '#transactions' '.transactions | length'
-
-executeCommand 'setnetworkstewardvote' 'POST' '/api/v1/transaction/setnetworkstewardvote' '{ "voteAgainst": "0", "voteFor": "1" }'
-showCommandResult 'result' ''
-
-executeCommand 'getnetworkstewardvote' 'GET' '/api/v1/transaction/getnetworkstewardvote'
-showCommandResult 'vote against' '.voteAgainst'
-showCommandResult 'vote for' '.voteFor'
-
-executeCommand 'bcasttransaction' 'POST' '/api/v1/transaction/bcast' "{ \"tx\": \"${TXID}\" }"
-showCommandResult 'result' ''
-#    echo -e "\ttransaction hash: $( echo ${JSON_OUTPUT} | jq '.txn_hash' )"
+echo "----------"
+echo
 
 #
-#   test commands to manage payments
+#   test commands of "Lightning/Payment" group
 #
 
-executeCommand 'sendpayment' 'POST' '/api/v1/payment/send' "{ \"paymentHash\": \"${RHASH}\", \"amt\": 100000, \"dest\": \"${TARGET_WALLET}\" }"
+echo -e ">>> Group ${CYAN}[lightning/payment]${NOCOLOR} Lightning network payments which have been made, or have been forwarded, through this node"
+echo
+
+executeCommand 'sendpayment' 'POST' '/lightning/payment/send' "{ \"paymentHash\": \"${RHASH}\", \"amt\": 100000, \"dest\": \"${TARGET_WALLET}\" }"
 showCommandResult 'result' ''
 
-#executeCommand 'payinvoice' 'lnpkt100u1p3q4r85pp5kecz6ckl97wwe2nnqn6lq5lju30z9sc8uaeacamudxv52kykgdnqdqqcqzpgsp5fa0tpf3j3ecppn3tvmc50n6w7pl6dcs7zvus82splfjs2qevwkxq9qy9qsq4sfdxwzrku87zaphgh6wa3rtc2a8g7rmg6a2dp4myk3qa8c7409sv205xxfsc2n0mzmemcg92ukg7x6q7xlkp5ca9gdwvsqmtpuazccpw25hg9'
-#executeCommand 'payinvoice' 'POST' '/api/v1/payment/payinvoice' "{ \"paymentHash\": \"${RHASH}\", \"amt\": 100000, \"dest\": \"${TARGET_WALLET}\" }"
-#showCommandResult 'result' ''
-
-executeCommand 'sendtoroute' 'POST' '/api/v1/payment/sendroute' '{ "paymentHash": "02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e", "route": { "hops": { "chanId": "xpto"} } }'
+executeCommand 'payinvoice' 'POST' '/lightning/payment/payinvoice' "{ \"paymentHash\": \"${RHASH}\", \"amt\": 100000, \"dest\": \"${TARGET_WALLET}\" }"
 showCommandResult 'result' ''
 
-executeCommand 'listpayments' 'POST' '/api/v1/payment' '{ "indexOffset": 1, "maxPayments": 10, "includeIncomplete": true }'
+executeCommand 'sendtoroute' 'POST' '/lightning/payment/sendtoroute' '{ "paymentHash": "02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e", "route": { "hops": { "chanId": "xpto"} } }'
+showCommandResult 'result' ''
+
+executeCommand 'listpayments' 'POST' '/lightning/payment' '{ "indexOffset": 1, "maxPayments": 10, "includeIncomplete": true }'
 showCommandResult '#payments' '.payments | length'
 
-PUBKEY="02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e"
-AMOUNT="100000"
-#executeCommand 'queryroutes' 'POST' '/api/v1/payment/queryroutes' '02e28f38ad50869fd3f3d75147d69bc637090aa9b5013ee49a65c0dda2bf0ab51e 1'
-executeCommand 'queryroutes' 'POST' '/api/v1/payment/queryroutes' "{  }"
+executeCommand 'trackpayment' 'POST' '/lightning/payment/track' '{ "indexOffset": 1, "maxPayments": 10, "includeIncomplete": true }'
+showCommandResult '#payments' '.payments | length'
+
+executeCommand 'queryroutes' 'POST' '/lightning/payment/queryroutes' "{  }"
 showCommandResult 'result' ''
 
-executeCommand 'fwdinghistory' 'POST' '/api/v1/payment/fwdinghistory' '{ "indexOffset": 0, "numMaxEvents": 25 }'
+executeCommand 'fwdinghistory' 'POST' '/lightning/payment/fwdinghistory' '{ "indexOffset": 0, "numMaxEvents": 25 }'
 showCommandResult '#forwarding events' '.forwardingEvents | length'
 
-executeCommand 'querymc' 'GET' '/api/v1/payment/querymc'
+executeCommand 'querymc' 'GET' '/lightning/payment/querymc'
 showCommandResult 'result' ''
-#    echo -e "\t#pairs: $( echo ${JSON_OUTPUT} | jq '.pairs | length' )"
 
 FROM_NODE="01020304"
 TO_NODE="02030405"
 AMOUNT="100000"
-executeCommand 'queryprob' 'POST' '/api/v1/payment/queryprob' "{ \"fromNode\": \"${FROM_NODE}\", \"toNode\": \"${TO_NODE}\", \"amtMsat\": \"${AMOUNT}\" }"
+executeCommand 'queryprob' 'POST' '/lightning/payment/queryprob' "{ \"fromNode\": \"${FROM_NODE}\", \"toNode\": \"${TO_NODE}\", \"amtMsat\": \"${AMOUNT}\" }"
 showCommandResult 'result' ''
 
-executeCommand 'resetmc' 'GET' '/api/v1/payment/resetmc'
+executeCommand 'resetmc' 'GET' '/lightning/payment/resetmc'
 showCommandResult 'result' ''
 
-executeCommand 'buildroute' 'POST' '/api/v1/payment/buildroute' '{ "amtMsat": 0, "hopPubkeys": [ "01020304", "02030405", "03040506" ] }'
+executeCommand 'buildroute' 'POST' '/lightning/payment/buildroute' '{ "amtMsat": 0, "hopPubkeys": [ "01020304", "02030405", "03040506" ] }'
 showCommandResult 'result' ''
 
-showCommandResult 'result' ''
-echo "++++++++++++++++++++++++++++++++"
-exit 0
+echo "----------"
+echo
 
-################################################################################
-#   test commands to manage peers
-################################################################################
-executeCommand 'connect' 'POST' '/api/v1/peer/connect' '{ "addr": { "pubkey": "272648127365482", "host": "192.168.40.1:8080" } }'
+#
+#   test commands of "Lightning/Peer" group
+#
+
+echo -e ">>> Group ${CYAN}[lightning/peer]${NOCOLOR} Connections to other nodes in the Lightning Network"
+echo
+
+executeCommand 'connect' 'POST' '/lightning/peer/connect' "{ \"addr\": { \"pubkey\": \"${PUBLIC_KEY}\", \"host\": \"192.168.40.1:8080\" } }"
 showCommandResult 'result' ''
 
-executeCommand 'disconnect' 'POST' '/api/v1/peer/disconnect' '{  }'
+executeCommand 'disconnect' 'POST' '/lightning/peer/disconnect' "{ \"pubkey\": \"${PUBLIC_KEY}\" }"
 showCommandResult 'result' ''
 
-executeCommand 'listpeers' 'GET' '/api/v1/peer'
+executeCommand 'listpeers' 'GET' '/lightning/peer'
 showCommandResult 'result' ''
 showCommandResult '#peers' '.peers | length'
 
-################################################################################
-#   test commands to manage the wallet
-################################################################################
-executeCommand 'newaddress' 'POST' '/api/v1/lightning/getnewaddress' '{  }'
-showCommandResult 'result' ''
+echo "----------"
+echo
 
-executeCommand 'walletbalance' 'GET' '/api/v1/lightning/walletbalance'
+#
+#   test commands of "Neutrino" group
+#
+
+echo -e ">>> Group ${CYAN}[neutrino]${NOCOLOR} Management of the Neutrino interface which is used to communicate with the p2p nodes in the network"
+echo
+
+#   fetch a transaction ID for the neutrino tests
+TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
+executeCommand 'sendmany' 'POST' '/wallet/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": ${AMOUNT} } }"
+showCommandResult 'transaction ID' '.txid'
+TXID="$( getCommandResult '.txid' | tr -d '\"' )"
+
+executeCommand 'bcasttransaction' 'POST' '/neutrino/bcasttransaction' "{ \"tx\": \"${TXID}\" }"
+showCommandResult 'result' ''
+#    echo -e "\ttransaction hash: $( echo ${JSON_OUTPUT} | jq '.txn_hash' )"
+
+executeCommand 'estimatefee' 'POST' '/neutrino/estimatefee' "{ \"AddrToAmount\": [ \"${TARGET_WALLET}\": 100000 ] }"
+showCommandResult 'fee sat' '.feeSat'
+
+echo "----------"
+echo
+
+#
+#   test commands of "Wallet" group
+#
+
+echo -e ">>> Group ${CYAN}[wallet]${NOCOLOR} APIs for management of on-chain (non-Lightning) payments, seed export and recovery, and on-chain transaction detection"
+echo
+
+executeCommand 'walletbalance' 'GET' '/wallet/balance'
 echo -e "\ttotal balance: $( echo ${JSON_OUTPUT} | jq '.totalBalance' )"
 
-executeCommand 'getaddressbalances' 'POST' '/api/v1/wallet/addresses/balances' '{  }'
+#   we don't want to change the wallet's passphrase here, since this test is being made by REST_createWalletTest.sh script
+#executeCommand 'changePassphrase' 'POST' '/wallet/changepassphrase' "{ \"current_passphrase\": \"${PASSPHRASE}\", \"new_passphrase\": \"${NEW_PASSPHRASE}\" }"
+#showCommandResult 'result' ''
+
+WALLET_PASSPHRASE='w4ll3tP@sswd'
+executeCommand 'checkPassphrase' 'POST' '/wallet/checkpassphrase' "{ \"wallet_passphrase\": \"${WALLET_PASSPHRASE}\" }"
+showCommandResult 'result' '.validPassphrase'
+
+#   this test is meant to fail, since wallet is supposed to have been created already
+WALLET_SEED='[ "plastic",  "hollow",  "mansion",  "keep",  "into",  "cloth",  "awesome",  "salmon",  "reopen",  "inner",  "replace",  "dice",  "life",  "example",  "around" ]'
+SEED_PASSPHRASE='cGFzc3dvcmQ='
+executeCommand 'create_wallet' 'POST' '/wallet/create' "{ \"wallet_passphrase\": \"${PASSPHRASE}\", \"wallet_seed\": ${WALLET_SEED}, \"seed_passphrase_bin\": \"${SEED_PASSPHRASE}\" }"
+showCommandResult 'result' ''
+
+executeCommand 'getsecret' 'POST' '/wallet/getsecret' '{ "name": "Isaac Assimov" }'
+showCommandResult 'result' '.secret'
+
+executeCommand 'getwalletseed' 'GET' '/wallet/seed'
+showCommandResult 'result' '.seed'
+
+#   we don't want to unlock the wallet here, since this test is being made by REST_createWalletTest.sh script
+#executeCommand 'unlock_wallet' 'POST' '/wallet/unlock' "{ \"wallet_passphrase\": \"${WALLET_PASSPHRASE}\" }"
+#showCommandResult 'result' ''
+
+echo "----------"
+echo
+
+#
+#   test commands of "Wallet/Address" group
+#
+
+echo -e ">>> Group ${CYAN}[wallet/address]${NOCOLOR} Management of individual wallet addresses"
+echo
+
+executeCommand 'getaddressbalances' 'POST' '/wallet/address/balances' '{  }'
 echo -e "\t#addresses: $( echo ${JSON_OUTPUT} | jq '.addrs | length' )"
 
-#executeCommand 'signmessage' 'pkt1q0tgwuwcg4tmwegmevdfz3g6tw838upqcq8xt8u message'
-executeCommand 'signmessage' 'POST' '/api/v1/lightning/signmessage' '{ "msg": "testing pld REST endpoints" }'
-showCommandResult 'result' ''
-#    echo -e "\tsignature: $( echo ${JSON_OUTPUT} | jq '.signature' )"
-
-executeCommand 'resync' 'POST' '/api/v1/lightning/resync' '{  }'
+executeCommand 'newaddress' 'POST' '/wallet/address/create' '{  }'
 showCommandResult 'result' ''
 
-executeCommand 'stopresync' 'GET' '/api/v1/lightning/stopresync' ''
-showCommandResult 'result' ''
-#    echo -e "\tstop sync: $( echo ${JSON_OUTPUT} | jq '.value' )"
-
-executeCommand 'genseed' 'POST' '/api/v1/lightning/genseed' '{ "aezeedPassphrase": "cGFzc3dvcmQ=" }'
-showCommandResult 'result message' '.message'
-showCommandResult 'enciphered seed' 'encipheredSeed'
-
-executeCommand 'getwalletseed' 'POST' '/api/v1/lightning/getwalletseed' '{  }'
-showCommandResult 'result' ''
-#    echo -e "\twallet seed: $( echo ${JSON_OUTPUT} | jq '.seed' )"
-
-executeCommand 'getsecret' 'POST' '/api/v1/lightning/getsecret' '{ "name": "Isaac Assimov" }'
-showCommandResult 'result' ''
-#    echo -e "\tsecret: $( echo ${JSON_OUTPUT} | jq '.secret' )"
-
-executeCommand 'importprivkey' 'POST' '/api/v1/lightning/importprivkey' '{ "privateKey": "cVgcgWwQpwzViWmG7dGyvf545ra6AdT4tV29UtQfE8okvPuznFZi", "rescan": true }'
-showCommandResult 'result' ''
-#    echo -e "\taddress: $( echo ${JSON_OUTPUT} | jq '.address' )"
-
-executeCommand 'listlockunspent' 'GET' '/api/v1/lightning/listlockunspent'
-showCommandResult 'result' ''
-#    echo -e "\t#lock unspent: $( echo ${JSON_OUTPUT} | jq '.locked_unspent | length' )"
-
-executeCommand 'lockunspent' 'POST' '/api/v1/lightning/lockunspent' '{ "lockname": "secure vault", "unlock": false, "transactions": [ { "txid": "934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f" } ] }' ''
-showCommandResult 'result' ''
-
-executeCommand 'createtransaction' 'POST' '/api/v1/lightning/createtransaction' '{ "toAddress": "pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz", "amount": 100000 }'
-showCommandResult 'result' ''
-#    echo -e "\ttransaction: $( echo ${JSON_OUTPUT} | jq '.transaction' )"
-
-#executeCommand 'dumpprivkey' 'pkt1q0tgwuwcg4tmwegmevdfz3g6tw838upqcq8xt8u'
-executeCommand 'dumpprivkey' 'POST' '/api/v1/lightning/dumpprivkey' '{ "address": "pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz" }'
+#executeCommand 'dumpprivkey' 'POST' '/wallet/address/dumpprivkey' '{ "address": "pkt1q85n69mzthdxlwutn6dr6f7kwyd9nv8ulasdaqz" }'
+executeCommand 'dumpprivkey' 'POST' '/wallet/address/dumpprivkey' "{ \"address\": \"${TARGET_WALLET}\" }"
 showCommandResult 'result' ''
 #    echo -e "\tprivate key: $( echo ${JSON_OUTPUT} | jq '.private_key' )"
 
-#executeCommand 'getnewaddress' 'POST' '/api/v1/lightning/getnewaddress' '{  }'
-#showCommandResult 'result' ''
+#   we don't want to start a full rescan so, adding a 'xx' sufix to the Wallet PK to force an error
+WALLET_PRIVKEY='cVgcgWwQpwzViWmG7dGyvf545ra6AdT4tV29UtQfE8okvPuznFZi'
+executeCommand 'importprivkey' 'POST' '/wallet/address/import' "{ \"privateKey\": \"${WALLET_PRIVKEY}xx\", \"rescan\": true }"
+showCommandResult 'result' ''
 #    echo -e "\taddress: $( echo ${JSON_OUTPUT} | jq '.address' )"
 
+executeCommand 'signmessage' 'POST' '/wallet/address/signmessage' '{ "msg": "testing pld REST endpoints" }'
+showCommandResult 'result' ''
+#    echo -e "\tsignature: $( echo ${JSON_OUTPUT} | jq '.signature' )"
+
+echo "----------"
+echo
+
+#
+#   test commands of "Wallet/NetworkStewardVote" group
+#
+
+echo -e ">>> Group ${CYAN}[wallet/networkstewardvote]${NOCOLOR} Control how this wallet votes on PKT Network Steward"
+echo
+
+executeCommand 'getnetworkstewardvote' 'GET' '/wallet/networkstewardvote'
+showCommandResult 'vote against' '.voteAgainst'
+showCommandResult 'vote for' '.voteFor'
+
+executeCommand 'setnetworkstewardvote' 'POST' '/wallet/networkstewardvote/set' '{ "voteAgainst": "0", "voteFor": "1" }'
+showCommandResult 'result' ''
+
+echo "----------"
+echo
+
+#
+#   test commands of "Wallet/Transaction" group
+#
+
+echo -e ">>> Group ${CYAN}[wallet/transaction]${NOCOLOR} Create and manage on-chain transactions with the wallet"
+echo
+
 #executeCommand 'gettransaction' '934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f'
-executeCommand 'gettransaction' 'POST' '/api/v1/lightning/gettransaction' ''
+executeCommand 'gettransaction' 'POST' '/wallet/transaction' ''
 showCommandResult 'result' ''
 #    echo -e "\tamount: $( echo ${JSON_OUTPUT} | jq '.transaction.amount' )"
 #    echo -e "\tfee: $( echo ${JSON_OUTPUT} | jq '.transaction.fee' )"
 
-executeCommand 'gettransactions' 'POST' '/api/v1/lightning/gettransactions' ''
+TARGET_WALLET="pkt1q07ly7r47ss4drsvt2zq9zkcstksrq2dap3x0yw"
+AMOUNT="10000"
+executeCommand 'createtransaction' 'POST' '/wallet/transaction/create' "{ \"toAddress\": \"${TARGET_WALLET}\", \"amount\": ${AMOUNT} }"
+showCommandResult 'result' ''
+#    echo -e "\ttransaction: $( echo ${JSON_OUTPUT} | jq '.transaction' )"
+
+executeCommand 'query' 'POST' '/wallet/transaction/query' '{  }'
 showCommandResult 'result' ''
 
-executeCommand 'sendfrom' 'POST' '/api/v1/lightning/sendfrom' '{  }'
+executeCommand 'sendcoins' 'POST' '/wallet/transaction/sendcoins' "{ \"addr\": \"${TARGET_WALLET}\", \"amount\": ${AMOUNT} }"
+showCommandResult 'transaction ID' '.txid'
+
+executeCommand 'sendfrom' 'POST' '/wallet/transaction/sendfrom' '{  }'
 showCommandResult 'result' ''
 
-################################################################################
-#   test commands to manage watch tower
-################################################################################
+executeCommand 'sendmany' 'POST' '/wallet/transaction/sendmany' "{ \"AddrToAmount\": { \"${TARGET_WALLET}\": ${AMOUNT} } }"
+showCommandResult 'result' ''
+showCommandResult 'transaction ID' '.txid'
+TXID="$( getCommandResult '.txid' | tr -d '\"' )"
 
-#executeCommand 'wtclient' 'towers'
+echo "----------"
+echo
 
-#   test commands to stop pld daemon
-executeCommand 'stop' 'GET' '/api/v1/meta/stop'
+#
+#   test commands of "Wallet/Unspent" group
+#
+
+echo -e ">>> Group ${CYAN}[wallet/unspent]${NOCOLOR} Detected unspent transactions associated with one of our wallet addresses"
+echo
+
+executeCommand 'listunspent' 'POST' '/wallet/unspent' '{ "minConfs": 1, "maxConfs": 100 }'
+showCommandResult '#utxos' '.utxos | length'
+
+executeCommand 'resync' 'POST' '/wallet/unspent/resync' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'stopresync' 'GET' '/wallet/unspent/stopresync' ''
+showCommandResult 'result' ''
+#    echo -e "\tstop sync: $( echo ${JSON_OUTPUT} | jq '.value' )"
+
+#
+#   test commands of "Wallet/Unspent/Lock" group
+#
+
+echo -e ">>> Group ${CYAN}[wallet/unspent/lock]${NOCOLOR} Manipulation of unspent outputs which are 'locked' and therefore will not be used to source funds for any transaction"
+echo
+
+executeCommand 'listlockunspent' 'GET' '/wallet/unspent/lock'
+showCommandResult 'result' ''
+#    echo -e "\t#lock unspent: $( echo ${JSON_OUTPUT} | jq '.locked_unspent | length' )"
+
+executeCommand 'lockunspent' 'POST' '/wallet/unspent/lock/create' '{ "lockname": "secure vault", "unlock": false, "transactions": [ { "txid": "934095dc4afa8d4b5d43732a96e78e11c0e88defdaab12d946f525e54478938f" } ] }' ''
+showCommandResult 'result' ''
+
+echo "----------"
+echo
+
+#
+#   test commands of "Wtclient/Tower" group
+#
+
+echo -e ">>> Group ${CYAN}[wtclient/tower]${NOCOLOR} Interact with the watchtower client"
+echo
+
+executeCommand 'show' 'POST' '/wtclient/tower' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/create' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/getinfo' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/policy' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/remove' '{  }'
+showCommandResult 'result' ''
+
+executeCommand 'show' 'POST' '/wtclient/tower/stats' '{  }'
+showCommandResult 'result' ''
+
+echo "----------"
+echo
 
 rm -rf ${REST_ERRORS_FILE}

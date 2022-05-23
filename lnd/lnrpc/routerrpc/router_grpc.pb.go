@@ -20,10 +20,16 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RouterClient interface {
 	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Send a payment over lightning`
+	//
 	//SendPaymentV2 attempts to route a payment described by the passed
 	//PaymentRequest to the final destination. The call returns a stream of
 	//payment updates.
 	SendPaymentV2(ctx context.Context, in *SendPaymentRequest, opts ...grpc.CallOption) (Router_SendPaymentV2Client, error)
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Track payment`
 	//
 	//TrackPaymentV2 returns an update stream for the payment identified by the
 	//payment hash.
@@ -41,23 +47,38 @@ type RouterClient interface {
 	//SendToRouteV2 in that it doesn't return the full HTLC information.
 	SendToRoute(ctx context.Context, in *SendToRouteRequest, opts ...grpc.CallOption) (*SendToRouteResponse, error)
 	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Send a payment over a predefined route`
+	//
 	//SendToRouteV2 attempts to make a payment via the specified route. This
 	//method differs from SendPayment in that it allows users to specify a full
 	//route manually. This can be used for things like rebalancing, and atomic
 	//swaps.
 	SendToRouteV2(ctx context.Context, in *SendToRouteRequest, opts ...grpc.CallOption) (*lnrpc.HTLCAttempt, error)
 	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Reset internal mission control state`
+	//
 	//ResetMissionControl clears all mission control state and starts with a clean
 	//slate.
 	ResetMissionControl(ctx context.Context, in *ResetMissionControlRequest, opts ...grpc.CallOption) (*ResetMissionControlResponse, error)
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Query the internal mission control state`
 	//
 	//QueryMissionControl exposes the internal mission control state to callers.
 	//It is a development feature.
 	QueryMissionControl(ctx context.Context, in *QueryMissionControlRequest, opts ...grpc.CallOption) (*QueryMissionControlResponse, error)
 	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Estimate a success probability`
+	//
 	//QueryProbability returns the current success probability estimate for a
 	//given node pair and amount.
 	QueryProbability(ctx context.Context, in *QueryProbabilityRequest, opts ...grpc.CallOption) (*QueryProbabilityResponse, error)
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Build a route from a list of hop pubkeys`
 	//
 	//BuildRoute builds a fully specified route based on a list of hop public
 	//keys. It retrieves the relevant channel policies from the graph in order to
@@ -357,10 +378,16 @@ func (x *routerHtlcInterceptorClient) Recv() (*ForwardHtlcInterceptRequest, erro
 // for forward compatibility
 type RouterServer interface {
 	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Send a payment over lightning`
+	//
 	//SendPaymentV2 attempts to route a payment described by the passed
 	//PaymentRequest to the final destination. The call returns a stream of
 	//payment updates.
 	SendPaymentV2(*SendPaymentRequest, Router_SendPaymentV2Server) error
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Track payment`
 	//
 	//TrackPaymentV2 returns an update stream for the payment identified by the
 	//payment hash.
@@ -378,23 +405,38 @@ type RouterServer interface {
 	//SendToRouteV2 in that it doesn't return the full HTLC information.
 	SendToRoute(context.Context, *SendToRouteRequest) (*SendToRouteResponse, error)
 	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Send a payment over a predefined route`
+	//
 	//SendToRouteV2 attempts to make a payment via the specified route. This
 	//method differs from SendPayment in that it allows users to specify a full
 	//route manually. This can be used for things like rebalancing, and atomic
 	//swaps.
 	SendToRouteV2(context.Context, *SendToRouteRequest) (*lnrpc.HTLCAttempt, error)
 	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Reset internal mission control state`
+	//
 	//ResetMissionControl clears all mission control state and starts with a clean
 	//slate.
 	ResetMissionControl(context.Context, *ResetMissionControlRequest) (*ResetMissionControlResponse, error)
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Query the internal mission control state`
 	//
 	//QueryMissionControl exposes the internal mission control state to callers.
 	//It is a development feature.
 	QueryMissionControl(context.Context, *QueryMissionControlRequest) (*QueryMissionControlResponse, error)
 	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Estimate a success probability`
+	//
 	//QueryProbability returns the current success probability estimate for a
 	//given node pair and amount.
 	QueryProbability(context.Context, *QueryProbabilityRequest) (*QueryProbabilityResponse, error)
+	//
+	//$pld.category: `Payment`
+	//$pld.short_description: `Build a route from a list of hop pubkeys`
 	//
 	//BuildRoute builds a fully specified route based on a list of hop public
 	//keys. It retrieves the relevant channel policies from the graph in order to

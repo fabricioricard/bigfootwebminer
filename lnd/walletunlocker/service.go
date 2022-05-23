@@ -61,6 +61,8 @@ type WalletInitMsg struct {
 	// initialized stateless, which means no unencrypted macaroons should be
 	// written to disk.
 	StatelessInit bool
+
+	WalletName string
 }
 
 // WalletUnlockMsg is a message sent by the UnlockerService when a user wishes
@@ -169,21 +171,6 @@ func (u *UnlockerService) GenSeed(_ context.Context,
 func (u *UnlockerService) GenSeed0(_ context.Context,
 	in *lnrpc.GenSeedRequest) (*lnrpc.GenSeedResponse, er.R) {
 
-	// Before we start, we'll ensure that the wallet hasn't already created
-	// so we don't show a *new* seed to the user if one already exists.
-	netDir := btcwallet.NetworkDir(u.chainDir, u.netParams)
-	if u.walletPath != "" {
-		netDir = u.walletPath
-	}
-	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, 0)
-	walletExists, err := loader.WalletExists()
-	if err != nil {
-		return nil, err
-	}
-	if walletExists {
-		return nil, er.Errorf("wallet already exists")
-	}
-
 	//var entropy [aezeed.EntropySize]byte
 
 	if len(in.SeedEntropy) != 0 {
@@ -289,11 +276,6 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 		}
 	}
 
-	// Make sure the password meets our constraints.
-	if err := ValidatePassword(walletPassphrase); err != nil {
-		return nil, err
-	}
-
 	// Require that the recovery window be non-negative.
 	recoveryWindow := in.RecoveryWindow
 	if recoveryWindow < 0 {
@@ -307,7 +289,12 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 	if u.walletPath != "" {
 		netDir = u.walletPath
 	}
-	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, uint32(recoveryWindow))
+	//If wallet_name passed use it instead of default
+	walletFile := u.walletFile
+	if in.WalletName != "" {
+		walletFile = in.WalletName
+	}
+	loader := wallet.NewLoader(u.netParams, netDir, walletFile, u.noFreelistSync, uint32(recoveryWindow))
 
 	walletExists, err := loader.WalletExists()
 	if err != nil {
@@ -350,6 +337,7 @@ func (u *UnlockerService) InitWallet0(ctx context.Context,
 		Seed:           seed,
 		RecoveryWindow: uint32(recoveryWindow),
 		StatelessInit:  true,
+		WalletName:     walletFile,
 	}
 
 	// Before we return the unlock payload, we'll check if we can extract
@@ -409,7 +397,11 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	if u.walletPath != "" {
 		netDir = u.walletPath
 	}
-	loader := wallet.NewLoader(u.netParams, netDir, u.walletFile, u.noFreelistSync, recoveryWindow)
+	walletFile := u.walletFile
+	if in.WalletName != "" {
+		walletFile = in.WalletName
+	}
+	loader := wallet.NewLoader(u.netParams, netDir, walletFile, u.noFreelistSync, recoveryWindow)
 
 	// Check if wallet already exists.
 	walletExists, err := loader.WalletExists()
@@ -472,14 +464,4 @@ func (u *UnlockerService) UnlockWallet0(ctx context.Context,
 	case <-ctx.Done():
 		return nil, ErrUnlockTimeout.Default()
 	}
-}
-
-// ValidatePassword assures the password meets all of our constraints.
-func ValidatePassword(password []byte) er.R {
-	// Passwords should have a length of at least 8 characters.
-	if len(password) < 8 {
-		return er.New("password must have at least 8 characters")
-	}
-
-	return nil
 }

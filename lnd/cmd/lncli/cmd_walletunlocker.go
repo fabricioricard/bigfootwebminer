@@ -11,7 +11,6 @@ import (
 
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/walletunlocker"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
 	"github.com/urfave/cli"
 )
@@ -207,7 +206,7 @@ func create(ctx *cli.Context) er.R {
 	}
 
 	walletPassword, err := capturePassword(
-		"Input wallet password: ", false, walletunlocker.ValidatePassword,
+		"Input wallet password: ", false, nil,
 	)
 	if err != nil {
 		return err
@@ -405,10 +404,12 @@ func capturePassword(instruction string, optional bool,
 
 		// If the password provided is not valid, restart
 		// password capture process from the beginning.
-		if err := validate(password); err != nil {
-			fmt.Println(err.String())
-			fmt.Println()
-			continue
+		if validate != nil {
+			if err := validate(password); err != nil {
+				fmt.Println(err.String())
+				fmt.Println()
+				continue
+			}
 		}
 
 		passwordConfirmed, err := readPassword("Confirm password: ")

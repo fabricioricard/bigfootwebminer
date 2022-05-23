@@ -1091,23 +1091,22 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		}(lis)
 	}
 
-	//	since the creation of RESP API the gRPC reverse proxy is not necessary anymore:w
+	//	since the creation of RESP API the gRPC reverse proxy is not necessary anymore
 
-	// Start a REST proxy for our gRPC server above.
 	/*
+		// Start a REST proxy for our gRPC server above.
 		ctx := context.Background()
 		ctx, cancel := context.WithCancel(ctx)
 		shutdownFuncs = append(shutdownFuncs, cancel)
 
 		mux := proxy.NewServeMux()
 
-		errr := lnrpc.RegisterWalletUnlockerHandlerFromEndpoint(
-			ctx, mux, restProxyDest, restDialOpts,
-		)
-		if errr != nil {
-			return nil, shutdown, er.E(errr)
-		}
-
+			errr := lnrpc.RegisterWalletUnlockerHandlerFromEndpoint(
+				ctx, mux, restProxyDest, restDialOpts,
+			)
+			if errr != nil {
+				return nil, shutdown, er.E(errr)
+			}
 		//Launching REST for MetaService, for getinfo2 and changepassword
 		//on walletunlocker shutdown this is closed so we are relaunching it
 		//in the rpcserver
@@ -1121,8 +1120,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 	wg.Wait()
 
 	// Wait for user to provide the password.
-	log.Infof("Waiting for wallet (" + walletFilename + ") encryption password. Use `pldctl " +
-		"create` to create a wallet, `pldctl unlock` to unlock an " +
+	log.Infof("Waiting for wallet (" + walletFilename + ") encryption password. Use `pldctl create` to create a wallet, `pldctl unlock` to unlock an " +
 		"existing wallet, or `pldctl changepassword` to change the " +
 		"password of an existing wallet and unlock it.")
 
@@ -1138,6 +1136,10 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 		password := initMsg.Passphrase
 		cipherSeed := initMsg.Seed
 		recoveryWindow := initMsg.RecoveryWindow
+
+		if initMsg.WalletName != "" {
+			walletFilename = initMsg.WalletName
+		}
 
 		loader := wallet.NewLoader(
 			cfg.ActiveNetParams.Params, walletPath, walletFilename, !cfg.SyncFreelist,
@@ -1396,6 +1398,7 @@ func initNeutrinoBackend(cfg *Config, chainDir string) (*neutrino.ChainService,
 			return ips, nil
 		},
 		AssertFilterHeader: headerStateAssertion,
+		CheckConectivity:   cfg.NeutrinoMode.CheckConectivity,
 	}
 
 	neutrino.MaxPeers = 8

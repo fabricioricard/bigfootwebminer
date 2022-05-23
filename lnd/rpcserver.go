@@ -71,6 +71,7 @@ import (
 	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wallet"
+	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txauthor"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txrules"
 	"github.com/pkt-cash/pktd/txscript"
@@ -4966,7 +4967,7 @@ func (r *rpcServer) GetTransactions(ctx context.Context,
 	var endHeight = btcwallet.UnconfirmedHeight
 
 	// If the user has provided an end height, we overwrite our default.
-	if req.EndHeight != 0 {
+	if req.EndHeight > 0 {
 		endHeight = req.EndHeight
 	}
 
@@ -4987,12 +4988,12 @@ func (r *rpcServer) GetTransactions(ctx context.Context,
 		coinbase = req.Coinbase
 	}
 
-	transactions, err := r.server.cc.Wallet.ListTransactionDetails(req.StartHeight, endHeight, skip, limit, coinbase)
+	transactions, err := r.server.cc.Wallet.ListTransactionDetails(req.StartHeight, endHeight, skip, limit, coinbase, req.Reversed)
 	if err != nil {
 		return nil, er.Native(err)
 	}
 
-	return lnrpc.RPCTransactionDetails(transactions), nil
+	return lnrpc.RPCTransactionDetails(transactions, req.Reversed), nil
 }
 
 func (r *rpcServer) DescribeGraph(ctx context.Context,
@@ -6647,6 +6648,61 @@ func (r *rpcServer) GetWalletSeed(ctx context.Context, req *lnrpc.GetWalletSeedR
 	}
 	return &lnrpc.GetWalletSeedResponse{
 		Seed: strings.Split(words, " "),
+	}, nil
+}
+
+//	ChangeSeedPassphrase
+func (r *rpcServer) ChangeSeedPassphrase(ctx context.Context, req *lnrpc.ChangeSeedPassphraseRequest) (*lnrpc.ChangeSeedPassphraseResponse, error) {
+
+	//	get current seed passphrase from request
+	//	if both bin and string passphrases are present, the bin have precedence
+	var currentSeedCipherPass []byte
+
+	if len(req.CurrentSeedPassphraseBin) > 0 {
+		currentSeedCipherPass = req.CurrentSeedPassphraseBin
+	} else if len(req.CurrentSeedPassphrase) > 0 {
+		currentSeedCipherPass = []byte(req.CurrentSeedPassphrase)
+	}
+
+	//	get current seed and decipher it if necessary
+	var mnemonic string
+
+	mnemonic = strings.Join(req.CurrentSeed, " ")
+	if len(mnemonic) == 0 {
+		return nil, er.Native(er.New("Current seed is required in the request"))
+	}
+
+	currentSeedCiphered, err := seedwords.SeedFromWords(mnemonic)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+
+	currentSeed, err := currentSeedCiphered.Decrypt(currentSeedCipherPass, false)
+	if err != nil {
+		return nil, er.Native(err)
+	}
+
+	//	get new seed passphrase from request
+	//	if both bin and string passphrases are present, the bin have precedence
+	var newSeedCipherPass []byte
+
+	if len(req.NewSeedPassphraseBin) > 0 {
+		newSeedCipherPass = req.NewSeedPassphraseBin
+	} else if len(req.NewSeedPassphrase) > 0 {
+		newSeedCipherPass = []byte(req.NewSeedPassphrase)
+	}
+
+	//	cipher the seed with the new passphrase
+	newCipheredSeed := currentSeed.Encrypt(newSeedCipherPass)
+
+	//	get the mnemonic for the new ciphered seed
+	mnemonic, err = newCipheredSeed.Words("english")
+	if err != nil {
+		return nil, er.Native(err)
+	}
+
+	return &lnrpc.ChangeSeedPassphraseResponse{
+		Seed: strings.Split(mnemonic, " "),
 	}, nil
 }
 

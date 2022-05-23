@@ -83,6 +83,88 @@
           "fields": []
         },
         {
+          "name": "CheckPasswordRequest",
+          "longName": "CheckPasswordRequest",
+          "fullName": "lnrpc.CheckPasswordRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "wallet_passphrase",
+              "description": "current_password should be the current valid passphrase used to unlock the daemon.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "wallet_password_bin",
+              "description": "Binary form of current_passphrase, if specified will override current_passphrase.\nWhen using JSON, this field must be encoded as base64.",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CheckPasswordResponse",
+          "longName": "CheckPasswordResponse",
+          "fullName": "lnrpc.CheckPasswordResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "valid_passphrase",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "CrashRequest",
+          "longName": "CrashRequest",
+          "fullName": "lnrpc.CrashRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "CrashResponse",
+          "longName": "CrashResponse",
+          "fullName": "lnrpc.CrashResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "GetInfo2Request",
           "longName": "GetInfo2Request",
           "fullName": "lnrpc.GetInfo2Request",
@@ -151,7 +233,7 @@
           "methods": [
             {
               "name": "GetInfo2",
-              "description": "",
+              "description": "$pld.category: `Meta`\n$pld.short_description: `Returns basic information related to the active daemon`\n\nGetInfo returns general information concerning the lightning node including\nit's identity pubkey, alias, the chains it is connected to, and information\nconcerning the number of open+pending channels.",
               "requestType": "GetInfo2Request",
               "requestLongType": "GetInfo2Request",
               "requestFullType": "lnrpc.GetInfo2Request",
@@ -163,7 +245,7 @@
             },
             {
               "name": "ChangePassword",
-              "description": "lncli: `changepassword`\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Change an encrypted wallet's password at startup`\n\nChangePassword changes the password of the encrypted wallet. This will\nautomatically unlock the wallet database if successful.",
               "requestType": "ChangePasswordRequest",
               "requestLongType": "ChangePasswordRequest",
               "requestFullType": "lnrpc.ChangePasswordRequest",
@@ -171,6 +253,30 @@
               "responseType": "ChangePasswordResponse",
               "responseLongType": "ChangePasswordResponse",
               "responseFullType": "lnrpc.ChangePasswordResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "CheckPassword",
+              "description": "$pld.category: `Wallet`\n$pld.short_description: `Check the wallet's password`\n\nCheckPassword verify that the password in the request is valid for the wallet.",
+              "requestType": "CheckPasswordRequest",
+              "requestLongType": "CheckPasswordRequest",
+              "requestFullType": "lnrpc.CheckPasswordRequest",
+              "requestStreaming": false,
+              "responseType": "CheckPasswordResponse",
+              "responseLongType": "CheckPasswordResponse",
+              "responseFullType": "lnrpc.CheckPasswordResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "ForceCrash",
+              "description": "$pld.category: `Meta`\n$pld.short_description: `Force pld to crash (for debugging purposes)`\n\nForce a pld crash (for debugging purposes)",
+              "requestType": "CrashRequest",
+              "requestLongType": "CrashRequest",
+              "requestFullType": "lnrpc.CrashRequest",
+              "requestStreaming": false,
+              "responseType": "CrashResponse",
+              "responseLongType": "CrashResponse",
+              "responseFullType": "lnrpc.CrashResponse",
               "responseStreaming": false
             }
           ]

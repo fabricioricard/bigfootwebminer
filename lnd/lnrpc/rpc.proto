@@ -24,32 +24,47 @@ option go_package = "github.com/pkt-cash/pktd/lnd/lnrpc";
 
 // Lightning is the main RPC server of the daemon.
 service Lightning {
-    /* lncli: `walletbalance`
+    /*
+    $pld.category: `Wallet`
+    $pld.short_description: `Compute and display the wallet's current balance`
+
     WalletBalance returns total unspent outputs(confirmed and unconfirmed), all
     confirmed unspent outputs and all unconfirmed unspent outputs under control
     of the wallet.
     */
     rpc WalletBalance (WalletBalanceRequest) returns (WalletBalanceResponse);
 
-    /* lncli: `getaddressbalances`
+    /*
+    $pld.category: `Address`
+    $pld.short_description: `Compute and display balances for each address in the wallet`
+
     GetAddressBalances returns the balance for each of the addresses in the wallet.
      */                                                                                              
      rpc GetAddressBalances (GetAddressBalancesRequest) returns (GetAddressBalancesResponse);
 
-    /* lncli: `channelbalance`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `Returns the sum of the total available channel balance across all open channels`
+
     ChannelBalance returns a report on the total funds across all open channels,
     categorized in local/remote, pending local/remote and unsettled local/remote
     balances.
     */
     rpc ChannelBalance (ChannelBalanceRequest) returns (ChannelBalanceResponse);
 
-    /* lncli: `listchaintxns`
+    /*
+    $pld.category: `Transaction`
+    $pld.short_description: `List transactions from the wallet`
+
     GetTransactions returns a list describing all the known transactions
     relevant to the wallet.
     */
     rpc GetTransactions (GetTransactionsRequest) returns (TransactionDetails);
 
-    /* lncli: `estimatefee`
+    /*
+    $pld.category: `Neutrino`
+    $pld.short_description: `Get fee estimates for sending bitcoin on-chain to multiple addresses`
+
     EstimateFee asks the chain backend to estimate the fee rate and total fees
     for a transaction that pays to multiple specified outputs.
 
@@ -60,7 +75,10 @@ service Lightning {
     */
     rpc EstimateFee (EstimateFeeRequest) returns (EstimateFeeResponse);
 
-    /* lncli: `sendcoins`
+    /*
+    $pld.category: `Transaction`
+    $pld.short_description: `Send bitcoin on-chain to an address`
+
     SendCoins executes a request to send coins to a particular address. Unlike
     SendMany, this RPC call only allows creating a single output at a time. If
     neither target_conf, or sat_per_byte are set, then the internal wallet will
@@ -85,7 +103,10 @@ service Lightning {
     rpc SubscribeTransactions (GetTransactionsRequest)
         returns (stream Transaction);
 
-    /* lncli: `sendmany`
+    /*
+    $pld.category: `Transaction`
+    $pld.short_description: `Send bitcoin on-chain to multiple addresses`
+
     SendMany handles a request for a transaction that creates multiple specified
     outputs in parallel. If neither target_conf, or sat_per_byte are set, then
     the internal wallet will consult its fee model to determine a fee for the
@@ -93,33 +114,45 @@ service Lightning {
     */
     rpc SendMany (SendManyRequest) returns (SendManyResponse);
 
-    /* lncli: `newaddress`
+    /*
     NewAddress creates a new address under control of the local wallet.
     */
     rpc NewAddress (NewAddressRequest) returns (NewAddressResponse);
 
-    /* lncli: `signmessage`
+    /*
+    $pld.category: `Address`
+    $pld.short_description: `Signs a message using the private key of a payment address`
+
     SignMessage signs a message with this node's private key. The returned
     signature string is `zbase32` encoded and pubkey recoverable, meaning that
     only the message digest and signature are needed for verification.
     */
     rpc SignMessage (SignMessageRequest) returns (SignMessageResponse);
 
-    /* lncli: `connect`
+    /*
+    $pld.category: `Peer`
+    $pld.short_description: `Connect to a remote pld peer`
+
     ConnectPeer attempts to establish a connection to a remote peer. This is at
     the networking level, and is used for communication between nodes. This is
     distinct from establishing a channel with a peer.
     */
     rpc ConnectPeer (ConnectPeerRequest) returns (ConnectPeerResponse);
 
-    /* lncli: `disconnect`
+    /*
+    $pld.category: `Peer`
+    $pld.short_description: `Disconnect a remote pld peer identified by public key`
+
     DisconnectPeer attempts to disconnect one peer from another identified by a
     given pubKey. In the case that we currently have a pending or active channel
     with the target peer, then this action will be not be allowed.
     */
     rpc DisconnectPeer (DisconnectPeerRequest) returns (DisconnectPeerResponse);
 
-    /* lncli: `listpeers`
+    /*
+    $pld.category: `Peer`
+    $pld.short_description: `List all active, currently connected peers`
+
     ListPeers returns a verbose listing of all currently active peers.
     */
     rpc ListPeers (ListPeersRequest) returns (ListPeersResponse);
@@ -131,7 +164,7 @@ service Lightning {
     */
     rpc SubscribePeerEvents (PeerEventSubscription) returns (stream PeerEvent);
 
-    /* lncli: `getinfo`
+    /*
     GetInfo returns general information concerning the lightning node including
     it's identity pubkey, alias, the chains it is connected to, and information
     concerning the number of open+pending channels.
@@ -147,7 +180,10 @@ service Lightning {
         returns (GetRecoveryInfoResponse);
 
     // TODO(roasbeef): merge with below with bool?
-    /* lncli: `pendingchannels`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `Display information pertaining to pending channels`
+
     PendingChannels returns a list of all the channels that are currently
     considered "pending". A channel is pending if it has finished the funding
     workflow and is waiting for confirmations for the funding txn, or is in the
@@ -156,7 +192,10 @@ service Lightning {
     rpc PendingChannels (PendingChannelsRequest)
         returns (PendingChannelsResponse);
 
-    /* lncli: `listchannels`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `List all open channels`
+
     ListChannels returns a description of all the open channels that this node
     is a participant in.
     */
@@ -171,7 +210,10 @@ service Lightning {
     rpc SubscribeChannelEvents (ChannelEventSubscription)
         returns (stream ChannelEventUpdate);
 
-    /* lncli: `closedchannels`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `List all closed channels`
+
     ClosedChannels returns a description of all the closed channels that
     this node was a participant in.
     */
@@ -185,7 +227,10 @@ service Lightning {
     */
     rpc OpenChannelSync (OpenChannelRequest) returns (ChannelPoint);
 
-    /* lncli: `openchannel`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `Open a channel to a node or an existing peer`
+
     OpenChannel attempts to open a singly funded channel specified in the
     request to a remote peer. Users are able to specify a target number of
     blocks that the funding transaction should be confirmed in, or a manual fee
@@ -219,7 +264,10 @@ service Lightning {
     rpc ChannelAcceptor (stream ChannelAcceptResponse)
         returns (stream ChannelAcceptRequest);
 
-    /* lncli: `closechannel`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `Close an existing channel`
+
     CloseChannel attempts to close an active channel identified by its channel
     outpoint (ChannelPoint). The actions of this method can additionally be
     augmented to attempt a force close after a timeout period in the case of an
@@ -230,7 +278,10 @@ service Lightning {
     */
     rpc CloseChannel (CloseChannelRequest) returns (stream CloseStatusUpdate);
 
-    /* lncli: `abandonchannel`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `Abandons an existing channel`
+
     AbandonChannel removes all channel state from the database except for a
     close summary. This method can be used to get rid of permanently unusable
     channels due to bugs fixed in newer versions of lnd. This method can also be
@@ -240,7 +291,7 @@ service Lightning {
     */
     rpc AbandonChannel (AbandonChannelRequest) returns (AbandonChannelResponse);
 
-    /* lncli: `sendpayment`
+    /*
     Deprecated, use routerrpc.SendPaymentV2. SendPayment dispatches a
     bi-directional streaming RPC for sending payments through the Lightning
     Network. A single RPC invocation creates a persistent bi-directional
@@ -276,14 +327,20 @@ service Lightning {
     */
     rpc SendToRouteSync (SendToRouteRequest) returns (SendResponse);
 
-    /* lncli: `addinvoice`
+    /*
+    $pld.category: `Invoice`
+    $pld.short_description: `Add a new invoice`
+
     AddInvoice attempts to add a new invoice to the invoice database. Any
     duplicated invoices are rejected, therefore all invoices *must* have a
     unique payment preimage.
     */
     rpc AddInvoice (Invoice) returns (AddInvoiceResponse);
 
-    /* lncli: `listinvoices`
+    /*
+    $pld.category: `Invoice`
+    $pld.short_description: `List all invoices currently stored within the database. Any active debug invoices are ignored`
+
     ListInvoices returns a list of all the invoices currently stored within the
     database. Any active debug invoices are ignored. It has full support for
     paginated responses, allowing users to query for specific invoices through
@@ -294,7 +351,10 @@ service Lightning {
     */
     rpc ListInvoices (ListInvoiceRequest) returns (ListInvoiceResponse);
 
-    /* lncli: `lookupinvoice`
+    /*
+    $pld.category: `Invoice`
+    $pld.short_description: `Lookup an existing invoice by its payment hash`
+
     LookupInvoice attempts to look up an invoice according to its payment hash.
     The passed payment hash *must* be exactly 32 bytes, if not, an error is
     returned.
@@ -314,14 +374,20 @@ service Lightning {
     */
     rpc SubscribeInvoices (InvoiceSubscription) returns (stream Invoice);
 
-    /* lncli: `decodepayreq`
+    /*
+    $pld.category: `Invoice`
+    $pld.short_description: `Decode a payment request`
+
     DecodePayReq takes an encoded payment request string and attempts to decode
     it, returning a full description of the conditions encoded within the
     payment request.
     */
     rpc DecodePayReq (PayReqString) returns (PayReq);
 
-    /* lncli: `listpayments`
+    /*
+    $pld.category: `Payment`
+    $pld.short_description: `List all outgoing payments`
+
     ListPayments returns a list of all outgoing payments.
     */
     rpc ListPayments (ListPaymentsRequest) returns (ListPaymentsResponse);
@@ -332,7 +398,10 @@ service Lightning {
     rpc DeleteAllPayments (DeleteAllPaymentsRequest)
         returns (DeleteAllPaymentsResponse);
 
-    /* lncli: `describegraph`
+    /*
+    $pld.category: `Graph`
+    $pld.short_description: `Describe the network graph`
+
     DescribeGraph returns a description of the latest graph state from the
     point of view of the node. The graph information is partitioned into two
     components: all the nodes/vertexes, and all the edges that connect the
@@ -342,13 +411,19 @@ service Lightning {
     */
     rpc DescribeGraph (ChannelGraphRequest) returns (ChannelGraph);
 
-    /* lncli: `getnodemetrics`
+    /*
+    $pld.category: `Graph`
+    $pld.short_description: `Get node metrics`
+
     GetNodeMetrics returns node metrics calculated from the graph. Currently
     the only supported metric is betweenness centrality of individual nodes.
     */
     rpc GetNodeMetrics (NodeMetricsRequest) returns (NodeMetricsResponse);
 
-    /* lncli: `getchaninfo`
+    /*
+    $pld.category: `Graph`
+    $pld.short_description: `Get the state of a channel`
+
     GetChanInfo returns the latest authenticated network announcement for the
     given channel identified by its channel ID: an 8-byte integer which
     uniquely identifies the location of transaction's funding output within the
@@ -356,13 +431,19 @@ service Lightning {
     */
     rpc GetChanInfo (ChanInfoRequest) returns (ChannelEdge);
 
-    /* lncli: `getnodeinfo`
+    /*
+    $pld.category: `Graph`
+    $pld.short_description: `Get information on a specific node`
+
     GetNodeInfo returns the latest advertised, aggregated, and authenticated
     channel information for the specified node identified by its public key.
     */
     rpc GetNodeInfo (NodeInfoRequest) returns (NodeInfo);
 
-    /* lncli: `queryroutes`
+    /*
+    $pld.category: `Payment`
+    $pld.short_description: `Query a route to a destination`
+
     QueryRoutes attempts to query the daemon's Channel Router for a possible
     route to a target destination capable of carrying a specific amount of
     satoshis. The returned route contains the full details required to craft and
@@ -376,13 +457,19 @@ service Lightning {
     */
     rpc QueryRoutes (QueryRoutesRequest) returns (QueryRoutesResponse);
 
-    /* lncli: `getnetworkinfo`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `Get statistical information about the current state of the network`
+
     GetNetworkInfo returns some basic stats about the known channel graph from
     the point of view of the node.
     */
     rpc GetNetworkInfo (NetworkInfoRequest) returns (NetworkInfo);
 
-    /* lncli: `stop`
+    /*
+    $pld.category: `Meta`
+    $pld.short_description: `Stop and shutdown the daemon`
+
     StopDaemon will send a shutdown request to the interrupt handler, triggering
     a graceful shutdown of the daemon.
     */
@@ -399,7 +486,10 @@ service Lightning {
     rpc SubscribeChannelGraph (GraphTopologySubscription)
         returns (stream GraphTopologyUpdate);
 
-    /* lncli: `debuglevel`
+    /*
+    $pld.category: `Meta`
+    $pld.short_description: `Set the debug level`
+
     DebugLevel allows a caller to programmatically set the logging verbosity of
     lnd. The logging can be targeted according to a coarse daemon-wide logging
     level, or in a granular fashion to specify the logging for a target
@@ -407,20 +497,29 @@ service Lightning {
     */
     rpc DebugLevel (DebugLevelRequest) returns (DebugLevelResponse);
 
-    /* lncli: `feereport`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `Display the current fee policies of all active channels`
+
     FeeReport allows the caller to obtain a report detailing the current fee
     schedule enforced by the node globally for each channel.
     */
     rpc FeeReport (FeeReportRequest) returns (FeeReportResponse);
 
-    /* lncli: `updatechanpolicy`
+    /*
+    $pld.category: `Channel`
+    $pld.short_description: `Update the channel policy for all channels, or a single channel`
+
     UpdateChannelPolicy allows the caller to update the fee schedule and
     channel policies for all channels globally, or a particular channel.
     */
     rpc UpdateChannelPolicy (PolicyUpdateRequest)
         returns (PolicyUpdateResponse);
 
-    /* lncli: `fwdinghistory`
+    /*
+    $pld.category: `Payment`
+    $pld.short_description: `Query the history of all forwarded HTLCs`
+
     ForwardingHistory allows the caller to query the htlcswitch for a record of
     all HTLCs forwarded within the target time range, and integer offset
     within that time range. If no time-range is specified, then the first chunk
@@ -435,7 +534,10 @@ service Lightning {
     rpc ForwardingHistory (ForwardingHistoryRequest)
         returns (ForwardingHistoryResponse);
 
-    /* lncli: `exportchanbackup`
+    /*
+    $pld.category: `Backup`
+    $pld.short_description: `Obtain a static channel back up for a selected channels, or all known channels`
+
     ExportChannelBackup attempts to return an encrypted static channel backup
     for the target channel identified by it channel point. The backup is
     encrypted with a key generated from the aezeed seed of the user. The
@@ -457,6 +559,9 @@ service Lightning {
         returns (ChanBackupSnapshot);
 
     /*
+    $pld.category: `Backup`
+    $pld.short_description: `Verify an existing channel backup`
+
     VerifyChanBackup allows a caller to verify the integrity of a channel backup
     snapshot. This method will accept either a packed Single or a packed Multi.
     Specifying both will result in an error.
@@ -464,7 +569,10 @@ service Lightning {
     rpc VerifyChanBackup (ChanBackupSnapshot)
         returns (VerifyChanBackupResponse);
 
-    /* lncli: `restorechanbackup`
+    /*
+    $pld.category: `Backup`
+    $pld.short_description: `Restore an existing single or multi-channel static channel backup`
+
     RestoreChannelBackups accepts a set of singular channel backups, or a
     single encrypted multi-chan backup and attempts to recover any funds
     remaining within the channel. If we are able to unpack the backup, then the
@@ -485,49 +593,116 @@ service Lightning {
     rpc SubscribeChannelBackups (ChannelBackupSubscription)
         returns (stream ChanBackupSnapshot);
 
-    /*Scan over the chain to find any transactions which may not have been recorded in the wallet's database*/
+    /*
+    $pld.category: `Unspent`
+    $pld.short_description: `Scan over the chain to find any transactions which may not have been recorded in the wallet's database`
+
+    Scan over the chain to find any transactions which may not have been recorded in the wallet's database*/
     rpc ReSync (ReSyncChainRequest) returns (ReSyncChainResponse);
 
-    /*Stop a re-synchronization job before it's completion*/
+    /*
+    $pld.category: `Unspent`
+    $pld.short_description: `Stop a re-synchronization job before it's completion`
+
+    Stop a re-synchronization job before it's completion*/
     rpc StopReSync (StopReSyncRequest) returns (StopReSyncResponse);
 
-    /*Get the wallet seed words for this wallet*/
+    /*
+    $pld.category: `Wallet`
+    $pld.short_description: `Get the wallet seed words for this wallet`
+
+    Get the wallet seed words for this wallet*/
     rpc GetWalletSeed (GetWalletSeedRequest) returns (GetWalletSeedResponse);
 
-    /*Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application*/
+    /*
+    $pld.category: `Seed`
+    $pld.short_description: `Alter the passphrase which is used to encrypt a wallet seed`
+
+    Change seed's passphrase */
+    rpc ChangeSeedPassphrase (ChangeSeedPassphraseRequest) returns (ChangeSeedPassphraseResponse);
+
+    /*
+    $pld.category: `Wallet`
+    $pld.short_description: `Get a secret seed`
+
+    Get a secret seed which is generated using the wallet's private key, this can be used as a password for another application*/
     rpc GetSecret (GetSecretRequest) returns (GetSecretResponse);
 
-    /*Imports a WIF-encoded private key to the 'imported' account.*/
+    /*
+    $pld.category: `Address`
+    $pld.short_description: `Imports a WIF-encoded private key to the 'imported' account`
+
+    Imports a WIF-encoded private key to the 'imported' account.*/
     rpc ImportPrivKey (ImportPrivKeyRequest) returns (ImportPrivKeyResponse);
 
-    /*Returns the private key in WIF encoding that controls some wallet address.*/
+    /*
+    $pld.category: `Address`
+    $pld.short_description: `Returns the private key in WIF encoding that controls some wallet address`
+
+    Returns the private key in WIF encoding that controls some wallet address.*/
     rpc DumpPrivKey (DumpPrivKeyRequest) returns (DumpPrivKeyResponse);
 
-    /*Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.*/
+    /*
+    $pld.category: `Lock`
+    $pld.short_description: `Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session`
+
+    Returns a JSON array of outpoints marked as locked (with lockunspent) for this wallet session.*/
     rpc ListLockUnspent (ListLockUnspentRequest) returns (ListLockUnspentResponse);
 
-    /*Locks or unlocks an unspent output*/
+    /*
+    $pld.category: `Lock`
+    $pld.short_description: `Locks or unlocks an unspent output`
+
+    Locks or unlocks an unspent output*/
     rpc LockUnspent (LockUnspentRequest) returns (LockUnspentResponse);
 
-    /*Create a transaction but po not send it to the chain*/
+    /*
+    $pld.category: `Transaction`
+    $pld.short_description: `Create a transaction but do not send it to the chain`
+
+    Create a transaction but po not send it to the chain*/
     rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
 
-    /*Generates and returns a new payment address*/
+    /*
+    $pld.category: `Address`
+    $pld.short_description: `Generates a new address`
+
+    Generates and returns a new payment address*/
     rpc GetNewAddress (GetNewAddressRequest) returns (GetNewAddressResponse);
 
-    /*Returns a JSON object with details regarding a transaction relevant to this wallet.*/
+    /*
+    $pld.category: `Transaction`
+    $pld.short_description: `Returns a JSON object with details regarding a transaction relevant to this wallet`
+
+    Returns a JSON object with details regarding a transaction relevant to this wallet.*/
     rpc GetTransaction (GetTransactionRequest) returns (GetTransactionResponse);
 
-    /*Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)*/
+    /*
+    $pld.category: `Network Steward Vote`
+    $pld.short_description: `Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)`
+
+    Configure the wallet to vote for a network steward when making payments (note: payments to segwit addresses cannot vote)*/
     rpc SetNetworkStewardVote (SetNetworkStewardVoteRequest) returns (SetNetworkStewardVoteResponse);
     
-    /*Find out how the wallet is currently configured to vote in a network steward election*/
+    /*
+    $pld.category: `Network Steward Vote`
+    $pld.short_description: `Find out how the wallet is currently configured to vote in a network steward election`
+
+    Find out how the wallet is currently configured to vote in a network steward election*/
     rpc GetNetworkStewardVote (GetNetworkStewardVoteRequest) returns (GetNetworkStewardVoteResponse);
 
-    /*Broadcast a transaction*/
+    /*
+    $pld.category: `Neutrino`
+    $pld.short_description: `Broadcast a transaction onchain`
+
+    Broadcast a transaction*/
     rpc BcastTransaction (BcastTransactionRequest) returns (BcastTransactionResponse);
 
-    /*SendFrom uthors, signs, and sends a transaction that outputs some amount to a payment address.*/
+    /*
+    $pld.category: `Transaction`
+    $pld.short_description: `Authors, signs, and sends a transaction that outputs some amount to a payment address`
+
+    SendFrom authors, signs, and sends a transaction that outputs some amount to a payment address.*/
     rpc SendFrom (SendFromRequest) returns (SendFromResponse);
 }
 
@@ -589,8 +764,7 @@ message Transaction {
 }
 message GetTransactionsRequest {
     /*
-    The height from which to list transactions, inclusive. If this value is
-    greater than end_height, transactions will be read in reverse.
+    The height from which to list transactions, inclusive.
     */
     int32 start_height = 1;
 
@@ -605,6 +779,12 @@ message GetTransactionsRequest {
     int32 txns_limit = 3;
     int32 txns_skip = 4;
     int32 coinbase = 5;
+    /*
+    If set, the payments returned will result from seeking backwards from the
+    specified index offset. This can be used to paginate backwards. The order
+    of the returned payments is always oldest first (ascending index order).
+    */
+    bool reversed = 6;
 }
 
 message TransactionDetails {
@@ -3682,6 +3862,43 @@ message StopReSyncResponse{
 message GetWalletSeedRequest{}
 
 message GetWalletSeedResponse{
+    repeated string seed = 1;
+}
+
+message ChangeSeedPassphraseRequest{
+    /*
+    current_seed_passphrase is the optional user specified passphrase that
+    encrypts the current seed.
+    */
+    string current_seed_passphrase = 1;
+
+    /*
+    current_seed_passphrase_bin overrides current_seed_passphrase if specified,
+    for binary representation of the current seed passphrase. If using JSON then
+    this field must be base64 encoded.
+    */
+    bytes current_seed_passphrase_bin = 2;
+
+    /*
+    current_seed is the seed whose passphrase is going to be changed
+    */
+    repeated string current_seed = 3;
+
+    /*
+    new_seed_passphrase is the optional user specified passphrase that will be used
+    to encrypt the seed.
+    */
+    string new_seed_passphrase = 4;
+
+    /*
+    new_seed_passphrase_bin overrides new_seed_passphrase if specified, for binary
+    representation of the passphrase. If using JSON then this field must be base64
+    encoded.
+    */
+    bytes new_seed_passphrase_bin = 5;
+}
+
+message ChangeSeedPassphraseResponse{
     repeated string seed = 1;
 }
 

@@ -11,7 +11,6 @@ import (
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/lnd/lncfg"
 	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/walletunlocker"
 	"github.com/urfave/cli"
 	"gopkg.in/macaroon.v2"
 )
@@ -173,8 +172,7 @@ func profileFromContext(ctx *cli.Context, store, skipMacaroons bool) (
 		// encrypt the macaroon and store it plaintext.
 		pw, err = capturePassword(
 			"Enter password to encrypt macaroon with or leave "+
-				"blank to store in plaintext: ", true,
-			walletunlocker.ValidatePassword,
+				"blank to store in plaintext: ", true, nil,
 		)
 		if err != nil {
 			return nil, er.Errorf("unable to get encryption "+

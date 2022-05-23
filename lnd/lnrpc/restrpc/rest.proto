@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/any.proto";
+
 package restrpc;
 
 option go_package = "github.com/pkt-cash/pktd/lnd/lnrpc/restrpc";
@@ -22,35 +24,33 @@ option go_package = "github.com/pkt-cash/pktd/lnd/lnrpc/restrpc";
  * https://github.com/lightninglabs/lightning-api
  */
 
-message RestCommandCategory {
-    repeated string description = 1;
-    map<string, string> endpoints = 2;
-    map<string, RestCommandCategory> subcategory = 3;
+message RestEmptyResponse{
 }
 
-message RestMasterHelpResponse{
-    string name = 1;
-    repeated string description = 2;
-    map<string, RestCommandCategory> category = 3;
+//  WebSocket request and response JSon messages
+message WebSocketError {
+    uint32 http_code = 1;
+    string message = 2;
 }
 
-message Field {
-    string name = 1;
-    repeated string description = 2;
-    bool repeated = 3;
-    Type type = 4;
+//  WebSocket request and response protobuf messages
+message WebSocketProtobufRequest {
+    // The rest endpoint to send the request to
+    string endpoint = 1;
+    // An arbitrary string which will be reflected back in the response
+    string request_id = 2;
+
+    bool has_more = 3;
+    // The data to post to the REST endpoint, if any.
+    // Make sure this is the correct data structure based on the endpoint you are posting to.
+    google.protobuf.Any payload = 4;
 }
 
-message Type {
-    string name = 1;
-    repeated string description = 2;
-    repeated Field fields = 3;
-}
-
-message RestHelpResponse{
-    string name = 1;
-    string service = 2;
-    repeated string description = 3;
-    Type request = 4;
-    Type response = 5;
+message WebSocketProtobufResponse {
+    string request_id = 1;
+    bool has_more = 2;
+    oneof payload {
+        google.protobuf.Any ok = 3;
+        WebSocketError error = 4;
+    };
 }

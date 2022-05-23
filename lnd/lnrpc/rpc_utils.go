@@ -8,7 +8,7 @@ import (
 )
 
 // RPCTransactionDetails returns a set of rpc transaction details.
-func RPCTransactionDetails(txns []*lnwallet.TransactionDetail) *TransactionDetails {
+func RPCTransactionDetails(txns []*lnwallet.TransactionDetail, reversed bool) *TransactionDetails {
 	txDetails := &TransactionDetails{
 		Transactions: make([]*Transaction, len(txns)),
 	}
@@ -46,7 +46,11 @@ func RPCTransactionDetails(txns []*lnwallet.TransactionDetail) *TransactionDetai
 	// by height, unconfirmed transactions will follow our oldest
 	// transactions, because they have lower block heights.
 	sort.Slice(txDetails.Transactions, func(i, j int) bool {
-		return txDetails.Transactions[i].NumConfirmations <
+		if !reversed {
+			return txDetails.Transactions[i].NumConfirmations <
+				txDetails.Transactions[j].NumConfirmations
+		}
+		return txDetails.Transactions[i].NumConfirmations >
 			txDetails.Transactions[j].NumConfirmations
 	})
 

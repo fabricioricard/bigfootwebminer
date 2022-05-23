@@ -8,13 +8,40 @@ import "rpc.proto";
 option go_package = "github.com/pkt-cash/pktd/lnd/lnrpc";
 
 service MetaService {
+    /*
+    $pld.category: `Meta`
+    $pld.short_description: `Returns basic information related to the active daemon`
+
+    GetInfo returns general information concerning the lightning node including
+    it's identity pubkey, alias, the chains it is connected to, and information
+    concerning the number of open+pending channels.
+    */
     rpc GetInfo2 (GetInfo2Request) returns (GetInfo2Response);
 
-    /* lncli: `changepassword`
+    /*
+    $pld.category: `Wallet`
+    $pld.short_description: `Change an encrypted wallet's password at startup`
+
     ChangePassword changes the password of the encrypted wallet. This will
     automatically unlock the wallet database if successful.
     */
     rpc ChangePassword (ChangePasswordRequest) returns (ChangePasswordResponse);
+
+    /*
+    $pld.category: `Wallet`
+    $pld.short_description: `Check the wallet's password`
+
+    CheckPassword verify that the password in the request is valid for the wallet.
+    */
+    rpc CheckPassword (CheckPasswordRequest) returns (CheckPasswordResponse);
+
+    /*
+    $pld.category: `Meta`
+    $pld.short_description: `Force pld to crash (for debugging purposes)`
+
+    Force a pld crash (for debugging purposes)
+    */
+    rpc ForceCrash (CrashRequest) returns (CrashResponse);
 }
 
 message GetInfo2Request {}
@@ -51,3 +78,26 @@ message ChangePasswordRequest {
 }
 
 message ChangePasswordResponse {}
+
+message CheckPasswordRequest {
+    /*
+    current_password should be the current valid passphrase used to unlock the daemon.
+    */
+    string wallet_passphrase = 1;
+
+    /*
+    Binary form of current_passphrase, if specified will override current_passphrase.
+    When using JSON, this field must be encoded as base64.
+    */
+    bytes wallet_password_bin = 2;
+}
+
+message CheckPasswordResponse {
+    bool valid_passphrase = 1;
+}
+
+message CrashRequest{
+}
+
+message CrashResponse{
+}

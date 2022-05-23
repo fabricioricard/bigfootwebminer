@@ -461,7 +461,7 @@
           "methods": [
             {
               "name": "AddTower",
-              "description": "AddTower adds a new watchtower reachable at the given address and\nconsiders it for new sessions. If the watchtower already exists, then\nany new addresses included will be considered when dialing it for\nsession negotiations and backups.",
+              "description": "$pld.category: `Watchtower`\n$pld.short_description: `Register a watchtower to use for future sessions/backups`\n\nAddTower adds a new watchtower reachable at the given address and\nconsiders it for new sessions. If the watchtower already exists, then\nany new addresses included will be considered when dialing it for\nsession negotiations and backups.",
               "requestType": "AddTowerRequest",
               "requestLongType": "AddTowerRequest",
               "requestFullType": "wtclientrpc.AddTowerRequest",
@@ -473,7 +473,7 @@
             },
             {
               "name": "RemoveTower",
-              "description": "RemoveTower removes a watchtower from being considered for future session\nnegotiations and from being used for any subsequent backups until it's added\nagain. If an address is provided, then this RPC only serves as a way of\nremoving the address from the watchtower instead.",
+              "description": "$pld.category: `Watchtower`\n$pld.short_description: `Remove a watchtower to prevent its use for future sessions/backups`\n\nRemoveTower removes a watchtower from being considered for future session\nnegotiations and from being used for any subsequent backups until it's added\nagain. If an address is provided, then this RPC only serves as a way of\nremoving the address from the watchtower instead.",
               "requestType": "RemoveTowerRequest",
               "requestLongType": "RemoveTowerRequest",
               "requestFullType": "wtclientrpc.RemoveTowerRequest",
@@ -485,7 +485,7 @@
             },
             {
               "name": "ListTowers",
-              "description": "ListTowers returns the list of watchtowers registered with the client.",
+              "description": "$pld.category: `Watchtower`\n$pld.short_description: `Display information about all registered watchtowers`\n\nListTowers returns the list of watchtowers registered with the client.",
               "requestType": "ListTowersRequest",
               "requestLongType": "ListTowersRequest",
               "requestFullType": "wtclientrpc.ListTowersRequest",
@@ -497,7 +497,7 @@
             },
             {
               "name": "GetTowerInfo",
-              "description": "GetTowerInfo retrieves information for a registered watchtower.",
+              "description": "$pld.category: `Watchtower`\n$pld.short_description: `Display information about a specific registered watchtower`\n\nGetTowerInfo retrieves information for a registered watchtower.",
               "requestType": "GetTowerInfoRequest",
               "requestLongType": "GetTowerInfoRequest",
               "requestFullType": "wtclientrpc.GetTowerInfoRequest",
@@ -509,7 +509,7 @@
             },
             {
               "name": "Stats",
-              "description": "Stats returns the in-memory statistics of the client since startup.",
+              "description": "$pld.category: `Watchtower`\n$pld.short_description: `Display the session stats of the watchtower client`\n\nStats returns the in-memory statistics of the client since startup.",
               "requestType": "StatsRequest",
               "requestLongType": "StatsRequest",
               "requestFullType": "wtclientrpc.StatsRequest",
@@ -521,7 +521,7 @@
             },
             {
               "name": "Policy",
-              "description": "Policy returns the active watchtower client policy configuration.",
+              "description": "$pld.category: `Watchtower`\n$pld.short_description: `Display the active watchtower client policy configuration`\n\nPolicy returns the active watchtower client policy configuration.",
               "requestType": "PolicyRequest",
               "requestLongType": "PolicyRequest",
               "requestFullType": "wtclientrpc.PolicyRequest",

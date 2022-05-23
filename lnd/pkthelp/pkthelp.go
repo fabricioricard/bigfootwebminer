@@ -19,11 +19,13 @@ type Type struct {
 }
 
 type Method struct {
-	Name        string
-	Service     string
-	Description []string
-	Req         Type
-	Res         Type
+	Name             string
+	Service          string
+	Category         string
+	ShortDescription string
+	Description      []string
+	Req              Type
+	Res              Type
 }
 
 var EnumVarientType Type = Type{

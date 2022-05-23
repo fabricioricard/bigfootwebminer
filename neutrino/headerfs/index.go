@@ -213,6 +213,8 @@ func NewNeutrinoDBStore(db walletdb.DB, netParams *chaincfg.Params, verify bool)
 // each block header, we also ensure that the index entry for that height and
 // hash also match up properly.
 func (h *NeutrinoDBStore) CheckConnectivity(tx walletdb.ReadTx) er.R {
+	log.Info("[1] CheckConnectivity()")
+
 	if he, err := h.chainTip(tx, bucketNameBlockTip); err != nil {
 		return err
 	} else if fhe, err := h.chainTip(tx, bucketNameFilterTip); err != nil {

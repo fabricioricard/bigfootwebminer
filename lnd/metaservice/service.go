@@ -269,8 +269,12 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 	publicPw := []byte(wallet.InsecurePubPassphrase)
 	newPubPw := []byte(wallet.InsecurePubPassphrase)
 
+	walletFile := m.walletFile
 	if m.Wallet == nil || m.Wallet.Locked() {
-		loader := wallet.NewLoader(m.netParams, m.walletPath, m.walletFile, m.noFreelistSync, 0)
+		if in.WalletName != "" {
+			walletFile = in.WalletName
+		}
+		loader := wallet.NewLoader(m.netParams, m.walletPath, walletFile, m.noFreelistSync, 0)
 
 		// First, we'll make sure the wallet exists for the specific chain and
 		// network.
@@ -312,7 +316,50 @@ func (m *MetaService) ChangePassword0(ctx context.Context,
 				return nil, er.Errorf("could not remove macaroon file: %v", err)
 			}
 		}
-	} //wallet is locked
+	} else if (in.WalletName != "") && (in.WalletName != m.walletFile) {
+		walletFile = in.WalletName
+		loader := wallet.NewLoader(m.netParams, m.walletPath, walletFile, m.noFreelistSync, 0)
+
+		// First, we'll make sure the wallet exists for the specific chain and
+		// network.
+		walletExists, err := loader.WalletExists()
+		if err != nil {
+			return nil, err
+		}
+
+		if !walletExists {
+			return nil, er.New("wallet not found")
+		}
+
+		// Load the existing wallet in order to proceed with the password change.
+		w, err := loader.OpenExistingWallet(publicPw, false)
+		if err != nil {
+			return nil, err
+		}
+		m.Wallet = w
+		// Now that we've opened the wallet, we need to close it in case of an
+		// error. But not if we succeed, then the caller must close it.
+		orderlyReturn := false
+		defer func() {
+			if !orderlyReturn {
+				_ = loader.UnloadWallet()
+			}
+		}()
+		// Before we actually change the password, we need to check if all flags
+		// were set correctly. The content of the previously generated macaroon
+		// files will become invalid after we generate a new root key. So we try
+		// to delete them here and they will be recreated during normal startup
+		// later. If they are missing, this is only an error if the
+		// stateless_init flag was not set.
+
+		//	since we don't have macarrons anymore, 'stateless_init' will always be true
+		for _, file := range m.macaroonFiles {
+			err := os.Remove(file)
+			if err != nil {
+				return nil, er.Errorf("could not remove macaroon file: %v", err)
+			}
+		}
+	}
 
 	// Attempt to change both the public and private passphrases for the
 	// wallet. This will be done atomically in order to prevent one
@@ -404,9 +451,13 @@ func (m *MetaService) CheckPassword0(ctx context.Context, req *lnrpc.CheckPasswo
 
 	//	if wallet is locked, temporary unlock it just to check the passphrase
 	var walletAux *wallet.Wallet = m.Wallet
-
+	//if wallet_name not passed then try to unlock the default
+	walletFile := m.walletFile
 	if walletAux == nil || walletAux.Locked() {
-		loader := wallet.NewLoader(m.netParams, m.walletPath, m.walletFile, m.noFreelistSync, 0)
+		if req.WalletName != "" {
+			walletFile = req.WalletName
+		}
+		loader := wallet.NewLoader(m.netParams, m.walletPath, walletFile, m.noFreelistSync, 0)
 
 		// First, we'll make sure the wallet exists for the specific chain and network.
 		walletExists, err := loader.WalletExists()
@@ -415,7 +466,7 @@ func (m *MetaService) CheckPassword0(ctx context.Context, req *lnrpc.CheckPasswo
 		}
 
 		if !walletExists {
-			return nil, er.New("wallet not found")
+			return nil, er.New("wallet " + walletFile + " not found")
 		}
 
 		// Load the existing wallet in order to proceed with the password change.
@@ -423,7 +474,35 @@ func (m *MetaService) CheckPassword0(ctx context.Context, req *lnrpc.CheckPasswo
 		if err != nil {
 			return nil, err
 		}
-		log.Info("Wallet temporary opened with success")
+		log.Info("Wallet " + walletFile + " temporary opened with success")
+
+		// Now that we've opened the wallet, we need to close it before exit
+		defer func() {
+			if walletAux != m.Wallet {
+				_ = loader.UnloadWallet()
+				log.Info("Wallet unloaded with success")
+			}
+		}()
+	} else if (req.WalletName != "") && (req.WalletName != m.walletFile) {
+		walletFile = req.WalletName
+		//wallet is unlocked but not the requested one, so we unlock the wallet_name now
+		loader := wallet.NewLoader(m.netParams, m.walletPath, walletFile, m.noFreelistSync, 0)
+		// First, we'll make sure the wallet exists for the specific chain and network.
+		walletExists, err := loader.WalletExists()
+		if err != nil {
+			return nil, err
+		}
+
+		if !walletExists {
+			return nil, er.New("wallet " + walletFile + " not found")
+		}
+
+		// Load the existing wallet in order to proceed with the password change.
+		walletAux, err = loader.OpenExistingWallet(publicPw, false)
+		if err != nil {
+			return nil, err
+		}
+		log.Info("Wallet " + walletFile + " temporary opened with success")
 
 		// Now that we've opened the wallet, we need to close it before exit
 		defer func() {

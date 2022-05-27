@@ -1188,7 +1188,7 @@ func (sm *SyncManager) handleInvMsg(imsg *invMsg) {
 				// Also skip if it has already been requested, so
 				// we don't end up doing things multiple times.
 				if _, exists := sm.requestedTxns[iv.Hash]; exists {
-					log.Infof("Skipping already requested transaction from %s", peer)
+					log.Debugf("Skipping already requested transaction from %s", peer)
 					continue
 				}
 			}

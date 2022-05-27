@@ -981,6 +981,11 @@ func (s *ChainService) prepareCFiltersQuery(
 	}
 	bestHeight := int64(bestBlock.Height)
 
+	if height > bestBlock.Height {
+		return nil, er.Errorf("Requested cfilters with height [%d] exceeding best block [%d]",
+			height, bestBlock.Height)
+	}
+
 	qo := defaultQueryOptions()
 	qo.applyQueryOptions(options...)
 
@@ -1370,6 +1375,7 @@ func (s *ChainService) GetCFilter(blockHash chainhash.Hash,
 		if _, _, err := s.NeutrinoDB.FetchBlockHeader(&blockHash); err != nil {
 			return nil, err
 		}
+		log.Warnf(er.Errorf("Req for filter start %d stophash %s", doHeight, doHash).String())
 		log.Warnf("Made request for filter [%s] but still not in cache, retry",
 			blockHash.String())
 	}

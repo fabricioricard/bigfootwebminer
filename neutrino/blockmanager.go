@@ -820,10 +820,8 @@ func (b *blockManager) getUncheckpointedCFHeaders(
 			"with new set")
 	}
 
-	return walletdb.Update(store.Db, func(tx walletdb.ReadWriteTx) er.R {
-		_, _, err := b.writeCFHeadersMsg1(pristineHeaders, store, tx)
-		return err
-	})
+	_, _, err = b.writeCFHeadersMsg(pristineHeaders, store)
+	return err
 }
 
 // getCheckpointedCFHeaders catches a filter header store up with the
@@ -1095,11 +1093,30 @@ func (b *blockManager) writeCFHeadersMsg(
 ) (*chainhash.Hash, uint32, er.R) {
 	var hash *chainhash.Hash
 	var height uint32
-	return hash, height, walletdb.Update(store.Db, func(tx walletdb.ReadWriteTx) er.R {
+	var matchingBlockHeaders []wire.BlockHeader
+	var startHeight uint32
+	err := walletdb.Update(store.Db, func(tx walletdb.ReadWriteTx) er.R {
 		var err er.R
-		hash, height, err = b.writeCFHeadersMsg1(msg, store, tx)
+		hash, height, matchingBlockHeaders, startHeight, err = b.writeCFHeadersMsg1(msg, store, tx)
 		return err
 	})
+	if err != nil {
+		return hash, height, err
+	}
+
+	// Notify subscribers, and also update the filter header progress
+	// logger at the same time.
+	for i, header := range matchingBlockHeaders {
+		header := header
+
+		headerHeight := startHeight + uint32(i)
+		b.fltrHeaderProgessLogger.LogBlockHeight(
+			header.Timestamp, int32(headerHeight),
+		)
+
+		b.onBlockConnected(header, headerHeight)
+	}
+	return hash, height, err
 }
 
 // writeCFHeadersMsg writes a cfheaders message to the specified store. It
@@ -1109,16 +1126,16 @@ func (b *blockManager) writeCFHeadersMsg(
 // filter header field in the next message range before writing to disk.
 func (b *blockManager) writeCFHeadersMsg1(msg *wire.MsgCFHeaders,
 	store headerfs.NeutrinoDBStore, tx walletdb.ReadWriteTx,
-) (*chainhash.Hash, uint32, er.R) {
+) (*chainhash.Hash, uint32, []wire.BlockHeader, uint32, er.R) {
 
 	// Check that the PrevFilterHeader is the same as the last stored so we
 	// can prevent misalignment.
 	tip, tipHeight, err := store.FilterChainTip1(tx)
 	if err != nil {
-		return nil, tipHeight, err
+		return nil, tipHeight, nil, 0, err
 	}
 	if *tip != msg.PrevFilterHeader {
-		return nil, tipHeight, er.Errorf("attempt to write cfheaders out of "+
+		return nil, tipHeight, nil, 0, er.Errorf("attempt to write cfheaders out of "+
 			"order! Tip=%v (height=%v), prev_hash=%v.", *tip,
 			tipHeight, msg.PrevFilterHeader)
 	}
@@ -1149,7 +1166,7 @@ func (b *blockManager) writeCFHeadersMsg1(msg *wire.MsgCFHeaders,
 		uint32(numHeaders-1), &msg.StopHash,
 	)
 	if err != nil {
-		return nil, startHeight, err
+		return nil, startHeight, nil, 0, err
 	}
 
 	for i := 0; i < numHeaders; i++ {
@@ -1161,7 +1178,7 @@ func (b *blockManager) writeCFHeadersMsg1(msg *wire.MsgCFHeaders,
 	// particular checkpoint interval.
 	lastHeight := startHeight + uint32(numHeaders) - 1
 
-	log.Debugf("Writing filter headers up to height=%v, hash=%v, new_tip=%v",
+	log.Infof("Writing filter headers up to height=%v, hash=%v, new_tip=%v",
 		lastHeight,
 		matchingBlockHeaders[numHeaders-1],
 		lastHeader)
@@ -1169,7 +1186,7 @@ func (b *blockManager) writeCFHeadersMsg1(msg *wire.MsgCFHeaders,
 	// Write the header batch.
 	err = store.WriteFilterHeaders(tx, headerBatch...)
 	if err != nil {
-		return nil, lastHeight, err
+		return nil, lastHeight, matchingBlockHeaders, startHeight, err
 	}
 
 	// We'll also set the new header tip and notify any peers that the tip
@@ -1182,20 +1199,7 @@ func (b *blockManager) writeCFHeadersMsg1(msg *wire.MsgCFHeaders,
 	b.newFilterHeadersMtx.Unlock()
 	b.newFilterHeadersSignal.Broadcast()
 
-	// Notify subscribers, and also update the filter header progress
-	// logger at the same time.
-	for i, header := range matchingBlockHeaders {
-		header := header
-
-		headerHeight := startHeight + uint32(i)
-		b.fltrHeaderProgessLogger.LogBlockHeight(
-			header.Timestamp, int32(headerHeight),
-		)
-
-		b.onBlockConnected(header, headerHeight)
-	}
-
-	return &lastHeader, lastHeight, nil
+	return &lastHeader, lastHeight, matchingBlockHeaders, startHeight, nil
 }
 
 // minCheckpointHeight returns the height of the last filter checkpoint for the

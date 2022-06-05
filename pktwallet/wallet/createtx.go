@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/emirpasic/gods/trees/redblacktree"
 	"github.com/emirpasic/gods/utils"
@@ -139,12 +140,14 @@ func (w *Wallet) txToOutputs(txr CreateTxReq) (tx *txauthor.AuthoredTx, err er.R
 	}
 
 	isEnough := enough.MkIsEnough(txr.Outputs, txr.FeeSatPerKB)
-	eligibleOuts, err := w.findEligibleOutputs(
+	t0 := time.Now()
+	eligibleOuts, visits, err := w.findEligibleOutputs(
 		dbtx, isEnough, txr.InputAddresses, txr.Minconf, bs,
 		txr.InputMinHeight, txr.InputComparator, txr.MaxInputs)
 	if err != nil {
 		return nil, err
 	}
+	log.Infof("findEligibleOutputs() completed in [%d], visited [%d] utxos", time.Since(t0), visits)
 
 	addrStr := "<all>"
 	if txr.InputAddresses != nil {
@@ -399,11 +402,11 @@ func (w *Wallet) findEligibleOutputs(
 	inputMinHeight int,
 	inputComparator utils.Comparator,
 	maxInputs int,
-) (eligibleOutputs, er.R) {
+) (eligibleOutputs, int, er.R) {
 	out := eligibleOutputs{}
 	chainClient, err := w.requireChainClient()
 	if err != nil {
-		return out, err
+		return out, 0, err
 	}
 	txmgrNs := dbtx.ReadBucket(wtxmgrNamespaceKey)
 
@@ -414,7 +417,10 @@ func (w *Wallet) findEligibleOutputs(
 
 	log.Debugf("Looking for unspents to build transaction")
 
+	var visits int
 	if err := w.TxStore.ForEachUnspentOutput(txmgrNs, nil, func(key []byte, output *wtxmgr.Credit) er.R {
+
+		visits += 1
 
 		// Verify that the output is coming from one of the addresses which we accept to spend from
 		// This is inherently expensive to filter at this level and ideally it would be moved into
@@ -541,7 +547,7 @@ func (w *Wallet) findEligibleOutputs(
 		}
 		return nil
 	}); err != nil && !er.IsLoopBreak(err) {
-		return out, err
+		return out, visits, err
 	}
 
 	log.Debugf("Got unspents")
@@ -551,7 +557,7 @@ func (w *Wallet) findEligibleOutputs(
 		log.Infof("Deleting [%d] burned coins", len(burnedOutputs))
 		for _, op := range burnedOutputs {
 			if err := wtxmgr.DeleteRawUnspent(wtxmgrBucket, op); err != nil {
-				return out, err
+				return out, visits, err
 			}
 		}
 		log.Infof("Deleting [%d] burned coins, complete", len(burnedOutputs))
@@ -577,7 +583,7 @@ func (w *Wallet) findEligibleOutputs(
 			}
 		}
 		out.credits = convertResult(winner)
-		return out, nil
+		return out, visits, nil
 	}
 
 	// We don't have an easy answer with just one address, we need to get creative.
@@ -624,7 +630,7 @@ func (w *Wallet) findEligibleOutputs(
 	}
 
 	out.credits = convertResult(&outAc)
-	return out, nil
+	return out, visits, nil
 }
 
 // addrMgrWithChangeSource returns the address manager bucket and a change

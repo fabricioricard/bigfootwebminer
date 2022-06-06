@@ -21,6 +21,7 @@ import (
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	_ "github.com/pkt-cash/pktd/pktwallet/walletdb/bdb"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/utilfun"
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/pktd/wire/constants"
 )
@@ -2150,7 +2151,7 @@ func _TestInsertMempoolTxAndConfirm(t *testing.T) {
 	commitDBTx(t, store, db, func(ns walletdb.ReadWriteBucket) {
 		for _, input := range tx.TxIn {
 			prevOut := input.PreviousOutPoint
-			k := canonicalOutPoint(&prevOut.Hash, prevOut.Index)
+			k := utilfun.CanonicalOutPoint(&prevOut.Hash, prevOut.Index)
 			if existsRawUnminedInput(ns, k) != nil {
 				t.Fatalf("found transaction input %v as "+
 					"unconfirmed", prevOut)
@@ -2160,7 +2161,7 @@ func _TestInsertMempoolTxAndConfirm(t *testing.T) {
 			t.Fatal("found transaction as unconfirmed")
 		}
 		for i := range tx.TxOut {
-			k := canonicalOutPoint(&txRec.Hash, uint32(i))
+			k := utilfun.CanonicalOutPoint(&txRec.Hash, uint32(i))
 			if existsRawUnminedCredit(ns, k) != nil {
 				t.Fatalf("found transaction output %v as "+
 					"unconfirmed", i)

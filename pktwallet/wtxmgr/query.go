@@ -15,6 +15,8 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/unspent"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/utilfun"
 )
 
 // CreditRecord contains metadata regarding a transaction credit for a known
@@ -79,7 +81,7 @@ func (s *Store) minedTxDetails(ns walletdb.ReadBucket, txHash *chainhash.Hash, r
 		// The credit iterator does not record whether this credit was
 		// spent by an unmined transaction, so check that here.
 		if !credIter.elem.Spent {
-			k := canonicalOutPoint(txHash, credIter.elem.Index)
+			k := utilfun.CanonicalOutPoint(txHash, credIter.elem.Index)
 			spent := existsRawUnminedInput(ns, k) != nil
 			credIter.elem.Spent = spent
 		}
@@ -144,9 +146,9 @@ func (s *Store) unminedTxDetails(ns walletdb.ReadBucket, txHash *chainhash.Hash,
 	// when spent by an unmined transaction), and credits from other unmined
 	// transactions.  Both situations must be considered.
 	for i, output := range details.MsgTx.TxIn {
-		opKey := canonicalOutPoint(&output.PreviousOutPoint.Hash,
+		opKey := utilfun.CanonicalOutPoint(&output.PreviousOutPoint.Hash,
 			output.PreviousOutPoint.Index)
-		credKey := existsRawUnspent(ns, opKey)
+		credKey := unspent.ExistsRaw(ns, opKey)
 		if credKey != nil {
 			v := existsRawCredit(ns, credKey)
 			amount, err := fetchRawCreditAmount(v)
@@ -367,7 +369,7 @@ func (s *Store) rangeBlockTransactions(ns walletdb.ReadBucket, begin, end int32,
 				// this credit was spent by an unmined
 				// transaction, so check that here.
 				if !credIter.elem.Spent {
-					k := canonicalOutPoint(&txHash, credIter.elem.Index)
+					k := utilfun.CanonicalOutPoint(&txHash, credIter.elem.Index)
 					spent := existsRawUnminedInput(ns, k) != nil
 					credIter.elem.Spent = spent
 				}
@@ -443,7 +445,7 @@ func AddressForOutPoint(ns walletdb.ReadBucket, prevOut *wire.OutPoint) ([]byte,
 		// Ensure a credit exists for this
 		// unmined transaction before including
 		// the output script.
-		k := canonicalOutPoint(&prevOut.Hash, prevOut.Index)
+		k := utilfun.CanonicalOutPoint(&prevOut.Hash, prevOut.Index)
 		if existsRawUnminedCredit(ns, k) == nil {
 			return nil, nil
 		} else if pkScript, err := fetchRawTxRecordPkScript(
@@ -455,7 +457,7 @@ func AddressForOutPoint(ns walletdb.ReadBucket, prevOut *wire.OutPoint) ([]byte,
 		} else {
 			return pkScript, nil
 		}
-	} else if _, credKey := existsUnspent(ns, prevOut); credKey != nil {
+	} else if _, credKey := unspent.Exists(ns, prevOut); credKey != nil {
 		k := extractRawCreditTxRecordKey(credKey)
 		v = existsRawTxRecord(ns, k)
 		if pkScript, err := fetchRawTxRecordPkScript(k, v, prevOut.Index); err != nil {

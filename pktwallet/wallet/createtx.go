@@ -24,6 +24,7 @@ import (
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txrules"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/unspent"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
 )
@@ -419,9 +420,7 @@ func (w *Wallet) findEligibleOutputs(
 	log.Debugf("Looking for unspents to build transaction")
 
 	var visits int
-	if err := w.TxStore.ForEachUnspentOutput(txmgrNs, nil, func(key []byte, output *wtxmgr.Credit) er.R {
-
-		visits += 1
+	if visits, err = w.TxStore.ForEachUnspentOutput(txmgrNs, nil, *fromAddresses, func(key []byte, output *wtxmgr.Credit) er.R {
 
 		// Verify that the output is coming from one of the addresses which we accept to spend from
 		// This is inherently expensive to filter at this level and ideally it would be moved into
@@ -557,7 +556,7 @@ func (w *Wallet) findEligibleOutputs(
 		wtxmgrBucket := dbtx.ReadWriteBucket(wtxmgrNamespaceKey)
 		log.Infof("Deleting [%d] burned coins", len(burnedOutputs))
 		for _, op := range burnedOutputs {
-			if err := wtxmgr.DeleteRawUnspent(wtxmgrBucket, op); err != nil {
+			if err := unspent.DeleteRaw(wtxmgrBucket, op); err != nil {
 				return out, visits, err
 			}
 		}

@@ -17,6 +17,7 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/utilfun"
 	"github.com/pkt-cash/pktd/wire"
 )
 
@@ -67,7 +68,7 @@ var (
 	bucketTxRecords      = []byte("t")
 	bucketTxLabels       = []byte("l")
 	bucketCredits        = []byte("c")
-	bucketUnspent        = []byte("u")
+	bucketUnspentX       = []byte("u") // Only use for create and delete
 	bucketDebits         = []byte("d")
 	bucketUnmined        = []byte("m")
 	bucketUnminedCredits = []byte("mc")
@@ -80,34 +81,6 @@ var (
 	rootCreateDate = []byte("date")
 	rootVersion    = []byte("vers")
 )
-
-// Several data structures are given canonical serialization formats as either
-// keys or values.  These common formats allow keys and values to be reused
-// across different buckets.
-//
-// The canonical outpoint serialization format is:
-//
-//   [0:32]  Trasaction hash (32 bytes)
-//   [32:36] Output index (4 bytes)
-//
-// The canonical transaction hash serialization is simply the hash.
-
-func canonicalOutPoint(txHash *chainhash.Hash, index uint32) []byte {
-	k := make([]byte, 36)
-	copy(k, txHash[:])
-	byteOrder.PutUint32(k[32:36], index)
-	return k
-}
-
-func readCanonicalOutPoint(k []byte, op *wire.OutPoint) er.R {
-	if len(k) < 36 {
-		str := "short canonical outpoint"
-		return storeError(ErrData, str, nil)
-	}
-	copy(op.Hash[:], k)
-	op.Index = byteOrder.Uint32(k[32:36])
-	return nil
-}
 
 // Details regarding blocks are saved as k/v pairs in the blocks bucket.
 // blockRecords are keyed by their height.  The value is serialized as such:
@@ -626,7 +599,7 @@ func deleteRawCredit(ns walletdb.ReadWriteBucket, k []byte) er.R {
 // The elem's Spent field is not set to true if the credit is spent by an
 // unmined transaction.  To check for this case:
 //
-//   k := canonicalOutPoint(&txHash, it.elem.Index)
+//   k := utilfun.CanonicalOutPoint(&txHash, it.elem.Index)
 //   it.elem.Spent = existsRawUnminedInput(ns, k) != nil
 type creditIterator struct {
 	c      walletdb.ReadWriteCursor // Set to nil after final iteration
@@ -681,92 +654,6 @@ func (it *creditIterator) next() bool {
 		return false
 	}
 	return true
-}
-
-// The unspent index records all outpoints for mined credits which are not spent
-// by any other mined transaction records (but may be spent by a mempool
-// transaction).
-//
-// Keys are use the canonical outpoint serialization:
-//
-//   [0:32]  Transaction hash (32 bytes)
-//   [32:36] Output index (4 bytes)
-//
-// Values are serialized as such:
-//
-//   [0:4]   Block height (4 bytes)
-//   [4:36]  Block hash (32 bytes)
-
-func valueUnspent(block *dbstructs.Block) []byte {
-	v := make([]byte, 36)
-	byteOrder.PutUint32(v, uint32(block.Height))
-	copy(v[4:36], block.Hash[:])
-	return v
-}
-
-func putUnspent(ns walletdb.ReadWriteBucket, outPoint *wire.OutPoint, block *dbstructs.Block) er.R {
-	k := canonicalOutPoint(&outPoint.Hash, outPoint.Index)
-	v := valueUnspent(block)
-	err := ns.NestedReadWriteBucket(bucketUnspent).Put(k, v)
-	if err != nil {
-		str := "cannot put unspent"
-		return storeError(ErrDatabase, str, err)
-	}
-	return nil
-}
-
-func putRawUnspent(ns walletdb.ReadWriteBucket, k, v []byte) er.R {
-	err := ns.NestedReadWriteBucket(bucketUnspent).Put(k, v)
-	if err != nil {
-		str := "cannot put unspent"
-		return storeError(ErrDatabase, str, err)
-	}
-	return nil
-}
-
-func readUnspentBlock(v []byte, block *dbstructs.Block) er.R {
-	if len(v) < 36 {
-		str := "short unspent value"
-		return storeError(ErrData, str, nil)
-	}
-	block.Height = int32(byteOrder.Uint32(v))
-	copy(block.Hash[:], v[4:36])
-	return nil
-}
-
-// existsUnspent returns the key for the unspent output and the corresponding
-// key for the credits bucket.  If there is no unspent output recorded, the
-// credit key is nil.
-func existsUnspent(ns walletdb.ReadBucket, outPoint *wire.OutPoint) (k, credKey []byte) {
-	k = canonicalOutPoint(&outPoint.Hash, outPoint.Index)
-	credKey = existsRawUnspent(ns, k)
-	return k, credKey
-}
-
-// existsRawUnspent returns the credit key if there exists an output recorded
-// for the raw unspent key.  It returns nil if the k/v pair does not exist.
-func existsRawUnspent(ns walletdb.ReadBucket, k []byte) (credKey []byte) {
-	if len(k) < 36 {
-		return nil
-	}
-	v := ns.NestedReadBucket(bucketUnspent).Get(k)
-	if len(v) < 36 {
-		return nil
-	}
-	credKey = make([]byte, 72)
-	copy(credKey, k[:32])
-	copy(credKey[32:68], v)
-	copy(credKey[68:72], k[32:36])
-	return credKey
-}
-
-func DeleteRawUnspent(ns walletdb.ReadWriteBucket, k []byte) er.R {
-	err := ns.NestedReadWriteBucket(bucketUnspent).Delete(k)
-	if err != nil {
-		str := "failed to delete unspent"
-		return storeError(ErrDatabase, str, err)
-	}
-	return nil
 }
 
 // All transaction debits (inputs which spend credits) are keyed as such:
@@ -1220,7 +1107,7 @@ func isLockedOutput(ns walletdb.ReadBucket, op wire.OutPoint,
 	}
 
 	// Retrieve the output lock, if any, and extract the relevant fields.
-	k := canonicalOutPoint(&op.Hash, op.Index)
+	k := utilfun.CanonicalOutPoint(&op.Hash, op.Index)
 	v := lockedOutputs.Get(k)
 	if v == nil {
 		return LockID{}, time.Time{}, false
@@ -1248,7 +1135,7 @@ func lockOutput(ns walletdb.ReadWriteBucket, id LockID, op wire.OutPoint,
 	}
 
 	// Store a mapping of outpoint -> (id, expiry).
-	k := canonicalOutPoint(&op.Hash, op.Index)
+	k := utilfun.CanonicalOutPoint(&op.Hash, op.Index)
 	v := serializeLockedOutput(id, expiry)
 
 	if err := lockedOutputs.Put(k, v[:]); err != nil {
@@ -1271,7 +1158,7 @@ func unlockOutput(ns walletdb.ReadWriteBucket, op wire.OutPoint) er.R {
 	}
 
 	// Delete the key-value pair representing the output lock.
-	k := canonicalOutPoint(&op.Hash, op.Index)
+	k := utilfun.CanonicalOutPoint(&op.Hash, op.Index)
 	if err := lockedOutputs.Delete(k); err != nil {
 		str := fmt.Sprintf("%s: delete failed for %v",
 			bucketLockedOutputs, op)
@@ -1295,7 +1182,7 @@ func forEachLockedOutput(ns walletdb.ReadBucket,
 
 	return lockedOutputs.ForEach(func(k, v []byte) er.R {
 		var op wire.OutPoint
-		if err := readCanonicalOutPoint(k, &op); err != nil {
+		if err := utilfun.ReadCanonicalOutPoint(k, &op); err != nil {
 			return err
 		}
 		lockID, expiry := deserializeLockedOutput(v)
@@ -1377,7 +1264,7 @@ func createBuckets(ns walletdb.ReadWriteBucket) er.R {
 		str := "failed to create debits bucket"
 		return storeError(ErrDatabase, str, err)
 	}
-	if _, err := ns.CreateBucket(bucketUnspent); err != nil {
+	if _, err := ns.CreateBucket(bucketUnspentX); err != nil {
 		str := "failed to create unspent bucket"
 		return storeError(ErrDatabase, str, err)
 	}
@@ -1420,7 +1307,7 @@ func deleteBuckets(ns walletdb.ReadWriteBucket) er.R {
 		str := "failed to delete debits bucket"
 		return storeError(ErrDatabase, str, err)
 	}
-	if err := ns.DeleteNestedBucket(bucketUnspent); err != nil {
+	if err := ns.DeleteNestedBucket(bucketUnspentX); err != nil {
 		str := "failed to delete unspent bucket"
 		return storeError(ErrDatabase, str, err)
 	}

@@ -368,7 +368,7 @@ func (w *Wallet) activeData(dbtx walletdb.ReadWriteTx) ([]btcutil.Address, map[s
 	}
 
 	ao := make(map[string][]watcher.OutPointWatch)
-	err = w.TxStore.ForEachUnspentOutput(txmgrNs, nil, func(_ []byte, c *wtxmgr.Credit) er.R {
+	_, err = w.TxStore.ForEachUnspentOutput(txmgrNs, nil, nil, func(_ []byte, c *wtxmgr.Credit) er.R {
 		addr := txscript.PkScriptToAddress(c.PkScript, w.chainParams)
 		as := addr.String()
 		ao[as] = append(ao[as], watcher.OutPointWatch{
@@ -1035,7 +1035,7 @@ func (w *Wallet) CalculateAddressBalances(
 				return err
 			}
 		}
-		return w.TxStore.ForEachUnspentOutput(txmgrNs, nil, func(_ []byte, output *wtxmgr.Credit) er.R {
+		_, err := w.TxStore.ForEachUnspentOutput(txmgrNs, nil, nil, func(_ []byte, output *wtxmgr.Credit) er.R {
 			if _, addrs, _, err := txscript.ExtractPkScriptAddrs(output.PkScript, w.chainParams); err != nil {
 				return err
 			} else if len(addrs) > 0 {
@@ -1059,6 +1059,7 @@ func (w *Wallet) CalculateAddressBalances(
 			}
 			return nil
 		})
+		return err
 	})
 }
 
@@ -1778,6 +1779,13 @@ func (w *Wallet) GetTransactions(
 func (w *Wallet) ListUnspent(minconf, maxconf int32,
 	addresses map[string]struct{}) ([]*btcjson.ListUnspentResult, er.R) {
 
+	addrz := make([]btcutil.Address, 0, len(addresses))
+	for addr := range addresses {
+		if a, err := btcutil.DecodeAddress(addr, w.chainParams); err == nil {
+			addrz = append(addrz, a)
+		}
+	}
+
 	var results []*btcjson.ListUnspentResult
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) er.R {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
@@ -1789,7 +1797,7 @@ func (w *Wallet) ListUnspent(minconf, maxconf int32,
 		defaultAccountName := "default"
 
 		results = make([]*btcjson.ListUnspentResult, 0)
-		w.TxStore.ForEachUnspentOutput(txmgrNs, nil, func(key []byte, output *wtxmgr.Credit) er.R {
+		w.TxStore.ForEachUnspentOutput(txmgrNs, nil, addrz, func(key []byte, output *wtxmgr.Credit) er.R {
 
 			// Only mature coinbase outputs are included.
 			immature := false

@@ -366,7 +366,7 @@ func (w *Wallet) activeData(dbtx walletdb.ReadWriteTx) ([]btcutil.Address, map[s
 		return nil, nil, err
 	}
 
-	var ao map[string][]watcher.OutPointWatch
+	ao := make(map[string][]watcher.OutPointWatch)
 	err = w.TxStore.ForEachUnspentOutput(txmgrNs, nil, func(_ []byte, c *wtxmgr.Credit) er.R {
 		addr := txscript.PkScriptToAddress(c.PkScript, w.chainParams)
 		as := addr.String()

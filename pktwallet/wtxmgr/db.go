@@ -16,6 +16,7 @@ import (
 	"github.com/pkt-cash/pktd/btcutil"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
 	"github.com/pkt-cash/pktd/wire"
 )
 
@@ -328,7 +329,7 @@ func deleteBlockRecord(ns walletdb.ReadWriteBucket, height int32) er.R {
 //   [0:8]   Received time (8 bytes)
 //   [8:]    Serialized transaction (varies)
 
-func keyTxRecord(txHash *chainhash.Hash, block *Block) []byte {
+func keyTxRecord(txHash *chainhash.Hash, block *dbstructs.Block) []byte {
 	k := make([]byte, 68)
 	copy(k, txHash[:])
 	byteOrder.PutUint32(k[32:36], uint32(block.Height))
@@ -355,7 +356,7 @@ func valueTxRecord(rec *TxRecord) ([]byte, er.R) {
 	return v, nil
 }
 
-func putTxRecord(ns walletdb.ReadWriteBucket, rec *TxRecord, block *Block) er.R {
+func putTxRecord(ns walletdb.ReadWriteBucket, rec *TxRecord, block *dbstructs.Block) er.R {
 	k := keyTxRecord(&rec.Hash, block)
 	v, err := valueTxRecord(rec)
 	if err != nil {
@@ -386,7 +387,7 @@ func readRawTxRecord(txHash *chainhash.Hash, v []byte, rec *TxRecord) er.R {
 	return nil
 }
 
-func readRawTxRecordBlock(k []byte, block *Block) er.R {
+func readRawTxRecordBlock(k []byte, block *dbstructs.Block) er.R {
 	if len(k) < 68 {
 		str := fmt.Sprintf("%s: short key (expected %d bytes, read %d)",
 			bucketTxRecords, 68, len(k))
@@ -397,7 +398,7 @@ func readRawTxRecordBlock(k []byte, block *Block) er.R {
 	return nil
 }
 
-func fetchTxRecord(ns walletdb.ReadBucket, txHash *chainhash.Hash, block *Block) (*TxRecord, er.R) {
+func fetchTxRecord(ns walletdb.ReadBucket, txHash *chainhash.Hash, block *dbstructs.Block) (*TxRecord, er.R) {
 	k := keyTxRecord(txHash, block)
 	v := ns.NestedReadBucket(bucketTxRecords).Get(k)
 	if v == nil {
@@ -425,7 +426,7 @@ func fetchRawTxRecordPkScript(k, v []byte, index uint32) ([]byte, er.R) {
 	return rec.MsgTx.TxOut[index].PkScript, nil
 }
 
-func existsTxRecord(ns walletdb.ReadBucket, txHash *chainhash.Hash, block *Block) (k, v []byte) {
+func existsTxRecord(ns walletdb.ReadBucket, txHash *chainhash.Hash, block *dbstructs.Block) (k, v []byte) {
 	k = keyTxRecord(txHash, block)
 	v = ns.NestedReadBucket(bucketTxRecords).Get(k)
 	return
@@ -435,7 +436,7 @@ func existsRawTxRecord(ns walletdb.ReadBucket, k []byte) (v []byte) {
 	return ns.NestedReadBucket(bucketTxRecords).Get(k)
 }
 
-func deleteTxRecord(ns walletdb.ReadWriteBucket, txHash *chainhash.Hash, block *Block) er.R {
+func deleteTxRecord(ns walletdb.ReadWriteBucket, txHash *chainhash.Hash, block *dbstructs.Block) er.R {
 	k := keyTxRecord(txHash, block)
 	return ns.NestedReadWriteBucket(bucketTxRecords).Delete(k)
 }
@@ -480,7 +481,7 @@ func latestTxRecord(ns walletdb.ReadBucket, txHash *chainhash.Hash) (k, v []byte
 // The optional debits key is only included if the credit is spent by another
 // mined debit.
 
-func keyCredit(txHash *chainhash.Hash, index uint32, block *Block) []byte {
+func keyCredit(txHash *chainhash.Hash, index uint32, block *dbstructs.Block) []byte {
 	k := make([]byte, 72)
 	copy(k, txHash[:])
 	byteOrder.PutUint32(k[32:36], uint32(block.Height))
@@ -588,7 +589,7 @@ func unspendRawCredit(ns walletdb.ReadWriteBucket, k []byte) (btcutil.Amount, er
 	return btcutil.Amount(byteOrder.Uint64(v[0:8])), nil
 }
 
-func existsCredit(ns walletdb.ReadBucket, txHash *chainhash.Hash, index uint32, block *Block) (k, v []byte) {
+func existsCredit(ns walletdb.ReadBucket, txHash *chainhash.Hash, index uint32, block *dbstructs.Block) (k, v []byte) {
 	k = keyCredit(txHash, index, block)
 	v = ns.NestedReadBucket(bucketCredits).Get(k)
 	return
@@ -696,14 +697,14 @@ func (it *creditIterator) next() bool {
 //   [0:4]   Block height (4 bytes)
 //   [4:36]  Block hash (32 bytes)
 
-func valueUnspent(block *Block) []byte {
+func valueUnspent(block *dbstructs.Block) []byte {
 	v := make([]byte, 36)
 	byteOrder.PutUint32(v, uint32(block.Height))
 	copy(v[4:36], block.Hash[:])
 	return v
 }
 
-func putUnspent(ns walletdb.ReadWriteBucket, outPoint *wire.OutPoint, block *Block) er.R {
+func putUnspent(ns walletdb.ReadWriteBucket, outPoint *wire.OutPoint, block *dbstructs.Block) er.R {
 	k := canonicalOutPoint(&outPoint.Hash, outPoint.Index)
 	v := valueUnspent(block)
 	err := ns.NestedReadWriteBucket(bucketUnspent).Put(k, v)
@@ -723,7 +724,7 @@ func putRawUnspent(ns walletdb.ReadWriteBucket, k, v []byte) er.R {
 	return nil
 }
 
-func readUnspentBlock(v []byte, block *Block) er.R {
+func readUnspentBlock(v []byte, block *dbstructs.Block) er.R {
 	if len(v) < 36 {
 		str := "short unspent value"
 		return storeError(ErrData, str, nil)
@@ -787,7 +788,7 @@ func DeleteRawUnspent(ns walletdb.ReadWriteBucket, k []byte) er.R {
 //             [44:76] Block hash (32 bytes)
 //             [76:80] Output index (4 bytes)
 
-func keyDebit(txHash *chainhash.Hash, index uint32, block *Block) []byte {
+func keyDebit(txHash *chainhash.Hash, index uint32, block *dbstructs.Block) []byte {
 	k := make([]byte, 72)
 	copy(k, txHash[:])
 	byteOrder.PutUint32(k[32:36], uint32(block.Height))
@@ -796,7 +797,7 @@ func keyDebit(txHash *chainhash.Hash, index uint32, block *Block) []byte {
 	return k
 }
 
-func putDebit(ns walletdb.ReadWriteBucket, txHash *chainhash.Hash, index uint32, amount btcutil.Amount, block *Block, credKey []byte) er.R {
+func putDebit(ns walletdb.ReadWriteBucket, txHash *chainhash.Hash, index uint32, amount btcutil.Amount, block *dbstructs.Block, credKey []byte) er.R {
 	k := keyDebit(txHash, index, block)
 
 	v := make([]byte, 80)
@@ -819,7 +820,7 @@ func extractRawDebitCreditKey(v []byte) []byte {
 // existsDebit checks for the existance of a debit.  If found, the debit and
 // previous credit keys are returned.  If the debit does not exist, both keys
 // are nil.
-func existsDebit(ns walletdb.ReadBucket, txHash *chainhash.Hash, index uint32, block *Block) (k, credKey []byte, err er.R) {
+func existsDebit(ns walletdb.ReadBucket, txHash *chainhash.Hash, index uint32, block *dbstructs.Block) (k, credKey []byte, err er.R) {
 	k = keyDebit(txHash, index, block)
 	v := ns.NestedReadBucket(bucketDebits).Get(k)
 	if v == nil {

@@ -20,6 +20,7 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
 	"github.com/pkt-cash/pktd/wire"
 )
 
@@ -65,25 +66,18 @@ var (
 		"output unlock not alowed")
 )
 
-// Block contains the minimum amount of data to uniquely identify any block on
-// either the best or side chain.
-type Block struct {
-	Hash   chainhash.Hash
-	Height int32
-}
-
 // BlockMeta contains the unique identification for a block and any metadata
 // pertaining to the block.  At the moment, this additional metadata only
 // includes the block time from the block header.
 type BlockMeta struct {
-	Block
+	dbstructs.Block
 	Time time.Time
 }
 
 // blockRecord is an in-memory representation of the block record saved in the
 // database.
 type blockRecord struct {
-	Block
+	dbstructs.Block
 	Time         time.Time
 	transactions []chainhash.Hash
 }
@@ -94,7 +88,7 @@ type blockRecord struct {
 // instead.
 type incidence struct {
 	txHash chainhash.Hash
-	block  Block
+	block  dbstructs.Block
 }
 
 // indexedIncidence records the transaction incidence and an input or output
@@ -107,7 +101,7 @@ type indexedIncidence struct {
 // credit describes a transaction output which was or is spendable by wallet.
 type credit struct {
 	outPoint wire.OutPoint
-	block    Block
+	block    dbstructs.Block
 	amount   btcutil.Amount
 	change   bool
 	spentBy  indexedIncidence // Index == ^uint32(0) if unspent
@@ -506,7 +500,7 @@ func (s *Store) addCredit(ns walletdb.ReadWriteBucket, rec *TxRecord, block *Blo
 func rollbackTransaction(
 	ns walletdb.ReadWriteBucket,
 	txHash *chainhash.Hash,
-	block *Block,
+	block *dbstructs.Block,
 	params *chaincfg.Params,
 ) (coins btcutil.Amount, err er.R) {
 	coins = btcutil.Amount(0)
@@ -760,7 +754,7 @@ func (s *Store) ForEachUnspentOutput(
 	visitor func(key []byte, c *Credit) er.R,
 ) er.R {
 	var op wire.OutPoint
-	var block Block
+	var block dbstructs.Block
 	bu := ns.NestedReadBucket(bucketUnspent)
 	var lastKey []byte
 	if err := bu.ForEachBeginningWith(beginKey, func(k, v []byte) er.R {
@@ -861,7 +855,7 @@ func (s *Store) ForEachUnspentOutput(
 		cred := Credit{
 			OutPoint: op,
 			BlockMeta: BlockMeta{
-				Block: Block{Height: -1},
+				Block: dbstructs.Block{Height: -1},
 			},
 			Amount:       btcutil.Amount(txOut.Value),
 			PkScript:     txOut.PkScript,

@@ -37,6 +37,7 @@ import (
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb/migration"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
 )
@@ -2875,7 +2876,7 @@ func mkFilterReq(w *watcher.Watcher, header *wire.BlockHeader, height int32) *ch
 	filterReq := w.FilterReq(height)
 	filterReq.Blocks = []wtxmgr.BlockMeta{
 		{
-			Block: wtxmgr.Block{
+			Block: dbstructs.Block{
 				Hash:   header.BlockHash(),
 				Height: height,
 			},
@@ -3037,7 +3038,7 @@ func (w *Wallet) connectBlocks(blks []SyncerResp, isRescan bool) er.R {
 				return err
 			}
 			w.NtfnServer.notifyAttachedBlock(dbtx, &wtxmgr.BlockMeta{
-				Block: wtxmgr.Block{
+				Block: dbstructs.Block{
 					Hash:   hash,
 					Height: b.height,
 				},
@@ -3146,7 +3147,7 @@ func (w *Wallet) rollbackIfNeeded() er.R {
 	}
 }
 
-func (w *Wallet) block(bm wtxmgr.Block) er.R {
+func (w *Wallet) block(bm dbstructs.Block) er.R {
 	header, err := w.chainClient.GetBlockHeader(&bm.Hash)
 	if err != nil {
 		return err
@@ -3162,7 +3163,7 @@ func (w *Wallet) block(bm wtxmgr.Block) er.R {
 		filterReq := w.watch.FilterReq(bm.Height)
 		filterReq.Blocks = []wtxmgr.BlockMeta{
 			{
-				Block: wtxmgr.Block{
+				Block: dbstructs.Block{
 					Hash:   header.BlockHash(),
 					Height: bm.Height,
 				},
@@ -3284,7 +3285,7 @@ func (w *Wallet) checkBlock() {
 			log.Infof("Wallet frontend synced to tip [%d] 💪", log.Height(st.Height))
 			w.SetChainSynced(true)
 		}
-	} else if err := w.block(wtxmgr.Block{
+	} else if err := w.block(dbstructs.Block{
 		Hash:   *bestH,
 		Height: bestHeight,
 	}); err != nil {

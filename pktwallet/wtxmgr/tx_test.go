@@ -20,6 +20,7 @@ import (
 	"github.com/pkt-cash/pktd/lnd/clock"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	_ "github.com/pkt-cash/pktd/pktwallet/walletdb/bdb"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
 	"github.com/pkt-cash/pktd/wire"
 	"github.com/pkt-cash/pktd/wire/constants"
 )
@@ -31,7 +32,7 @@ var (
 	TstRecvTx, _                    = btcutil.NewTxFromBytes(TstRecvSerializedTx)
 	TstRecvTxSpendingTxBlockHash, _ = chainhash.NewHashFromStr("00000000000000017188b968a371bab95aa43522665353b646e41865abae02a4")
 	TstRecvTxBlockDetails           = &BlockMeta{
-		Block: Block{Hash: *TstRecvTxSpendingTxBlockHash, Height: 276425},
+		Block: dbstructs.Block{Hash: *TstRecvTxSpendingTxBlockHash, Height: 276425},
 		Time:  time.Unix(1387737310, 0),
 	}
 
@@ -42,7 +43,7 @@ var (
 	TstSpendingTxBlockHeight   = int32(279143)
 	TstSignedTxBlockHash, _    = chainhash.NewHashFromStr("00000000000000017188b968a371bab95aa43522665353b646e41865abae02a4")
 	TstSignedTxBlockDetails    = &BlockMeta{
-		Block: Block{Hash: *TstSignedTxBlockHash, Height: TstSpendingTxBlockHeight},
+		Block: dbstructs.Block{Hash: *TstSignedTxBlockHash, Height: TstSpendingTxBlockHeight},
 		Time:  time.Unix(1389114091, 0),
 	}
 )
@@ -668,7 +669,7 @@ func TestCoinbases(t *testing.T) {
 	ns := dbtx.ReadWriteBucket(namespaceKey)
 
 	b100 := BlockMeta{
-		Block: Block{Height: 100},
+		Block: dbstructs.Block{Height: 100},
 		Time:  time.Now(),
 	}
 
@@ -868,7 +869,7 @@ func TestCoinbases(t *testing.T) {
 
 	// Mine the spending transaction in the block the coinbase matures.
 	bMaturity := BlockMeta{
-		Block: Block{Height: b100.Height + coinbaseMaturity},
+		Block: dbstructs.Block{Height: b100.Height + coinbaseMaturity},
 		Time:  time.Now(),
 	}
 	err = s.InsertTx(ns, spenderARec, &bMaturity)
@@ -1073,7 +1074,7 @@ func TestMoveMultipleToSameBlock(t *testing.T) {
 	ns := dbtx.ReadWriteBucket(namespaceKey)
 
 	b100 := BlockMeta{
-		Block: Block{Height: 100},
+		Block: dbstructs.Block{Height: 100},
 		Time:  time.Now(),
 	}
 
@@ -1140,7 +1141,7 @@ func TestMoveMultipleToSameBlock(t *testing.T) {
 
 	// Mine both transactions in the block that matures the coinbase.
 	bMaturity := BlockMeta{
-		Block: Block{Height: b100.Height + coinbaseMaturity},
+		Block: dbstructs.Block{Height: b100.Height + coinbaseMaturity},
 		Time:  time.Now(),
 	}
 	err = s.InsertTx(ns, spenderARec, &bMaturity)
@@ -1313,7 +1314,7 @@ func TestRemoveUnminedTx(t *testing.T) {
 	// We'll start off the test by creating a new coinbase output at height
 	// 100 and inserting it into the store.
 	b100 := &BlockMeta{
-		Block: Block{Height: 100},
+		Block: dbstructs.Block{Height: 100},
 		Time:  time.Now(),
 	}
 	initialBalance := int64(1e8)
@@ -1373,7 +1374,7 @@ func TestRemoveUnminedTx(t *testing.T) {
 	// Then, we'll create an unconfirmed spend for the coinbase output and
 	// insert it into the store.
 	b101 := &BlockMeta{
-		Block: Block{Height: 201},
+		Block: dbstructs.Block{Height: 201},
 		Time:  time.Now(),
 	}
 	changeAmount := int64(4e7)
@@ -1461,7 +1462,7 @@ func TestInsertMempoolTxAlreadyConfirmed(t *testing.T) {
 	// We'll start off the test by creating a new coinbase output at height
 	// 100 and inserting it into the store.
 	b100 := &BlockMeta{
-		Block: Block{Height: 100},
+		Block: dbstructs.Block{Height: 100},
 		Time:  time.Now(),
 	}
 	tx := newCoinBase(1e8)
@@ -1523,7 +1524,7 @@ func TestOutputsAfterRemoveDoubleSpend(t *testing.T) {
 	// We'll start off the test by creating a new coinbase output at height
 	// 100 and inserting it into the store.
 	b100 := BlockMeta{
-		Block: Block{Height: 100},
+		Block: dbstructs.Block{Height: 100},
 		Time:  time.Now(),
 	}
 	cb := newCoinBase(1e8)
@@ -1656,7 +1657,7 @@ func testInsertMempoolDoubleSpendTx(t *testing.T, first bool) {
 	// We'll start off the test by creating a new coinbase output at height
 	// 100 and inserting it into the store.
 	b100 := BlockMeta{
-		Block: Block{Height: 100},
+		Block: dbstructs.Block{Height: 100},
 		Time:  time.Now(),
 	}
 	cb := newCoinBase(1e8)
@@ -1725,7 +1726,7 @@ func testInsertMempoolDoubleSpendTx(t *testing.T, first bool) {
 	// succesfully spend the coinbase output.
 	coinbaseMaturity := int32(chaincfg.TestNet3Params.CoinbaseMaturity)
 	bMaturity := BlockMeta{
-		Block: Block{Height: b100.Height + coinbaseMaturity},
+		Block: dbstructs.Block{Height: b100.Height + coinbaseMaturity},
 		Time:  time.Now(),
 	}
 
@@ -1811,7 +1812,7 @@ func TestInsertConfirmedDoubleSpendTx(t *testing.T) {
 	// We'll start off the test by creating a new coinbase output at height
 	// 100 and inserting it into the store.
 	b100 := BlockMeta{
-		Block: Block{Height: 100},
+		Block: dbstructs.Block{Height: 100},
 		Time:  time.Now(),
 	}
 	cb1 := newCoinBase(1e8)
@@ -1911,7 +1912,7 @@ func TestInsertConfirmedDoubleSpendTx(t *testing.T) {
 	// allows us to successfully spend the coinbase outputs.
 	coinbaseMaturity := int32(chaincfg.TestNet3Params.CoinbaseMaturity)
 	bMaturity := BlockMeta{
-		Block: Block{Height: b100.Height + coinbaseMaturity},
+		Block: dbstructs.Block{Height: b100.Height + coinbaseMaturity},
 		Time:  time.Now(),
 	}
 	outputsToSpend := []wire.OutPoint{
@@ -1984,7 +1985,7 @@ func TestAddDuplicateCreditAfterConfirm(t *testing.T) {
 	// We'll start off the test by creating a new coinbase output at height
 	// 100 and inserting it into the store.
 	b100 := &BlockMeta{
-		Block: Block{Height: 100},
+		Block: dbstructs.Block{Height: 100},
 		Time:  time.Now(),
 	}
 	cb := newCoinBase(1e8)
@@ -2020,7 +2021,7 @@ func TestAddDuplicateCreditAfterConfirm(t *testing.T) {
 
 	// Then, we'll create an unconfirmed spend for the coinbase output.
 	b101 := &BlockMeta{
-		Block: Block{Height: 101},
+		Block: dbstructs.Block{Height: 101},
 		Time:  time.Now(),
 	}
 	spendTx := spendOutput(&cbRec.Hash, 0, 5e7, 4e7)
@@ -2132,7 +2133,7 @@ func _TestInsertMempoolTxAndConfirm(t *testing.T) {
 	// Then, proceed to confirm it.
 	commitDBTx(t, store, db, func(ns walletdb.ReadWriteBucket) {
 		block := &BlockMeta{
-			Block: Block{Height: 1337},
+			Block: dbstructs.Block{Height: 1337},
 			Time:  time.Now(),
 		}
 		if err := store.InsertTx(ns, txRec, block); err != nil {
@@ -2409,7 +2410,7 @@ func TestOutputLocks(t *testing.T) {
 
 	// Define a series of constants we'll use throughout our tests.
 	block := &BlockMeta{
-		Block: Block{
+		Block: dbstructs.Block{
 			Hash:   chainhash.Hash{1, 3, 3, 7},
 			Height: 1337,
 		},

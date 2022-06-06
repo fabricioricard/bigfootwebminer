@@ -14,6 +14,7 @@ import (
 	"github.com/pkt-cash/pktd/btcutil"
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
 )
 
 // CreditRecord contains metadata regarding a transaction credit for a known
@@ -114,7 +115,7 @@ func (s *Store) minedTxDetails(ns walletdb.ReadBucket, txHash *chainhash.Hash, r
 // hash txHash and the passed unmined record value.
 func (s *Store) unminedTxDetails(ns walletdb.ReadBucket, txHash *chainhash.Hash, v []byte) (*TxDetails, er.R) {
 	details := TxDetails{
-		Block: BlockMeta{Block: Block{Height: -1}},
+		Block: BlockMeta{Block: dbstructs.Block{Height: -1}},
 	}
 	err := readRawTxRecord(txHash, v, &details.TxRecord)
 	if err != nil {
@@ -239,7 +240,7 @@ func (s *Store) TxDetails(ns walletdb.ReadBucket, txHash *chainhash.Hash) (*TxDe
 // Not finding a transaction with this hash from this block is not an error.  In
 // this case, a nil TxDetails is returned.
 func (s *Store) UniqueTxDetails(ns walletdb.ReadBucket, txHash *chainhash.Hash,
-	block *Block) (*TxDetails, er.R) {
+	block *dbstructs.Block) (*TxDetails, er.R) {
 
 	if block == nil {
 		v := existsRawUnmined(ns, txHash[:])
@@ -469,7 +470,7 @@ func AddressForOutPoint(ns walletdb.ReadBucket, prevOut *wire.OutPoint) ([]byte,
 
 // PreviousPkScripts returns a slice of previous output scripts for each credit
 // output this transaction record debits from.
-func (s *Store) PreviousPkScripts(ns walletdb.ReadBucket, rec *TxRecord, block *Block) ([][]byte, er.R) {
+func (s *Store) PreviousPkScripts(ns walletdb.ReadBucket, rec *TxRecord, block *dbstructs.Block) ([][]byte, er.R) {
 	var pkScripts [][]byte
 
 	if block == nil {

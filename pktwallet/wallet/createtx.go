@@ -147,7 +147,8 @@ func (w *Wallet) txToOutputs(txr CreateTxReq) (tx *txauthor.AuthoredTx, err er.R
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("findEligibleOutputs() completed in [%d], visited [%d] utxos", time.Since(t0), visits)
+	log.Infof("findEligibleOutputs() completed in [%s], visited [%d] utxos",
+		time.Since(t0).String(), visits)
 
 	addrStr := "<all>"
 	if txr.InputAddresses != nil {

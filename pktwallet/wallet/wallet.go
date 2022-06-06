@@ -344,7 +344,7 @@ func (w *Wallet) SetChainSynced(synced bool) {
 // activeData returns the currently-active receiving addresses and all unspent
 // outputs.  This is primarely intended to provide the parameters for a
 // rescan request.
-func (w *Wallet) activeData(dbtx walletdb.ReadWriteTx) ([]btcutil.Address, []wtxmgr.Credit, er.R) {
+func (w *Wallet) activeData(dbtx walletdb.ReadWriteTx) ([]btcutil.Address, map[string][]watcher.OutPointWatch, er.R) {
 	addrmgrNs := dbtx.ReadBucket(waddrmgrNamespaceKey)
 	txmgrNs := dbtx.ReadBucket(wtxmgrNamespaceKey)
 
@@ -366,8 +366,18 @@ func (w *Wallet) activeData(dbtx walletdb.ReadWriteTx) ([]btcutil.Address, []wtx
 		return nil, nil, err
 	}
 
-	unspent, err := w.TxStore.GetUnspentOutputs(txmgrNs)
-	return addrs, unspent, err
+	var ao map[string][]watcher.OutPointWatch
+	err = w.TxStore.ForEachUnspentOutput(txmgrNs, nil, func(_ []byte, c *wtxmgr.Credit) er.R {
+		addr := txscript.PkScriptToAddress(c.PkScript, w.chainParams)
+		as := addr.String()
+		ao[as] = append(ao[as], watcher.OutPointWatch{
+			BeginHeight: c.Block.Height,
+			OutPoint:    c.OutPoint,
+			Addr:        addr,
+		})
+		return nil
+	})
+	return addrs, ao, err
 }
 
 // syncWithChain brings the wallet up to date with the current chain server
@@ -462,31 +472,31 @@ func (w *Wallet) syncWithChain(birthdayStamp *waddrmgr.BlockStamp) er.R {
 		ws.BirthdayBlock = birthdayStamp.Height
 	})
 
+	log.Infof("Getting UTXOs and addresses to watch...")
+
 	// Finally, we'll trigger a wallet rescan and request notifications for
 	// transactions sending to all wallet addresses and spending all wallet
 	// UTXOs.
 	//func (w *Wallet) activeData(dbtx walletdb.ReadTx) ([]btcutil.Address, []wtxmgr.Credit, er.R) {
 	var addrs []btcutil.Address
-	var credits []wtxmgr.Credit
+	var ao map[string][]watcher.OutPointWatch
 	if err := walletdb.Update(w.db, func(dbtx walletdb.ReadWriteTx) er.R {
-		addrs, credits, err = w.activeData(dbtx)
+		addrs, ao, err = w.activeData(dbtx)
 		return err
 	}); err != nil {
 		return err
 	}
-	ao := make([]watcher.OutPointWatch, 0, len(credits))
-	for _, c := range credits {
-		ao = append(ao, watcher.OutPointWatch{
-			BeginHeight: c.Block.Height,
-			OutPoint:    c.OutPoint,
-			Addr:        txscript.PkScriptToAddress(c.PkScript, w.chainParams),
-		})
+	for addr, pts := range ao {
+		log.Infof("Watching address [%s] for [%s] UTXOs", addr, log.Int(len(pts)))
 	}
 	for _, a := range addrs {
-		log.Debugf("Watching address [%s]", a.String())
+		addr := a.String()
+		if _, ok := ao[addr]; !ok {
+			log.Infof("Watching address [%s] for [%s] UTXOs", addr, log.Int(0))
+		}
 	}
 	w.watch.WatchAddrs(addrs)
-	w.watch.WatchOutpoints(ao)
+	w.watch.WatchOutpointsMap(ao)
 
 	return nil
 }

@@ -47,6 +47,17 @@ func (w *Watcher) watchStuff(
 	}
 }
 
+func (w *Watcher) WatchOutpointsMap(ao map[string][]OutPointWatch) {
+	w.watchAddrsLock.Lock()
+	defer w.watchAddrsLock.Unlock()
+	for _, v := range ao {
+		w.watchPoints = append(w.watchPoints, v...)
+	}
+	sort.Slice(w.watchPoints, func(i, j int) bool {
+		return w.watchPoints[i].BeginHeight < w.watchPoints[j].BeginHeight
+	})
+}
+
 func (w *Watcher) WatchOutpoints(ao []OutPointWatch) {
 	w.watchStuff(nil, ao)
 }

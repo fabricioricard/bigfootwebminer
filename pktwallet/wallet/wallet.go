@@ -492,7 +492,7 @@ func (w *Wallet) syncWithChain(birthdayStamp *waddrmgr.BlockStamp) er.R {
 	for _, a := range addrs {
 		addr := a.String()
 		if _, ok := ao[addr]; !ok {
-			log.Infof("Watching address [%s] for [%s] UTXOs", addr, log.Int(0))
+			log.Debugf("Watching address [%s] for [%s] UTXOs", addr, log.Int(0))
 		}
 	}
 	w.watch.WatchAddrs(addrs)
@@ -3281,7 +3281,7 @@ func (w *Wallet) checkBlock() {
 	if st.Height >= bestHeight {
 		synced := w.ChainSynced()
 		if !synced {
-			log.Infof("Wallet frontend synced to tip [%d]", st.Height)
+			log.Infof("Wallet frontend synced to tip [%d] 💪", log.Height(st.Height))
 			w.SetChainSynced(true)
 		}
 	} else if err := w.block(wtxmgr.Block{

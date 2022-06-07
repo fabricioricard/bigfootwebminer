@@ -2807,7 +2807,7 @@ func paysUncreditedAddress(
 	for _, addr := range watchedAddrs {
 		script := addr.ScriptAddress()
 		for index, out := range tx.TxOut {
-			if !bytes.Equal(script, out.PkScript) {
+			if !bytes.Contains(out.PkScript, script) {
 				continue
 			}
 			found := false

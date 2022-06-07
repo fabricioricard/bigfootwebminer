@@ -37,8 +37,6 @@ func Put(ns walletdb.ReadWriteBucket, u *dbstructs.Unspent) er.R {
 		return UnspentErr.New("cannot marshal unspent", er.E(err))
 	} else if err := ns.NestedReadWriteBucket(bucketUnspent).Put(k, v); err != nil {
 		return UnspentErr.New("cannot put unspent", err)
-	} else {
-		log.Infof("Unspent marshals to: [%v]", string(v))
 	}
 	return nil
 }
@@ -111,9 +109,9 @@ func ExtendUnspents(ns walletdb.ReadWriteBucket, extend func(u *dbstructs.Unspen
 	if bucketUnspentOld == nil {
 		log.Warn("There is no bucketUnspentOld bucket")
 	}
-	return bu.ForEach(func(k, v []byte) er.R {
+	i := 0
+	if err := bu.ForEach(func(k, v []byte) er.R {
 		var unspent dbstructs.Unspent
-		log.Info(".")
 		if err := utilfun.ReadCanonicalOutPoint(k, &unspent.OutPoint); err != nil {
 			return err
 		}
@@ -126,6 +124,14 @@ func ExtendUnspents(ns walletdb.ReadWriteBucket, extend func(u *dbstructs.Unspen
 		if err := Put(ns, &unspent); err != nil {
 			return err
 		}
+		if i%100 == 0 {
+			log.Infof("Migrating UTXO [%d] ([%d]%)", i, int(k[0])*100/256)
+		}
+		i += 1
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+	log.Info("Deleting old UTXO bucket")
+	return ns.DeleteNestedBucket(bucketUnspentOld)
 }

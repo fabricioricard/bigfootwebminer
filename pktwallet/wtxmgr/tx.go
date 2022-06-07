@@ -782,7 +782,7 @@ func (s *Store) ForEachUnspentOutput(
 		lastKey = k
 		visits += 1
 
-		if _, ok := addrs[uns.Address]; !ok {
+		if _, ok := addrs[uns.Address]; !ok && len(addrs) > 0 {
 			// Skip non-matching address as soon as possible
 			return nil
 		}
@@ -843,7 +843,7 @@ func (s *Store) ForEachUnspentOutput(
 		txOut := rec.MsgTx.TxOut[op.Index]
 
 		addr := txscript.PkScriptToAddress(txOut.PkScript, s.chainParams).String()
-		if _, ok := addrs[addr]; !ok {
+		if _, ok := addrs[addr]; !ok && len(addrs) > 0 {
 			return nil
 		}
 

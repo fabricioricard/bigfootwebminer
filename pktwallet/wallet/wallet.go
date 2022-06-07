@@ -1021,6 +1021,7 @@ func (w *Wallet) CalculateAddressBalances(
 	showZeroBalances bool,
 ) (map[btcutil.Address]*Balances, er.R) {
 	bals := make(map[btcutil.Address]*Balances)
+	bals0 := make(map[string]*Balances)
 	return bals, walletdb.View(w.db, func(tx walletdb.ReadTx) er.R {
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
 		// Get current block.  The block height used for calculating
@@ -1031,6 +1032,7 @@ func (w *Wallet) CalculateAddressBalances(
 			if err := w.Manager.ForEachActiveAddress(addrmgrNs, func(addr btcutil.Address) er.R {
 				_bal := Balances{}
 				bal := &_bal
+				bals0[addr.String()] = bal
 				bals[addr] = bal
 				return nil
 			}); err != nil {
@@ -1041,10 +1043,12 @@ func (w *Wallet) CalculateAddressBalances(
 			if a, err := btcutil.DecodeAddress(uns.Address, w.chainParams); err != nil {
 				return err
 			} else {
-				bal := bals[a]
+				bal := bals0[uns.Address]
 				if bal == nil {
 					_bal := Balances{}
+					bals0[uns.Address] = &_bal
 					bals[a] = &_bal
+					bal = &_bal
 				}
 				bal.Total += btcutil.Amount(uns.Value)
 				bal.OutputCount++

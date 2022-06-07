@@ -1,16 +1,19 @@
 package unspent
 
 import (
-	"encoding/binary"
+	"fmt"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/pkt-cash/pktd/pktlog/log"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/utilfun"
 	"github.com/pkt-cash/pktd/wire"
 )
 
-var bucketUnspent = []byte("u")
+var bucketUnspentOld = []byte("u")
+var bucketUnspent = []byte("u2")
 
 var UnspentErr = er.GenericErrorType.Code("UnspentErr")
 
@@ -23,25 +26,19 @@ var UnspentErr = er.GenericErrorType.Code("UnspentErr")
 //   [0:32]  Transaction hash (32 bytes)
 //   [32:36] Output index (4 bytes)
 //
-// Values are serialized as such:
+// Values WERE serialized as such, now are json.
 //
 //   [0:4]   Block height (4 bytes)
 //   [4:36]  Block hash (32 bytes)
 
-func valueUnspent(block *dbstructs.Block) []byte {
-	v := make([]byte, 36)
-	binary.BigEndian.PutUint32(v, uint32(block.Height))
-	copy(v[4:36], block.Hash[:])
-	return v
-}
-
 func Put(ns walletdb.ReadWriteBucket, u *dbstructs.Unspent) er.R {
 	k := utilfun.CanonicalOutPoint(&u.OutPoint.Hash, u.OutPoint.Index)
-	v := valueUnspent(&u.Block)
-	err := ns.NestedReadWriteBucket(bucketUnspent).Put(k, v)
-	if err != nil {
-		str := "cannot put unspent"
-		return UnspentErr.New(str, err)
+	if v, err := jsoniter.Marshal(u); err != nil {
+		return UnspentErr.New("cannot marshal unspent", er.E(err))
+	} else if err := ns.NestedReadWriteBucket(bucketUnspent).Put(k, v); err != nil {
+		return UnspentErr.New("cannot put unspent", err)
+	} else {
+		log.Infof("Unspent marshals to: [%v]", string(v))
 	}
 	return nil
 }
@@ -88,11 +85,8 @@ func ForEachUnspentOutput(
 	bu := ns.NestedReadBucket(bucketUnspent)
 	return bu.ForEachBeginningWith(beginKey, func(k, v []byte) er.R {
 		var unspent dbstructs.Unspent
-		if err := utilfun.ReadCanonicalOutPoint(k, &unspent.OutPoint); err != nil {
-			return err
-		}
-		if err := utilfun.ReadUnspentBlock(v, &unspent.Block); err != nil {
-			return err
+		if err := jsoniter.Unmarshal(v, &unspent); err != nil {
+			return UnspentErr.New(fmt.Sprintf("Unable to parse JSON [%s]", string(v)), er.E(err))
 		}
 		if err := visitor(k, &unspent); err != nil {
 			return err
@@ -110,11 +104,26 @@ func DeleteBuckets(ns walletdb.ReadWriteBucket) er.R {
 }
 
 func ExtendUnspents(ns walletdb.ReadWriteBucket, extend func(u *dbstructs.Unspent) er.R) er.R {
-	return ForEachUnspentOutput(ns, nil, func(k []byte, unspent *dbstructs.Unspent) er.R {
-		if err := extend(unspent); err != nil {
+	if _, err := ns.CreateBucket(bucketUnspent); err != nil {
+		return err
+	}
+	bu := ns.NestedReadBucket(bucketUnspentOld)
+	if bucketUnspentOld == nil {
+		log.Warn("There is no bucketUnspentOld bucket")
+	}
+	return bu.ForEach(func(k, v []byte) er.R {
+		var unspent dbstructs.Unspent
+		log.Info(".")
+		if err := utilfun.ReadCanonicalOutPoint(k, &unspent.OutPoint); err != nil {
 			return err
 		}
-		if err := Put(ns, unspent); err != nil {
+		if err := utilfun.ReadUnspentBlock(v, &unspent.Block); err != nil {
+			return err
+		}
+		if err := extend(&unspent); err != nil {
+			return err
+		}
+		if err := Put(ns, &unspent); err != nil {
 			return err
 		}
 		return nil

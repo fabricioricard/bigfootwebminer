@@ -118,6 +118,7 @@ func DropTransactionHistory(ns walletdb.ReadWriteBucket) er.R {
 
 func ExtendUnspent(ns walletdb.ReadWriteBucket) er.R {
 	log.Info("Adding extended data to unspent table")
+	count := 0
 	err := unspent.ExtendUnspents(ns, func(unspent *dbstructs.Unspent) er.R {
 		txr, err := fetchTxRecord(ns, &unspent.OutPoint.Hash, &unspent.Block)
 		if err != nil {
@@ -132,11 +133,12 @@ func ExtendUnspent(ns walletdb.ReadWriteBucket) er.R {
 		unspent.Value = op.Value
 		unspent.FromCoinBase = blockchain.IsCoinBaseTx(&txr.MsgTx)
 		unspent.PkScript = op.PkScript
+		count += 1
 		return nil
 	})
 	if err != nil {
 		return err
 	}
-	log.Info("Adding extended data to unspent table - done")
+	log.Infof("Adding extended data to unspent table - done, [%d] entries", count)
 	return nil
 }

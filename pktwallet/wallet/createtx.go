@@ -22,7 +22,6 @@ import (
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txauthor"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txrules"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
-	"github.com/pkt-cash/pktd/pktwallet/wtxmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/unspent"
 	"github.com/pkt-cash/pktd/txscript"
@@ -45,7 +44,7 @@ var TooManyInputsError = er.GenericErrorType.CodeWithDetail("TooManyInputsError"
 var UnconfirmedCoinsError = er.GenericErrorType.CodeWithDetail("UnconfirmedCoinsError",
 	"unable to construct transaction, there are coins but they are not yet confirmed")
 
-func makeInputSource(eligible []*wtxmgr.Credit) txauthor.InputSource {
+func makeInputSource(eligible []*dbstructs.Unspent) txauthor.InputSource {
 	// Current inputs and their total value.  These are closed over by the
 	// returned input source and reused across multiple calls.
 	currentTotal := btcutil.Amount(0)
@@ -57,9 +56,9 @@ func makeInputSource(eligible []*wtxmgr.Credit) txauthor.InputSource {
 			nextCredit := eligible[0]
 			eligible = eligible[1:]
 			nextInput := wire.NewTxIn(&nextCredit.OutPoint, nil, nil)
-			currentTotal += nextCredit.Amount
+			currentTotal += btcutil.Amount(nextCredit.Value)
 			currentInputs = append(currentInputs, nextInput)
-			v := int64(nextCredit.Amount)
+			v := nextCredit.Value
 			currentAdditonal = append(currentAdditonal, wire.TxInAdditional{
 				PkScript: nextCredit.PkScript,
 				Value:    &v,
@@ -163,7 +162,7 @@ func (w *Wallet) txToOutputs(txr CreateTxReq) (tx *txauthor.AuthoredTx, err er.R
 		"and [%d] (too many inputs for tx)",
 		len(eligibleOuts.credits), addrStr, eligibleOuts.unconfirmedCount, eligibleOuts.unusedCount)
 	for _, eo := range eligibleOuts.credits {
-		log.Debugf("  %s @ %d - %s", eo.OutPoint.String(), eo.Height, eo.Amount.String())
+		log.Debugf("  %s @ %d - %s", eo.OutPoint.String(), eo.Block.Height, btcutil.Amount(eo.Value).String())
 	}
 
 	inputSource := makeInputSource(eligibleOuts.credits)
@@ -356,11 +355,11 @@ func PreferBiggest(a, b interface{}) int {
 // 	return -PreferBiggest(a, b)
 // }
 
-func convertResult(ac *amountCount) []*wtxmgr.Credit {
+func convertResult(ac *amountCount) []*dbstructs.Unspent {
 	ifaces := ac.credits.Keys()
-	out := make([]*wtxmgr.Credit, len(ifaces))
+	out := make([]*dbstructs.Unspent, len(ifaces))
 	for i := range ifaces {
-		out[i] = ifaces[i].(*wtxmgr.Credit)
+		out[i] = ifaces[i].(*dbstructs.Unspent)
 		if out[i] == nil {
 			panic("convertResult: out == nil")
 		}
@@ -369,7 +368,7 @@ func convertResult(ac *amountCount) []*wtxmgr.Credit {
 }
 
 type eligibleOutputs struct {
-	credits          []*wtxmgr.Credit
+	credits          []*dbstructs.Unspent
 	unconfirmedCount int
 	unconfirmedAmt   btcutil.Amount
 	unusedCount      int

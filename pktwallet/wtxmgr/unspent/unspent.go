@@ -124,8 +124,8 @@ func ExtendUnspents(ns walletdb.ReadWriteBucket, extend func(u *dbstructs.Unspen
 		if err := Put(ns, &unspent); err != nil {
 			return err
 		}
-		if i%100 == 0 {
-			log.Infof("Migrating UTXO [%d] ([%d]%)", i, int(k[0])*100/256)
+		if i%1000 == 0 {
+			log.Infof("Migrating UTXO [%d] ([%d]%%)", i, int(k[0])*100/256)
 		}
 		i += 1
 		return nil

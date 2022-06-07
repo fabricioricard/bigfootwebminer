@@ -6873,7 +6873,7 @@ func sendOutputs(
 			}
 			addrs = append(addrs, addr)
 		}
-		req.InputAddresses = &addrs
+		req.InputAddresses = addrs
 	}
 	tx, err := w.SendOutputs(req)
 	if err != nil {

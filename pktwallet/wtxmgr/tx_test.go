@@ -1772,9 +1772,9 @@ func testInsertMempoolDoubleSpendTx(t *testing.T, first bool) {
 		if len(minedTxs) != 1 {
 			t.Fatalf("expected 1 mined tx, got %v", len(minedTxs))
 		}
-		if !minedTxs[0].Hash.IsEqual(&confirmedSpendRec.Hash) {
+		if !minedTxs[0].OutPoint.Hash.IsEqual(&confirmedSpendRec.Hash) {
 			t.Fatalf("expected confirmed tx hash %v, got %v",
-				confirmedSpendRec.Hash, minedTxs[0].Hash)
+				confirmedSpendRec.Hash, minedTxs[0].OutPoint.Hash)
 		}
 	})
 }
@@ -1961,9 +1961,9 @@ func TestInsertConfirmedDoubleSpendTx(t *testing.T) {
 		if len(minedTxs) != 1 {
 			t.Fatalf("expected 1 mined tx, got %v", len(minedTxs))
 		}
-		if !minedTxs[0].Hash.IsEqual(&confirmedSpendRec.Hash) {
+		if !minedTxs[0].OutPoint.Hash.IsEqual(&confirmedSpendRec.Hash) {
 			t.Fatalf("expected confirmed tx hash %v, got %v",
-				confirmedSpend, minedTxs[0].Hash)
+				confirmedSpend, minedTxs[0].OutPoint.Hash)
 		}
 	})
 }
@@ -2014,9 +2014,9 @@ func TestAddDuplicateCreditAfterConfirm(t *testing.T) {
 		if len(minedTxs) != 1 {
 			t.Fatalf("expected 1 mined tx, got %v", len(minedTxs))
 		}
-		if !minedTxs[0].Hash.IsEqual(&cbRec.Hash) {
+		if !minedTxs[0].OutPoint.Hash.IsEqual(&cbRec.Hash) {
 			t.Fatalf("expected tx hash %v, got %v", cbRec.Hash,
-				minedTxs[0].Hash)
+				minedTxs[0].OutPoint.Hash)
 		}
 	})
 
@@ -2061,9 +2061,9 @@ func TestAddDuplicateCreditAfterConfirm(t *testing.T) {
 		if len(minedTxs) != 1 {
 			t.Fatalf("expected 1 mined txs, got %v", len(minedTxs))
 		}
-		if !minedTxs[0].Hash.IsEqual(&spendTxRec.Hash) {
+		if !minedTxs[0].OutPoint.Hash.IsEqual(&spendTxRec.Hash) {
 			t.Fatalf("expected tx hash %v, got %v", spendTxRec.Hash,
-				minedTxs[0].Hash)
+				minedTxs[0].OutPoint.Hash)
 		}
 	})
 
@@ -2094,9 +2094,9 @@ func TestAddDuplicateCreditAfterConfirm(t *testing.T) {
 		if len(minedTxs) != 1 {
 			t.Fatalf("expected 1 mined txs, got %v", len(minedTxs))
 		}
-		if !minedTxs[0].Hash.IsEqual(&spendTxRec.Hash) {
+		if !minedTxs[0].OutPoint.Hash.IsEqual(&spendTxRec.Hash) {
 			t.Fatalf("expected tx hash %v, got %v", spendTxRec.Hash,
-				minedTxs[0].Hash)
+				minedTxs[0].OutPoint.Hash)
 		}
 	})
 }

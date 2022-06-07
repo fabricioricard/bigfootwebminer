@@ -7,7 +7,6 @@ package wallet
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -24,6 +23,7 @@ import (
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txrules"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/unspent"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
@@ -152,11 +152,10 @@ func (w *Wallet) txToOutputs(txr CreateTxReq) (tx *txauthor.AuthoredTx, err er.R
 		time.Since(t0).String(), visits)
 
 	addrStr := "<all>"
-	if txr.InputAddresses != nil {
-		addrs := make([]string, 0, len(*txr.InputAddresses))
-		for _, a := range *txr.InputAddresses {
-			addrs = append(addrs, fmt.Sprintf("%s (%s)",
-				a.EncodeAddress(), hex.EncodeToString(a.ScriptAddress())))
+	if len(txr.InputAddresses) > 0 {
+		addrs := make([]string, 0, len(txr.InputAddresses))
+		for _, a := range txr.InputAddresses {
+			addrs = append(addrs, a.EncodeAddress())
 		}
 		addrStr = strings.Join(addrs, ", ")
 	}
@@ -268,24 +267,6 @@ func (w *Wallet) txToOutputs(txr CreateTxReq) (tx *txauthor.AuthoredTx, err er.R
 	return tx, nil
 }
 
-func addrMatch(
-	w *Wallet,
-	script []byte,
-	fromAddresses *[]btcutil.Address,
-) (bool, txscript.ScriptClass) {
-	sc, addrs, _, _ := txscript.ExtractPkScriptAddrs(script, w.chainParams)
-	if fromAddresses != nil {
-		for _, extractedAddr := range addrs {
-			for _, addr := range *fromAddresses {
-				if bytes.Equal(extractedAddr.ScriptAddress(), addr.ScriptAddress()) {
-					return true, sc
-				}
-			}
-		}
-	}
-	return false, sc
-}
-
 type amountCount struct {
 	// Amount of coins
 	amount btcutil.Amount
@@ -309,36 +290,36 @@ func (a *amountCount) overLimit(maxInputs int) bool {
 
 // NilComparator compares by txid/index in order to make the red-black tree functions
 func NilComparator(a, b interface{}) int {
-	s1 := a.(*wtxmgr.Credit)
+	s1 := a.(*dbstructs.Unspent)
 	if s1 == nil {
 		panic("NilComparator: s1 == nil")
 	}
-	s2 := b.(*wtxmgr.Credit)
+	s2 := b.(*dbstructs.Unspent)
 	if s2 == nil {
 		panic("NilComparator: s2 == nil")
 	}
-	utils.Int64Comparator(int64(s1.Amount), int64(s2.Amount))
-	txidCmp := bytes.Compare(s1.Hash[:], s2.Hash[:])
+	utils.Int64Comparator(int64(s1.Value), int64(s2.Value))
+	txidCmp := bytes.Compare(s1.OutPoint.Hash[:], s2.OutPoint.Hash[:])
 	if txidCmp != 0 {
 		return txidCmp
 	}
-	return utils.UInt32Comparator(s1.Index, s2.Index)
+	return utils.UInt32Comparator(s1.OutPoint.Index, s2.OutPoint.Index)
 }
 
 // PreferOldest prefers oldest outputs first
 func PreferOldest(a, b interface{}) int {
-	s1 := a.(*wtxmgr.Credit)
+	s1 := a.(*dbstructs.Unspent)
 	if s1 == nil {
 		panic("PreferOldest: s1 == nil")
 	}
-	s2 := b.(*wtxmgr.Credit)
+	s2 := b.(*dbstructs.Unspent)
 	if s2 == nil {
 		panic("PreferOldest: s2 == nil")
 	}
 
-	if s1.Height < s2.Height {
+	if s1.Block.Height < s2.Block.Height {
 		return -1
-	} else if s1.Height > s2.Height {
+	} else if s1.Block.Height > s2.Block.Height {
 		return 1
 	} else {
 		return NilComparator(s1, s2)
@@ -352,18 +333,18 @@ func PreferOldest(a, b interface{}) int {
 
 // PreferBiggest prefers biggest (coin value) outputs first
 func PreferBiggest(a, b interface{}) int {
-	s1 := a.(*wtxmgr.Credit)
+	s1 := a.(*dbstructs.Unspent)
 	if s1 == nil {
 		panic("PreferBiggest: s1 == nil")
 	}
-	s2 := b.(*wtxmgr.Credit)
+	s2 := b.(*dbstructs.Unspent)
 	if s2 == nil {
 		panic("PreferBiggest: s2 == nil")
 	}
 
-	if s1.Amount < s2.Amount {
+	if s1.Value < s2.Value {
 		return 1
-	} else if s1.Amount > s2.Amount {
+	} else if s1.Value > s2.Value {
 		return -1
 	} else {
 		return NilComparator(s1, s2)
@@ -398,7 +379,7 @@ type eligibleOutputs struct {
 func (w *Wallet) findEligibleOutputs(
 	dbtx walletdb.ReadWriteTx,
 	isEnough enough.IsEnough,
-	fromAddresses *[]btcutil.Address,
+	fromAddresses []btcutil.Address,
 	minconf int32,
 	bs *waddrmgr.BlockStamp,
 	inputMinHeight int,
@@ -419,31 +400,27 @@ func (w *Wallet) findEligibleOutputs(
 
 	log.Debugf("Looking for unspents to build transaction")
 
+	addrStrs := make(map[string]struct{})
+	for _, a := range fromAddresses {
+		addrStrs[a.String()] = struct{}{}
+	}
+
 	var visits int
-	if visits, err = w.TxStore.ForEachUnspentOutput(txmgrNs, nil, *fromAddresses, func(key []byte, output *wtxmgr.Credit) er.R {
+	if visits, err = w.TxStore.ForEachUnspentOutput(txmgrNs, nil, addrStrs, func(key []byte, uns *dbstructs.Unspent) er.R {
 
-		// Verify that the output is coming from one of the addresses which we accept to spend from
-		// This is inherently expensive to filter at this level and ideally it would be moved into
-		// the database by storing address->credit mappings directly, but after each transaction
-		// is loaded, it's not much more effort to also extract the addresses each time.
-		match, sc := addrMatch(w, output.PkScript, fromAddresses)
-		if fromAddresses != nil && !match {
-			return nil
-		}
-
-		if output.Height >= 0 && output.Height < int32(inputMinHeight) {
+		if uns.Block.Height >= 0 && uns.Block.Height < int32(inputMinHeight) {
 			log.Debugf("Skipping output %s at height %d because it is below minimum %d",
-				output.String(), output.Height, inputMinHeight)
+				uns.OutPoint.String(), uns.Block.Height, inputMinHeight)
 			return nil
 		}
 
-		if output.FromCoinBase {
-			if !confirmed(int32(w.chainParams.CoinbaseMaturity), output.Height, bs.Height) {
+		if uns.FromCoinBase {
+			if !confirmed(int32(w.chainParams.CoinbaseMaturity), uns.Block.Height, bs.Height) {
 				log.Debugf("Skipping immature coinbase output [%s] at height %d",
-					output.OutPoint.String(), output.Height)
+					uns.OutPoint.String(), uns.Block.Height)
 				return nil
-			} else if txrules.IsBurned(output, w.chainParams, bs.Height+1440) {
-				log.Tracef("Skipping burned output at height %d", output.Height)
+			} else if txrules.IsBurned(uns, w.chainParams, bs.Height+1440) {
+				log.Tracef("Skipping burned output at height %d", uns.Block.Height)
 				if len(burnedOutputs) < 1_000_000 {
 					burnedOutputs = append(burnedOutputs, key)
 				}
@@ -455,32 +432,31 @@ func (w *Wallet) findEligibleOutputs(
 			// Only include this output if it meets the required number of
 			// confirmations.  Coinbase transactions must have have reached
 			// maturity before their outputs may be spent.
-			if !confirmed(minconf, output.Height, bs.Height) {
+			if !confirmed(minconf, uns.Block.Height, bs.Height) {
 				log.Debugf("Skipping unconfirmed output [%s] at height %d [cur height: %d]",
-					output.OutPoint.String(), output.Height, bs.Height)
+					uns.OutPoint.String(), uns.Block.Height, bs.Height)
 				out.unconfirmedCount++
-				out.unconfirmedAmt += output.Amount
+				out.unconfirmedAmt += btcutil.Amount(uns.Value)
 				return nil
 			}
 		}
 
 		// Locked unspent outputs are skipped.
-		if w.LockedOutpoint(output.OutPoint) {
+		if w.LockedOutpoint(uns.OutPoint) {
 			return nil
 		}
 
 		// If there is an unspent which references a block header which doesn't
 		// actually exist we've got some trouble. Lets make sure before we try to
 		// spend it.
-		if output.Height < 0 {
-		} else if _, err := chainClient.GetBlockHeader(&output.Block.Hash); err != nil {
+		if uns.Block.Height < 0 {
+		} else if _, err := chainClient.GetBlockHeader(&uns.Block.Hash); err != nil {
 			log.Debugf("Input [%s] references block hash [%s] which is not in chain, skipping",
-				output.OutPoint.String(), output.Block.Hash)
+				uns.OutPoint.String(), uns.Block.Hash)
 			return nil
 		}
 
-		str := hex.EncodeToString(output.PkScript)
-		ha := haveAmounts[str]
+		ha := haveAmounts[uns.Address]
 		if ha == nil {
 			haa := amountCount{}
 			if inputComparator == nil {
@@ -499,23 +475,27 @@ func (w *Wallet) findEligibleOutputs(
 			} else {
 				haa.credits = redblacktree.NewWith(inputComparator)
 			}
-			haa.isSegwit = sc.IsSegwit()
+			if addr, err := btcutil.DecodeAddress(uns.Address, w.chainParams); err != nil {
+				log.Warnf("Unable to decode address [%s] from utxo [%s]", uns.Address, uns.OutPoint.String())
+			} else {
+				haa.isSegwit = addr.IsSegwit()
+			}
 			ha = &haa
-			haveAmounts[str] = ha
+			haveAmounts[uns.Address] = ha
 		}
-		ha.credits.Put(output, nil)
-		ha.amount += output.Amount
+		ha.credits.Put(uns, nil)
+		ha.amount += btcutil.Amount(uns.Value)
 		if isEnough.WellIsIt(ha.credits.Size(), ha.isSegwit, ha.amount) {
-			worst := ha.credits.Right().Key.(*wtxmgr.Credit)
+			worst := ha.credits.Right().Key.(*dbstructs.Unspent)
 			if worst == nil {
 				panic("findEligibleOutputs: worst == nil")
 			}
-			if isEnough.WellIsIt(ha.credits.Size()-1, ha.isSegwit, ha.amount-worst.Amount) {
+			if isEnough.WellIsIt(ha.credits.Size()-1, ha.isSegwit, ha.amount-btcutil.Amount(worst.Value)) {
 				// Our amount is still fine even if we drop the worst credit
 				// so we'll drop it and continue traversing to find the best outputs
 				ha.credits.Remove(worst)
-				ha.amount -= worst.Amount
-				out.unusedAmt += worst.Amount
+				ha.amount -= btcutil.Amount(worst.Value)
+				out.unusedAmt += btcutil.Amount(worst.Value)
 				out.unusedCount++
 			}
 
@@ -536,13 +516,13 @@ func (w *Wallet) findEligibleOutputs(
 			return er.LoopBreak
 		} else {
 			// Too many inputs, we will remove the worst
-			worst := ha.credits.Right().Key.(*wtxmgr.Credit)
+			worst := ha.credits.Right().Key.(*dbstructs.Unspent)
 			if worst == nil {
 				panic("findEligibleOutputs: worst == nil")
 			}
 			ha.credits.Remove(worst)
-			ha.amount -= worst.Amount
-			out.unusedAmt += worst.Amount
+			ha.amount -= btcutil.Amount(worst.Value)
+			out.unusedAmt += btcutil.Amount(worst.Value)
 			out.unusedCount++
 		}
 		return nil
@@ -554,13 +534,12 @@ func (w *Wallet) findEligibleOutputs(
 
 	if len(burnedOutputs) > 0 {
 		wtxmgrBucket := dbtx.ReadWriteBucket(wtxmgrNamespaceKey)
-		log.Infof("Deleting [%d] burned coins", len(burnedOutputs))
+		log.Infof("Deleting [%s] burned coins", log.Int(len(burnedOutputs)))
 		for _, op := range burnedOutputs {
 			if err := unspent.DeleteRaw(wtxmgrBucket, op); err != nil {
 				return out, visits, err
 			}
 		}
-		log.Infof("Deleting [%d] burned coins, complete", len(burnedOutputs))
 	}
 
 	if inputComparator != nil {
@@ -609,13 +588,13 @@ func (w *Wallet) findEligibleOutputs(
 		wasOver := false
 		for outAc.overLimit(maxInputs) {
 			// Too many inputs, we will remove the worst
-			worst := outAc.credits.Right().Key.(*wtxmgr.Credit)
+			worst := outAc.credits.Right().Key.(*dbstructs.Unspent)
 			if worst == nil {
 				panic("findEligibleOutputs: worst == nil")
 			}
 			outAc.credits.Remove(worst)
-			outAc.amount -= worst.Amount
-			out.unusedAmt += worst.Amount
+			outAc.amount -= btcutil.Amount(worst.Value)
+			out.unusedAmt += btcutil.Amount(worst.Value)
 			out.unusedCount++
 			wasOver = true
 		}

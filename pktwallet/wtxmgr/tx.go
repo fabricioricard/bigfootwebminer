@@ -496,7 +496,15 @@ func (s *Store) addCredit(ns walletdb.ReadWriteBucket, rec *TxRecord, block *Blo
 		return false, err
 	}
 
-	return true, unspent.Put(ns, &cred.outPoint, &block.Block)
+	txo := rec.MsgTx.TxOut[index]
+	return true, unspent.Put(ns, &dbstructs.Unspent{
+		OutPoint:     cred.outPoint,
+		Block:        block.Block,
+		Address:      txscript.PkScriptToAddress(txo.PkScript, s.chainParams).String(),
+		Value:        txo.Value,
+		FromCoinBase: blockchain.IsCoinBaseTx(&rec.MsgTx),
+		PkScript:     txo.PkScript,
+	})
 }
 
 func rollbackTransaction(
@@ -642,12 +650,24 @@ func rollbackTransaction(
 		if amt == 0 {
 			continue
 		}
-		var unspentVal []byte
-		if unspentVal, err = fetchRawCreditUnspentValue(credKey); err != nil {
+		coins += amt
+
+		prevTxRecordKey := extractRawCreditTxRecordKey(credKey)
+		prevTxRecordVal := existsRawTxRecord(ns, prevTxRecordKey)
+		var prevRec TxRecord
+		copy(prevRec.Hash[:], prevTxRecordKey)
+		if err = readRawTxRecord(&prevRec.Hash, prevTxRecordVal, &prevRec); err != nil {
 			return
 		}
-		coins += amt
-		if err = unspent.PutRaw(ns, prevOutKey, unspentVal); err != nil {
+		prevTxo := prevRec.MsgTx.TxOut[prevOut.Index]
+		if err = unspent.Put(ns, &dbstructs.Unspent{
+			OutPoint:     *prevOut,
+			Block:        *block,
+			Address:      txscript.PkScriptToAddress(prevTxo.PkScript, params).String(),
+			Value:        prevTxo.Value,
+			FromCoinBase: blockchain.IsCoinBaseTx(&prevRec.MsgTx),
+			PkScript:     prevTxo.PkScript,
+		}); err != nil {
 			return
 		}
 
@@ -753,18 +773,19 @@ func (s *Store) RollbackOne(ns walletdb.ReadWriteBucket, height int32) er.R {
 func (s *Store) ForEachUnspentOutput(
 	ns walletdb.ReadBucket,
 	beginKey []byte,
-	addrs []btcutil.Address,
-	visitor func(key []byte, c *Credit) er.R,
+	addrs map[string]struct{},
+	visitor func(key []byte, c *dbstructs.Unspent) er.R,
 ) (int, er.R) {
 	var lastKey []byte
-	var scripts [][]byte = make([][]byte, 0, len(addrs))
-	for _, a := range addrs {
-		scripts = append(scripts, a.ScriptAddress())
-	}
 	visits := 0
-	if err := unspent.ForEachUnspentOutput(ns, beginKey, addrs, func(k []byte, uns *dbstructs.Unspent) er.R {
+	if err := unspent.ForEachUnspentOutput(ns, beginKey, func(k []byte, uns *dbstructs.Unspent) er.R {
 		lastKey = k
 		visits += 1
+
+		if _, ok := addrs[uns.Address]; !ok {
+			// Skip non-matching address as soon as possible
+			return nil
+		}
 
 		// Skip the output if it's locked.
 		_, _, isLocked := isLockedOutput(ns, uns.OutPoint, s.clock.Now())
@@ -778,60 +799,7 @@ func (s *Store) ForEachUnspentOutput(
 			return nil
 		}
 
-		// TODO(jrick): reading the entire transaction should
-		// be avoidable.  Creating the credit only requires the
-		// output amount and pkScript.
-		rec, err := fetchTxRecord(ns, &uns.OutPoint.Hash, &uns.Block)
-		if err != nil {
-			return err
-		} else if rec == nil {
-			return er.New("fetchTxRecord() -> nil")
-		}
-
-		txOut := rec.MsgTx.TxOut[uns.OutPoint.Index]
-		if len(scripts) > 0 {
-			ok := false
-			for _, s := range scripts {
-				if bytes.Equal(txOut.PkScript, s) {
-					ok = true
-					break
-				}
-			}
-			if !ok {
-				// Not a match for any address, keep searching
-				return nil
-			}
-		}
-
-		// NOTE(cjd): This is not correct to consider that the block time is same as the
-		// time the txn was seen, but it saves us a disk access and that field is not used by callers.
-		blocktime := rec.Received
-		if false {
-			br, err := fetchBlockRecord(ns, uns.Block.Height)
-			if err != nil {
-				return err
-			}
-			blocktime = br.Time
-			if !br.Hash.IsEqual(&uns.Block.Hash) {
-				log.Debugf("Skipping transaction [%s] because it references block [%s @ %d] "+
-					"which is not in the chain correct block is [%s]",
-					uns.OutPoint.Hash, uns.Block.Hash, uns.Block.Height, br.Hash)
-				return nil
-			}
-		}
-
-		cred := Credit{
-			OutPoint: uns.OutPoint,
-			BlockMeta: BlockMeta{
-				Block: uns.Block,
-				Time:  blocktime,
-			},
-			Amount:       btcutil.Amount(txOut.Value),
-			PkScript:     txOut.PkScript,
-			Received:     rec.Received,
-			FromCoinBase: blockchain.IsCoinBaseTx(&rec.MsgTx),
-		}
-		return visitor(k, &cred)
+		return visitor(k, uns)
 	}); err != nil {
 		if er.IsLoopBreak(err) || Err.Is(err) {
 			return visits, err
@@ -843,6 +811,8 @@ func (s *Store) ForEachUnspentOutput(
 	// will appear out of order with the main unspents, but the amount of unconfirmed
 	// credits will tend to be small anyway so we might as well just send them all
 	// if the iterator gets to this stage.
+	//
+	// Note: This is slow, but unmined credits should be few in number.
 	if err := ns.NestedReadBucket(bucketUnminedCredits).ForEach(func(k, v []byte) er.R {
 		visits += 1
 		if existsRawUnminedInput(ns, k) != nil {
@@ -863,8 +833,6 @@ func (s *Store) ForEachUnspentOutput(
 			return nil
 		}
 
-		// TODO(jrick): Reading/parsing the entire transaction record
-		// just for the output amount and script can be avoided.
 		recVal := existsRawUnmined(ns, op.Hash[:])
 		var rec TxRecord
 		err = readRawTxRecord(&op.Hash, recVal, &rec)
@@ -873,19 +841,22 @@ func (s *Store) ForEachUnspentOutput(
 		}
 
 		txOut := rec.MsgTx.TxOut[op.Index]
-		cred := Credit{
-			OutPoint: op,
-			BlockMeta: BlockMeta{
-				Block: dbstructs.Block{Height: -1},
-			},
-			Amount:       btcutil.Amount(txOut.Value),
-			PkScript:     txOut.PkScript,
-			Received:     rec.Received,
-			FromCoinBase: blockchain.IsCoinBaseTx(&rec.MsgTx),
+
+		addr := txscript.PkScriptToAddress(txOut.PkScript, s.chainParams).String()
+		if _, ok := addrs[addr]; !ok {
+			return nil
+		}
+
+		unspent := dbstructs.Unspent{
+			OutPoint:     op,
+			Block:        dbstructs.Block{Height: -1},
+			Address:      addr,
+			Value:        txOut.Value,
+			FromCoinBase: false,
 		}
 		// Use the final key to come from the main search loop so that further calls
 		// will arrive here as quickly as possible.
-		return visitor(lastKey, &cred)
+		return visitor(lastKey, &unspent)
 	}); err != nil {
 		if er.IsLoopBreak(err) || Err.Is(err) {
 			return visits, err
@@ -898,9 +869,9 @@ func (s *Store) ForEachUnspentOutput(
 
 // GetUnspentOutputs returns all unspent received transaction outputs.
 // The order is undefined.
-func (s *Store) GetUnspentOutputs(ns walletdb.ReadBucket) ([]Credit, er.R) {
-	var unspent []Credit
-	_, err := s.ForEachUnspentOutput(ns, nil, nil, func(_ []byte, c *Credit) er.R {
+func (s *Store) GetUnspentOutputs(ns walletdb.ReadBucket) ([]dbstructs.Unspent, er.R) {
+	var unspent []dbstructs.Unspent
+	_, err := s.ForEachUnspentOutput(ns, nil, nil, func(_ []byte, c *dbstructs.Unspent) er.R {
 		unspent = append(unspent, *c)
 		return nil
 	})
@@ -912,19 +883,19 @@ func (s *Store) Balance(ns walletdb.ReadBucket, minConf int32, syncHeight int32)
 	// we accept all unspent outputs with at least minConf confirms
 	coinbaseMaturity := int32(s.chainParams.CoinbaseMaturity)
 	bal := btcutil.Amount(0)
-	_, err := s.ForEachUnspentOutput(ns, nil, nil, func(_ []byte, output *Credit) er.R {
-		if output.Height == -1 {
+	_, err := s.ForEachUnspentOutput(ns, nil, nil, func(_ []byte, uns *dbstructs.Unspent) er.R {
+		if uns.Block.Height == -1 {
 			// Not yet mined
 			if minConf == 0 {
-				bal += output.Amount
+				bal += btcutil.Amount(uns.Value)
 			}
 			return nil
 		}
-		confs := syncHeight - output.Height + 1
-		if output.FromCoinBase && confs < coinbaseMaturity {
+		confs := syncHeight - uns.Block.Height + 1
+		if uns.FromCoinBase && confs < coinbaseMaturity {
 		} else if confs < minConf {
 		} else {
-			bal += output.Amount
+			bal += btcutil.Amount(uns.Value)
 		}
 		return nil
 	})

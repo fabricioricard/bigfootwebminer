@@ -13,6 +13,10 @@ type Block struct {
 }
 
 type Unspent struct {
-	OutPoint wire.OutPoint
-	Block    Block
+	OutPoint     wire.OutPoint
+	Block        Block
+	Address      string
+	Value        int64
+	FromCoinBase bool
+	PkScript     []byte
 }

@@ -3,7 +3,6 @@ package unspent
 import (
 	"encoding/binary"
 
-	"github.com/pkt-cash/pktd/btcutil"
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
@@ -36,18 +35,9 @@ func valueUnspent(block *dbstructs.Block) []byte {
 	return v
 }
 
-func Put(ns walletdb.ReadWriteBucket, outPoint *wire.OutPoint, block *dbstructs.Block) er.R {
-	k := utilfun.CanonicalOutPoint(&outPoint.Hash, outPoint.Index)
-	v := valueUnspent(block)
-	err := ns.NestedReadWriteBucket(bucketUnspent).Put(k, v)
-	if err != nil {
-		str := "cannot put unspent"
-		return UnspentErr.New(str, err)
-	}
-	return nil
-}
-
-func PutRaw(ns walletdb.ReadWriteBucket, k, v []byte) er.R {
+func Put(ns walletdb.ReadWriteBucket, u *dbstructs.Unspent) er.R {
+	k := utilfun.CanonicalOutPoint(&u.OutPoint.Hash, u.OutPoint.Index)
+	v := valueUnspent(&u.Block)
 	err := ns.NestedReadWriteBucket(bucketUnspent).Put(k, v)
 	if err != nil {
 		str := "cannot put unspent"
@@ -93,7 +83,6 @@ func DeleteRaw(ns walletdb.ReadWriteBucket, k []byte) er.R {
 func ForEachUnspentOutput(
 	ns walletdb.ReadBucket,
 	beginKey []byte,
-	addrs []btcutil.Address,
 	visitor func(key []byte, unspent *dbstructs.Unspent) er.R,
 ) er.R {
 	bu := ns.NestedReadBucket(bucketUnspent)
@@ -106,6 +95,26 @@ func ForEachUnspentOutput(
 			return err
 		}
 		if err := visitor(k, &unspent); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func CreateBuckets(ns walletdb.ReadWriteBucket) er.R {
+	_, err := ns.CreateBucket(bucketUnspent)
+	return err
+}
+func DeleteBuckets(ns walletdb.ReadWriteBucket) er.R {
+	return ns.DeleteNestedBucket(bucketUnspent)
+}
+
+func ExtendUnspents(ns walletdb.ReadWriteBucket, extend func(u *dbstructs.Unspent) er.R) er.R {
+	return ForEachUnspentOutput(ns, nil, func(k []byte, unspent *dbstructs.Unspent) er.R {
+		if err := extend(unspent); err != nil {
+			return err
+		}
+		if err := Put(ns, unspent); err != nil {
 			return err
 		}
 		return nil

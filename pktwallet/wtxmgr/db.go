@@ -17,6 +17,7 @@ import (
 	"github.com/pkt-cash/pktd/chaincfg/chainhash"
 	"github.com/pkt-cash/pktd/pktwallet/walletdb"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/unspent"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/utilfun"
 	"github.com/pkt-cash/pktd/wire"
 )
@@ -68,7 +69,6 @@ var (
 	bucketTxRecords      = []byte("t")
 	bucketTxLabels       = []byte("l")
 	bucketCredits        = []byte("c")
-	bucketUnspentX       = []byte("u") // Only use for create and delete
 	bucketDebits         = []byte("d")
 	bucketUnmined        = []byte("m")
 	bucketUnminedCredits = []byte("mc")
@@ -1264,7 +1264,7 @@ func createBuckets(ns walletdb.ReadWriteBucket) er.R {
 		str := "failed to create debits bucket"
 		return storeError(ErrDatabase, str, err)
 	}
-	if _, err := ns.CreateBucket(bucketUnspentX); err != nil {
+	if err := unspent.CreateBuckets(ns); err != nil {
 		str := "failed to create unspent bucket"
 		return storeError(ErrDatabase, str, err)
 	}
@@ -1307,7 +1307,7 @@ func deleteBuckets(ns walletdb.ReadWriteBucket) er.R {
 		str := "failed to delete debits bucket"
 		return storeError(ErrDatabase, str, err)
 	}
-	if err := ns.DeleteNestedBucket(bucketUnspentX); err != nil {
+	if err := unspent.DeleteBuckets(ns); err != nil {
 		str := "failed to delete unspent bucket"
 		return storeError(ErrDatabase, str, err)
 	}

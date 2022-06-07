@@ -38,6 +38,7 @@ import (
 	"github.com/pkt-cash/pktd/pktwallet/walletdb/migration"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr"
 	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/dbstructs"
+	"github.com/pkt-cash/pktd/pktwallet/wtxmgr/unspent"
 	"github.com/pkt-cash/pktd/txscript"
 	"github.com/pkt-cash/pktd/wire"
 )
@@ -368,13 +369,16 @@ func (w *Wallet) activeData(dbtx walletdb.ReadWriteTx) ([]btcutil.Address, map[s
 	}
 
 	ao := make(map[string][]watcher.OutPointWatch)
-	_, err = w.TxStore.ForEachUnspentOutput(txmgrNs, nil, nil, func(_ []byte, c *wtxmgr.Credit) er.R {
-		addr := txscript.PkScriptToAddress(c.PkScript, w.chainParams)
-		as := addr.String()
-		ao[as] = append(ao[as], watcher.OutPointWatch{
-			BeginHeight: c.Block.Height,
-			OutPoint:    c.OutPoint,
-			Addr:        addr,
+	err = unspent.ForEachUnspentOutput(txmgrNs, nil, func(_ []byte, uns *dbstructs.Unspent) er.R {
+		a, err := btcutil.DecodeAddress(uns.Address, w.chainParams)
+		if err != nil {
+			log.Warnf("Unable to decode address [%s] from unspent [%s]", uns.Address, uns.OutPoint.String())
+			return nil
+		}
+		ao[uns.Address] = append(ao[uns.Address], watcher.OutPointWatch{
+			BeginHeight: uns.Block.Height,
+			OutPoint:    uns.OutPoint,
+			Addr:        a,
 		})
 		return nil
 	})
@@ -632,7 +636,7 @@ func getBlockStamp(chainClient chain.Interface, height int32) (*waddrmgr.BlockSt
 type (
 	SendMode    uint8
 	CreateTxReq struct {
-		InputAddresses  *[]btcutil.Address
+		InputAddresses  []btcutil.Address
 		Outputs         []*wire.TxOut
 		Minconf         int32
 		FeeSatPerKB     btcutil.Amount
@@ -1017,7 +1021,6 @@ func (w *Wallet) CalculateAddressBalances(
 	showZeroBalances bool,
 ) (map[btcutil.Address]*Balances, er.R) {
 	bals := make(map[btcutil.Address]*Balances)
-	bals0 := make(map[string]*Balances)
 	return bals, walletdb.View(w.db, func(tx walletdb.ReadTx) er.R {
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
 		// Get current block.  The block height used for calculating
@@ -1028,33 +1031,30 @@ func (w *Wallet) CalculateAddressBalances(
 			if err := w.Manager.ForEachActiveAddress(addrmgrNs, func(addr btcutil.Address) er.R {
 				_bal := Balances{}
 				bal := &_bal
-				bals0[string(addr.ScriptAddress())] = bal
 				bals[addr] = bal
 				return nil
 			}); err != nil {
 				return err
 			}
 		}
-		_, err := w.TxStore.ForEachUnspentOutput(txmgrNs, nil, nil, func(_ []byte, output *wtxmgr.Credit) er.R {
-			if _, addrs, _, err := txscript.ExtractPkScriptAddrs(output.PkScript, w.chainParams); err != nil {
+		_, err := w.TxStore.ForEachUnspentOutput(txmgrNs, nil, nil, func(_ []byte, uns *dbstructs.Unspent) er.R {
+			if a, err := btcutil.DecodeAddress(uns.Address, w.chainParams); err != nil {
 				return err
-			} else if len(addrs) > 0 {
-				bal := bals0[string(addrs[0].ScriptAddress())]
+			} else {
+				bal := bals[a]
 				if bal == nil {
 					_bal := Balances{}
-					bal = &_bal
-					bals0[string(addrs[0].ScriptAddress())] = bal
-					bals[addrs[0]] = bal
+					bals[a] = &_bal
 				}
-				bal.Total += output.Amount
+				bal.Total += btcutil.Amount(uns.Value)
 				bal.OutputCount++
-				if output.FromCoinBase && !confirmed(int32(w.chainParams.CoinbaseMaturity),
-					output.Height, syncBlock.Height) {
-					bal.ImmatureReward += output.Amount
-				} else if confirmed(confirms, output.Height, syncBlock.Height) {
-					bal.Spendable += output.Amount
+				if uns.FromCoinBase && !confirmed(int32(w.chainParams.CoinbaseMaturity),
+					uns.Block.Height, syncBlock.Height) {
+					bal.ImmatureReward += btcutil.Amount(uns.Value)
+				} else if confirmed(confirms, uns.Block.Height, syncBlock.Height) {
+					bal.Spendable += btcutil.Amount(uns.Value)
 				} else {
-					bal.Unconfirmed += output.Amount
+					bal.Unconfirmed += btcutil.Amount(uns.Value)
 				}
 			}
 			return nil
@@ -1779,31 +1779,20 @@ func (w *Wallet) GetTransactions(
 func (w *Wallet) ListUnspent(minconf, maxconf int32,
 	addresses map[string]struct{}) ([]*btcjson.ListUnspentResult, er.R) {
 
-	addrz := make([]btcutil.Address, 0, len(addresses))
-	for addr := range addresses {
-		if a, err := btcutil.DecodeAddress(addr, w.chainParams); err == nil {
-			addrz = append(addrz, a)
-		}
-	}
-
 	var results []*btcjson.ListUnspentResult
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) er.R {
-		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
 
 		syncBlock := w.Manager.SyncedTo()
 
-		filter := len(addresses) != 0
-		defaultAccountName := "default"
-
 		results = make([]*btcjson.ListUnspentResult, 0)
-		w.TxStore.ForEachUnspentOutput(txmgrNs, nil, addrz, func(key []byte, output *wtxmgr.Credit) er.R {
+		w.TxStore.ForEachUnspentOutput(txmgrNs, nil, addresses, func(key []byte, uns *dbstructs.Unspent) er.R {
 
 			// Only mature coinbase outputs are included.
 			immature := false
-			if output.FromCoinBase {
+			if uns.FromCoinBase {
 				target := int32(w.ChainParams().CoinbaseMaturity)
-				if !confirmed(target, output.Height, syncBlock.Height) {
+				if !confirmed(target, uns.Block.Height, syncBlock.Height) {
 					immature = true
 					if minconf > 0 {
 						return nil
@@ -1813,49 +1802,23 @@ func (w *Wallet) ListUnspent(minconf, maxconf int32,
 
 			// Outputs with fewer confirmations than the minimum or more
 			// confs than the maximum are excluded.
-			confs := confirms(output.Height, syncBlock.Height)
+			confs := confirms(uns.Block.Height, syncBlock.Height)
 			if confs < minconf || confs > maxconf {
 				return nil
 			}
 
 			// Exclude locked outputs from the result set.
-			if w.LockedOutpoint(output.OutPoint) {
+			if w.LockedOutpoint(uns.OutPoint) {
 				return nil
 			}
 
-			// Lookup the associated account for the output.  Use the
-			// default account name in case there is no associated account
-			// for some reason, although this should never happen.
-			//
-			// This will be unnecessary once transactions and outputs are
-			// grouped under the associated account in the db.
-			acctName := defaultAccountName
-			sc, addrs, _, err := txscript.ExtractPkScriptAddrs(
-				output.PkScript, w.chainParams)
+			addr, err := btcutil.DecodeAddress(uns.Address, w.chainParams)
 			if err != nil {
-				return nil
-			}
-			if len(addrs) > 0 {
-				smgr, acct, err := w.Manager.AddrAccount(addrmgrNs, addrs[0])
-				if err == nil {
-					s, err := smgr.AccountName(addrmgrNs, acct)
-					if err == nil {
-						acctName = s
-					}
-				}
-			}
-
-			if filter {
-				for _, addr := range addrs {
-					_, ok := addresses[addr.EncodeAddress()]
-					if ok {
-						goto include
-					}
-				}
+				log.Warnf("Unable to decode address [%s] from unspent [%s]",
+					uns.Address, uns.OutPoint.String())
 				return nil
 			}
 
-		include:
 			// At the moment watch-only addresses are not supported, so all
 			// recorded outputs that are not multisig are "spendable".
 			// Multisig outputs are only "spendable" if all keys are
@@ -1868,51 +1831,32 @@ func (w *Wallet) ListUnspent(minconf, maxconf int32,
 			// private key (currently it only checks whether the pubkey
 			// exists, since the private key is required at the moment).
 			var spendable bool
-		scSwitch:
-			switch sc {
-			case txscript.PubKeyHashTy:
-				spendable = true
-			case txscript.PubKeyTy:
-				spendable = true
-			case txscript.WitnessV0ScriptHashTy:
-				spendable = true
-			case txscript.WitnessV0PubKeyHashTy:
-				spendable = true
-			case txscript.MultiSigTy:
-				for _, a := range addrs {
-					_, err := w.Manager.Address(addrmgrNs, a)
-					if err == nil {
-						continue
-					}
-					if waddrmgr.ErrAddressNotFound.Is(err) {
-						break scSwitch
-					}
-					return err
-				}
-				spendable = true
+			switch addr.(type) {
+			case *btcutil.AddressPubKeyHash:
+				spendable = true // e.g. p7YoB7AyGH5Ub9T2xbYWce6d4nzqd9BnnJ
+			case *btcutil.AddressPubKey:
+				spendable = false // not used anymore, really at all
+			case *btcutil.AddressWitnessScriptHash:
+				// Probably a multisig, this wallet probably can't spend currently
+				spendable = false // e.g. pkt1q6hqsqhqdgqfd8t3xwgceulu7k9d9w5t2amath0qxyfjlvl3s3u4sjza2g2
+			case *btcutil.AddressWitnessPubKeyHash:
+				spendable = true // e.g. pkt1qnzlupduvhl3w4jsddhxvh2nm6ygtu95gnr3rlx your standard
+			case *btcutil.AddressNonStandard:
+				spendable = false // who knows, we represent like script:dGhpcyBpcyBhbiBleGFtcGxlCg==
 			}
 			spendable = spendable && !immature
 
-			result := &btcjson.ListUnspentResult{
-				TxID:          output.OutPoint.Hash.String(),
-				Vout:          output.OutPoint.Index,
-				Account:       acctName,
-				ScriptPubKey:  hex.EncodeToString(output.PkScript),
-				Amount:        output.Amount.ToBTC(),
+			results = append(results, &btcjson.ListUnspentResult{
+				TxID:          uns.OutPoint.Hash.String(),
+				Vout:          uns.OutPoint.Index,
+				Amount:        btcutil.Amount(uns.Value).ToBTC(),
+				ScriptPubKey:  hex.EncodeToString(uns.PkScript),
 				Confirmations: int64(confs),
-				Height:        int64(output.Height),
-				BlockHash:     output.Block.Hash.String(),
+				Height:        int64(uns.Block.Height),
+				BlockHash:     uns.Block.Hash.String(),
 				Spendable:     spendable,
-			}
-
-			// BUG: this should be a JSON array so that all
-			// addresses can be included, or removed (and the
-			// caller extracts addresses from the pkScript).
-			if len(addrs) > 0 {
-				result.Address = addrs[0].EncodeAddress()
-			}
-
-			results = append(results, result)
+				Address:       uns.Address,
+			})
 			return nil
 		})
 		return nil

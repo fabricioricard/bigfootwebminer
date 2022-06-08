@@ -217,8 +217,11 @@ func (s *Store) updateMinedBalance(ns walletdb.ReadWriteBucket, rec *TxRecord,
 	spentByAddress := map[string]btcutil.Amount{}
 
 	for i, input := range rec.MsgTx.TxIn {
-		unspentKey, credKey := unspent.Exists(ns, &input.PreviousOutPoint)
-		if credKey == nil {
+		uns, err := unspent.Get(ns, &input.PreviousOutPoint)
+		if err != nil {
+			return err
+		}
+		if uns == nil {
 			// Debits for unmined transactions are not explicitly
 			// tracked.  Instead, all previous outputs spent by any
 			// unmined transaction are added to a map for quick
@@ -248,6 +251,7 @@ func (s *Store) updateMinedBalance(ns walletdb.ReadWriteBucket, rec *TxRecord,
 		// If this output is relevant to us, we'll mark the it as spent
 		// and remove its amount from the store.
 		spender.index = uint32(i)
+		credKey := utilfun.CreditKeyForUnspent(uns)
 		amt, err := spendCredit(ns, credKey, &spender)
 		if err != nil {
 			return err
@@ -258,7 +262,7 @@ func (s *Store) updateMinedBalance(ns walletdb.ReadWriteBucket, rec *TxRecord,
 		if err != nil {
 			return err
 		}
-		if err := unspent.DeleteRaw(ns, unspentKey); err != nil {
+		if err := unspent.Delete(ns, &input.PreviousOutPoint); err != nil {
 			return err
 		}
 		spentByAddress[prevAddr] += amt
@@ -464,7 +468,9 @@ func (s *Store) addCredit(ns walletdb.ReadWriteBucket, rec *TxRecord, block *Blo
 		if existsRawUnminedCredit(ns, k) != nil {
 			return false, nil
 		}
-		if unspent.ExistsRaw(ns, k) != nil {
+		if uns, err := unspent.Get(ns, &wire.OutPoint{Hash: rec.Hash, Index: index}); err != nil {
+			return false, err
+		} else if uns != nil {
 			return false, nil
 		}
 		v := valueUnminedCredit(btcutil.Amount(rec.MsgTx.TxOut[index].Value), change)
@@ -548,10 +554,12 @@ func rollbackTransaction(
 				log.Txid(rec.Hash.String()))
 
 			// Delete the unspents from this coinbase
-			unspentKey, credKey := unspent.Exists(ns, &op)
-			if credKey != nil {
+			if uns, e := unspent.Get(ns, &op); e != nil {
+				err = e
+				return
+			} else if uns != nil {
 				coins -= btcutil.Amount(output.Value)
-				if err = unspent.DeleteRaw(ns, unspentKey); err != nil {
+				if err = unspent.Delete(ns, &op); err != nil {
 					return
 				}
 			}
@@ -715,10 +723,15 @@ func rollbackTransaction(
 			return
 		}
 
-		credKey := unspent.ExistsRaw(ns, outPointKey)
-		if credKey != nil {
+		op := wire.OutPoint{Hash: rec.Hash, Index: uint32(i)}
+		prevUnspent, errr := unspent.Get(ns, &op)
+		if errr != nil {
+			err = errr
+			return
+		}
+		if prevUnspent != nil {
 			coins -= btcutil.Amount(output.Value)
-			if err = unspent.DeleteRaw(ns, outPointKey); err != nil {
+			if err = unspent.Delete(ns, &op); err != nil {
 				return
 			}
 			prevAddr := txscript.PkScriptToAddress(output.PkScript, params).String()
@@ -991,7 +1004,9 @@ func isKnownOutput(ns walletdb.ReadWriteBucket, op wire.OutPoint) bool {
 	if existsRawUnminedCredit(ns, k) != nil {
 		return true
 	}
-	if unspent.ExistsRaw(ns, k) != nil {
+	if uns, err := unspent.Get(ns, &op); err != nil {
+		log.Warnf("Error getting unspent [%s]: %s", op.String(), err.String())
+	} else if uns != nil {
 		return true
 	}
 	return false

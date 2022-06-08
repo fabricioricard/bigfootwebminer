@@ -148,8 +148,12 @@ func (s *Store) unminedTxDetails(ns walletdb.ReadBucket, txHash *chainhash.Hash,
 	for i, output := range details.MsgTx.TxIn {
 		opKey := utilfun.CanonicalOutPoint(&output.PreviousOutPoint.Hash,
 			output.PreviousOutPoint.Index)
-		credKey := unspent.ExistsRaw(ns, opKey)
-		if credKey != nil {
+		prevUnspent, err := unspent.Get(ns, &output.PreviousOutPoint)
+		if err != nil {
+			return nil, err
+		}
+		if prevUnspent != nil {
+			credKey := utilfun.CreditKeyForUnspent(prevUnspent)
 			v := existsRawCredit(ns, credKey)
 			amount, err := fetchRawCreditAmount(v)
 			if err != nil {
@@ -457,7 +461,10 @@ func AddressForOutPoint(ns walletdb.ReadBucket, prevOut *wire.OutPoint) ([]byte,
 		} else {
 			return pkScript, nil
 		}
-	} else if _, credKey := unspent.Exists(ns, prevOut); credKey != nil {
+	} else if uns, err := unspent.Get(ns, prevOut); err != nil {
+		return nil, err
+	} else if uns != nil {
+		credKey := utilfun.CreditKeyForUnspent(uns)
 		k := extractRawCreditTxRecordKey(credKey)
 		v = existsRawTxRecord(ns, k)
 		if pkScript, err := fetchRawTxRecordPkScript(k, v, prevOut.Index); err != nil {

@@ -44,3 +44,16 @@ func ReadUnspentBlock(v []byte, block *dbstructs.Block) er.R {
 	copy(block.Hash[:], v[4:36])
 	return nil
 }
+
+func CreditKey(txHash *chainhash.Hash, index uint32, block *dbstructs.Block) []byte {
+	k := make([]byte, 72)
+	copy(k, txHash[:])
+	binary.BigEndian.PutUint32(k[32:36], uint32(block.Height))
+	copy(k[36:68], block.Hash[:])
+	binary.BigEndian.PutUint32(k[68:72], index)
+	return k
+}
+
+func CreditKeyForUnspent(uns *dbstructs.Unspent) []byte {
+	return CreditKey(&uns.OutPoint.Hash, uns.OutPoint.Index, &uns.Block)
+}

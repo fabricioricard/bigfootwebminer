@@ -1,6 +1,7 @@
 package unspent
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	jsoniter "github.com/json-iterator/go"
@@ -41,33 +42,29 @@ func Put(ns walletdb.ReadWriteBucket, u *dbstructs.Unspent) er.R {
 	return nil
 }
 
-// existsUnspent returns the key for the unspent output and the corresponding
-// key for the credits bucket.  If there is no unspent output recorded, the
-// credit key is nil.
-func Exists(ns walletdb.ReadBucket, outPoint *wire.OutPoint) (k, credKey []byte) {
-	k = utilfun.CanonicalOutPoint(&outPoint.Hash, outPoint.Index)
-	credKey = ExistsRaw(ns, k)
-	return k, credKey
+func Get(ns walletdb.ReadBucket, outPoint *wire.OutPoint) (*dbstructs.Unspent, er.R) {
+	k := utilfun.CanonicalOutPoint(&outPoint.Hash, outPoint.Index)
+	bytes := ns.NestedReadBucket(bucketUnspent).Get(k)
+	if len(bytes) == 0 {
+		return nil, nil
+	}
+	var uns dbstructs.Unspent
+	if err := decode(bytes, &uns); err != nil {
+		return nil, UnspentErr.New(fmt.Sprintf("Unable to parse unspent with key [%s]",
+			hex.EncodeToString(k)), err)
+	}
+	return &uns, nil
 }
 
-// existsRawUnspent returns the credit key if there exists an output recorded
-// for the raw unspent key.  It returns nil if the k/v pair does not exist.
-func ExistsRaw(ns walletdb.ReadBucket, k []byte) (credKey []byte) {
-	if len(k) < 36 {
-		return nil
+func decode(v []byte, uns *dbstructs.Unspent) er.R {
+	if err := jsoniter.Unmarshal(v, uns); err != nil {
+		return UnspentErr.New(fmt.Sprintf("Unable to parse JSON [%s]", string(v)), er.E(err))
 	}
-	v := ns.NestedReadBucket(bucketUnspent).Get(k)
-	if len(v) < 36 {
-		return nil
-	}
-	credKey = make([]byte, 72)
-	copy(credKey, k[:32])
-	copy(credKey[32:68], v)
-	copy(credKey[68:72], k[32:36])
-	return credKey
+	return nil
 }
 
-func DeleteRaw(ns walletdb.ReadWriteBucket, k []byte) er.R {
+func Delete(ns walletdb.ReadWriteBucket, outPoint *wire.OutPoint) er.R {
+	k := utilfun.CanonicalOutPoint(&outPoint.Hash, outPoint.Index)
 	err := ns.NestedReadWriteBucket(bucketUnspent).Delete(k)
 	if err != nil {
 		return UnspentErr.New("failed to delete unspent", err)
@@ -83,10 +80,9 @@ func ForEachUnspentOutput(
 	bu := ns.NestedReadBucket(bucketUnspent)
 	return bu.ForEachBeginningWith(beginKey, func(k, v []byte) er.R {
 		var unspent dbstructs.Unspent
-		if err := jsoniter.Unmarshal(v, &unspent); err != nil {
-			return UnspentErr.New(fmt.Sprintf("Unable to parse JSON [%s]", string(v)), er.E(err))
-		}
-		if err := visitor(k, &unspent); err != nil {
+		if err := decode(v, &unspent); err != nil {
+			return err
+		} else if err := visitor(k, &unspent); err != nil {
 			return err
 		}
 		return nil

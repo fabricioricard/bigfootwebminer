@@ -34,8 +34,9 @@ func (s *Store) insertMemPoolTx(ns walletdb.ReadWriteBucket, rec *TxRecord) er.R
 	// transaction's outputs to determine if we've already seen them to
 	// prevent from adding this transaction to the unconfirmed bucket.
 	for i := range rec.MsgTx.TxOut {
-		k := utilfun.CanonicalOutPoint(&rec.Hash, uint32(i))
-		if unspent.ExistsRaw(ns, k) != nil {
+		if uns, err := unspent.Get(ns, &wire.OutPoint{Hash: rec.Hash, Index: uint32(i)}); err != nil {
+			return err
+		} else if uns != nil {
 			return nil
 		}
 	}

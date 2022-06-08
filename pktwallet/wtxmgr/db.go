@@ -454,15 +454,6 @@ func latestTxRecord(ns walletdb.ReadBucket, txHash *chainhash.Hash) (k, v []byte
 // The optional debits key is only included if the credit is spent by another
 // mined debit.
 
-func keyCredit(txHash *chainhash.Hash, index uint32, block *dbstructs.Block) []byte {
-	k := make([]byte, 72)
-	copy(k, txHash[:])
-	byteOrder.PutUint32(k[32:36], uint32(block.Height))
-	copy(k[36:68], block.Hash[:])
-	byteOrder.PutUint32(k[68:72], index)
-	return k
-}
-
 // valueUnspentCredit creates a new credit value for an unspent credit.  All
 // credits are created unspent, and are only marked spent later, so there is no
 // value function to create either spent or unspent credits.
@@ -563,7 +554,7 @@ func unspendRawCredit(ns walletdb.ReadWriteBucket, k []byte) (btcutil.Amount, er
 }
 
 func existsCredit(ns walletdb.ReadBucket, txHash *chainhash.Hash, index uint32, block *dbstructs.Block) (k, v []byte) {
-	k = keyCredit(txHash, index, block)
+	k = utilfun.CreditKey(txHash, index, block)
 	v = ns.NestedReadBucket(bucketCredits).Get(k)
 	return
 }

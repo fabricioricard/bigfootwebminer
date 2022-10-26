@@ -159,7 +159,6 @@ func (h *PacketCryptProof) SerializeSize() int {
 		out += VarIntSerializeSize(uint64(verLen))
 		out += verLen
 	}
-	out += 4 + PcAnnSerializeSize*4
 	{
 		pcplen := 1024*4 + 4 + len(h.AnnProof)
 		out += VarIntSerializeSize(pcpType)

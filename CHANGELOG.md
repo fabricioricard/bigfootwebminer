@@ -32,6 +32,12 @@ still will, only with the PacketCryptProof represented in its standard form.
 #### Special thanks
 Thank you to Rob Daniell for identifying this issue and creating a proof of concept.
 
+## Minor changes
+
+* Fix of a null dereference crash in pld.
+* Always check PacketCrypt proofs, even if the block is behind a checkpoint, in order to
+prevent mutation attack.
+
 # Release version pktd-v1.6.0
 July 5, 2022
 

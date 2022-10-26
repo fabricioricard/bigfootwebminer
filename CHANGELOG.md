@@ -1,3 +1,37 @@
+# Release version pktd-v1.6.1
+Oct 26, 2022
+
+## Major changes
+
+### Fix PacketCryptProof mutation Denial of Service
+Until this version, it was possible to mutate (add extranious data to) a PacketCryptProof
+and while this would not be spread across the network, any node who downloads blocks *from
+you* would store that data on their disk.
+
+The maximum size of a message is 32MB, so an attacker can add a maximum of 32MB of
+extranious data to a victim's harddrive per-block.
+
+#### Impacts
+
+1. An attacker may be able to expend up to 46 GB of storage space on a victim's pktd server
+per day.
+2. If the victim is syncing a full node for the first time and using the attacker's server,
+the attacker can expend far more than this.
+3. If the attacker includes malware binary samples and the victim uses antivirus, it may be
+possible that they download a malware sample to disk while the antivirus is inactive, and
+then upon activating it, the antivirus quarentines the block file, disrupting the function
+of pktd.
+
+#### Change
+As of 1.6.1, PacketCryptProofs which are "non-standard" (contain any extra data not needed
+to validate them) will fail verification.
+
+This change is NOT a soft fork because any block which would have been accepted before
+still will, only with the PacketCryptProof represented in its standard form.
+
+#### Special thanks
+Thank you to Rob Daniell for identifying this issue and creating a proof of concept.
+
 # Release version pktd-v1.6.0
 July 5, 2022
 

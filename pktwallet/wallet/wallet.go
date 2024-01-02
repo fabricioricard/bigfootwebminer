@@ -674,13 +674,19 @@ out:
 	for {
 		select {
 		case txr := <-w.createTxRequests:
-			heldUnlock, err := w.holdUnlock()
-			if err != nil {
-				txr.resp <- createTxResponse{nil, err}
-				continue
+			var hu heldUnlock
+			if txr.req.SendMode > SendModeUnsigned {
+				h, err := w.holdUnlock()
+				if err != nil {
+					txr.resp <- createTxResponse{nil, err}
+					continue
+				}
+				hu = h
 			}
 			tx, err := w.txToOutputs(txr.req)
-			heldUnlock.release()
+			if hu != nil {
+				hu.release()
+			}
 			txr.resp <- createTxResponse{tx, err}
 		case <-quit:
 			break out

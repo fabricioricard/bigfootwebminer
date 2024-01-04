@@ -70,7 +70,7 @@ func (w *Watcher) WatchAddr(addr btcutil.Address) {
 	w.watchStuff([]btcutil.Address{addr}, nil)
 }
 
-func (w *Watcher) FilterReq(height int32) *chain.FilterBlocksRequest {
+func (w *Watcher) FilterReq(height int32, ignoreCoinbase bool) *chain.FilterBlocksRequest {
 	w.watchAddrsLock.RLock()
 	defer w.watchAddrsLock.RUnlock()
 	filterReq := chain.FilterBlocksRequest{
@@ -79,6 +79,7 @@ func (w *Watcher) FilterReq(height int32) *chain.FilterBlocksRequest {
 		InternalAddrs:    make(map[waddrmgr.ScopedIndex]btcutil.Address),
 		ImportedAddrs:    make([]btcutil.Address, 0, len(w.watchAddrs)),
 		WatchedOutPoints: make(map[wire.OutPoint]btcutil.Address),
+		IgnoreCoinbase:   ignoreCoinbase,
 	}
 	for wa := range w.watchAddrs {
 		filterReq.ImportedAddrs = append(filterReq.ImportedAddrs, wa)

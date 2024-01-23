@@ -1,3 +1,101 @@
+# Release version pktd-v1.7.0
+Jan 23, 2024
+
+## Major changes
+
+### New voting system!
+This version adds voting capability to pktwallet. It adds a new RPC endpoint `sendvote`
+which is like `sendfrom` but rather than sending any significant amount of coins, it
+sends a *vote* transaction. It selects enough UTXOs from the "from" address to pay the
+fees, and cycles all the rest back as change.
+
+Example:
+
+```bash
+./bin/pktctl --wallet sendvote pkt1qj6nldg0klm5pqyam8cg6lvzcuq432kpc5d9scn pkt1qpl48jdwyn3t0uj7lu303f5szejgl5dmc0p2vpu
+```
+
+In this example, `pkt1qj6nldg0klm5pqyam8cg6lvzcuq432kpc5d9scn` is my address, the one
+I am voting with, and `pkt1qpl48jdwyn3t0uj7lu303f5szejgl5dmc0p2vpu` is the address I
+am voting for.
+
+There are also three more optional arguments to `sendvote`:
+* `is_candidate` (boolean): If true, this wallet will not only vote but also represent
+itself as a candidate to potentially become the Network Steward. Default: false
+* `minconf` (uint32): Do not source funds from any payment with less than this number of
+confirmations. Default 1 = anything which is in the blockchain at all.
+* `maxinputs` (uint32): Do not source funds from any more inputs than this. Default: no
+specific limit, use the wallet's internal limits.
+* `minheight` (uint32): Do not source funds from any payments OLDER (lower block height)
+than this number. Default 0 = no limit
+
+After you have cast a vote, you will be able to see your current vote for each address
+in your `getaddressbalances` output.
+
+`user@armee pktd % ./bin/pktctl --wallet getaddressbalances`
+```json
+[
+  {
+    "address": "pkt1qj6nldg0klm5pqyam8cg6lvzcuq432kpc5d9scn",
+    "total": 99.99999986309558,
+    "stotal": "107374182253",
+    "spendable": 99.99999986309558,
+    "sspendable": "107374182253",
+    "immaturereward": 0,
+    "simmaturereward": "0",
+    "unconfirmed": 0,
+    "sunconfirmed": "0",
+    "outputcount": 1,
+    "vote": {
+      "vote_for": "pkt1qpl48jdwyn3t0uj7lu303f5szejgl5dmc0p2vpu",
+      "vote_txid": "4d590a6f45d1f992bea8e97995539c789e942425c40c32f928cc5308f16ccdd2",
+      "vote_block": 2336429,
+      "expiration_block": 2860589,
+      "estimated_expiration_sec": 1737462218
+    }
+  }
+]
+```
+
+The `vote` field is an optional field, it only appears if a vote has been registered.
+If a new vote is cast which replaces the old vote, the vote field will be updated. Old votes
+are not remembered.
+
+The `vote_for` field is relatively self-explanitory. The `vote_txid` field is the transaction
+ID of the vote transaction, in this example it is transaction
+[4d590a6f45d1f992...](https://packetscan.io/tx/4d590a6f45d1f992bea8e97995539c789e942425c40c32f928cc5308f16ccdd2).
+The `vote_block` field is the block where the vote transaction was stored. The vote will not
+appear in the `getaddressbalances` until it has landed in a block. The `expiration_block` is
+the block number at which the vote will expire (if it is not renewed). The
+`estimated_expiration_sec` field is an estimation of the time when the expiration block will
+come. It is not exact but is based on the blockchain's target time window. In this case, the
+vote is expected to expire on January 21 or 2025, Almost exactly one year after it was cast.
+
+You can re-vote or change your vote at any time and the new vote will take the place of the
+old vote. To renew a vote before expiration, simply re-vote for the same candidate.
+
+### Faster UTXO table
+This version merges some code that was written in mid-2022 to improve the performance of UTXO
+scans. Previously each UTXO data access required also accessing a transaction record in order
+to get the full information about the UTXO. This change significantly improves performance
+when scanning over a large utxo set.
+
+There are no user-facing changes to this, but it does irreversibly update the database. This
+update is already present in the PKT-Lightning-Wallet so this update makes it possible to
+switch back and forth between pktwallet and PKT-Lightning-Wallet.
+
+# Release version pktd-v1.6.3
+Jan 4, 2024
+
+This is a patch release which introduces the `--ignoremined` flag so that exchanges
+and merchants can protect their wallets from micro-transaction spam.
+
+# Release version pktd-v1.6.2
+Jan 2, 2024
+
+This is a patch release to introduce the capability to create a transaction without
+unlocking the wallet, but only if the transaction is unsigned.
+
 # Release version pktd-v1.6.1
 Oct 26, 2022
 

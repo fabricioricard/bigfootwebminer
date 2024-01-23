@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/emirpasic/gods/utils"
+	"github.com/pkt-cash/pktd/blockchain/votecompute/votes"
 	"github.com/pkt-cash/pktd/btcutil/er"
 	"github.com/pkt-cash/pktd/neutrino/pushtx"
 	"github.com/pkt-cash/pktd/pktlog/log"
@@ -2232,7 +2233,9 @@ func (w *Wallet) SendOutputs(txr CreateTxReq) (*txauthor.AuthoredTx, er.R) {
 				return nil, er.New("Multiple outputs with zero value, a single output with zero value " +
 					"will sweep the address(es) to this output, multiple zero value outputs are ambiguous")
 			}
-			hasSweep = true
+			if votes.GetVote(output.PkScript) == nil {
+				hasSweep = true
+			}
 			continue
 		}
 		err := txrules.CheckOutput(

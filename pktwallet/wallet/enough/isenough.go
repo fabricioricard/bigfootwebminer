@@ -1,6 +1,7 @@
 package enough
 
 import (
+	"github.com/pkt-cash/pktd/blockchain/votecompute/votes"
 	"github.com/pkt-cash/pktd/btcutil"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/internal/txsizes"
 	"github.com/pkt-cash/pktd/pktwallet/wallet/txrules"
@@ -55,7 +56,7 @@ func (ii *IsEnough) WellIsIt(inputCount int, segwit bool, amt btcutil.Amount) bo
 func GetSweepOutput(outs []*wire.TxOut) *wire.TxOut {
 	var sweepOutput *wire.TxOut
 	for _, out := range outs {
-		if out.Value == 0 {
+		if out.Value == 0 && votes.GetVote(out.PkScript) == nil {
 			sweepOutput = out
 		}
 	}

@@ -1,17 +1,48 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <!-- Metadados básicos -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BIGFOOT WebMiner - Inicie a mineração de criptomoedas diretamente no seu navegador.">
+    <meta name="keywords" content="webminer, criptomoedas, mineração, bigfoot">
+    <meta name="author" content="BIGFOOT Team">
+
+    <!-- Título da página -->
     <title>BIGFOOT WebMiner</title>
+
+    <!-- Favicon e ícones para dispositivos -->
+    <link rel="icon" type="image/png" href="icons/favicon.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+    <!-- Estilos -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <!-- Conteúdo principal com semântica -->
+    <main class="container">
         <h1>BIGFOOT Connect</h1>
-        <button id="connect-btn">Conectar e Minerar</button>
-        <div id="status"></div>
-    </div>
-    <script src="app.js"></script>
+        
+        <!-- Botão com acessibilidade -->
+        <button 
+            id="connect-btn" 
+            aria-label="Iniciar ou parar a mineração de criptomoedas"
+            aria-busy="false"
+        >
+            Iniciar Mineração
+        </button>
+
+        <!-- Status com acessibilidade para leitores de tela -->
+        <p 
+            id="status" 
+            role="status" 
+            aria-live="polite"
+        >
+            Status: Aguardando ação...
+        </p>
+    </main>
+
+    <!-- Script principal -->
+    <script src="app.js" defer></script>
 </body>
 </html>

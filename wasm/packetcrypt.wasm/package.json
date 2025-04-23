@@ -1,0 +1,15 @@
+{
+  "name": "packetcrypt_rs",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "packetcrypt_rs_bg.wasm",
+    "packetcrypt_rs.js",
+    "packetcrypt_rs.d.ts"
+  ],
+  "main": "packetcrypt_rs.js",
+  "types": "packetcrypt_rs.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

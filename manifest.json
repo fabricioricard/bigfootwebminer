@@ -1,0 +1,23 @@
+{
+    "manifest_version": 3,
+    "name": "BIGFOOT WebMiner",
+    "version": "1.0",
+    "description": "Mineração PKT direto no navegador",
+    "permissions": [
+        "storage",
+        "activeTab"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "index.html"
+    },
+    "icons": {
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    }
+}

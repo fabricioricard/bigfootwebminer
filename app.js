@@ -11,11 +11,14 @@ function updateStatus(message) {
 // Função para carregar o módulo WASM com tratamento de erro
 async function loadWasmModule() {
     try {
+        console.log('[BIGFOOT] Tentando carregar WASM em wasm/packetcrypt.wasm...');
         const response = await fetch('wasm/packetcrypt.wasm');
         if (!response.ok) {
+            console.error('[BIGFOOT] Detalhes da resposta:', response.status, response.statusText);
             throw new Error(`Falha ao carregar WASM: ${response.status} ${response.statusText}`);
         }
         const wasmBinary = await response.arrayBuffer();
+        console.log('[BIGFOOT] WASM carregado com sucesso.');
         const module = await WebAssembly.instantiate(wasmBinary);
         return module;
     } catch (error) {

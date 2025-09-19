@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/lnd/routing"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/routing"
 )
 
 // TestValidationBarrierSemaphore checks basic properties of the validation

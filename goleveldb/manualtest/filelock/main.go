@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/storage"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/storage"
 )
 
 var (

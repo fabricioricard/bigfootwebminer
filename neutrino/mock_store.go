@@ -1,14 +1,14 @@
 package neutrino
 
 import (
-	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/blockchain"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/neutrino/headerfs"
-	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
-	"github.com/pkt-cash/pktd/pktwallet/walletdb"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/neutrino/headerfs"
+	"github.com/bigchain/bigchaind/bigchainwallet/waddrmgr"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 type BlockHeader struct {

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	v3 "github.com/coreos/etcd/clientv3"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 type CommitStats struct {

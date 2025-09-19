@@ -4,8 +4,8 @@ import (
 	"crypto/rand"
 
 	"github.com/aead/chacha20"
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // PacketFiller is a function type to be specified by the caller to provide a

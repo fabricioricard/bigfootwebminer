@@ -5,8 +5,8 @@ package monitoring
 import (
 	"google.golang.org/grpc"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lncfg"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lncfg"
 )
 
 // GetPromInterceptors returns the set of interceptors for Prometheus

@@ -12,10 +12,10 @@ package psbt
 // multisig and no other custom script.
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/txscript"
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/txscript/scriptbuilder"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/txscript"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/txscript/scriptbuilder"
 )
 
 // isFinalized considers this input finalized if it contains at least one of

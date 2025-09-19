@@ -15,9 +15,9 @@ import (
 	"math"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/chaincfg"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/chaincfg"
 )
 
 // TestBIP0032Vectors tests the vectors provided by [BIP32] to ensure the

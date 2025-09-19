@@ -12,7 +12,7 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/modern-go/reflect2"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // HashSize of array used to store hashes.  See Hash.

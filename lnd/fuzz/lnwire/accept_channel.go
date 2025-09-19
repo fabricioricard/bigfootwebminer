@@ -5,7 +5,7 @@ package lnwirefuzz
 import (
 	"bytes"
 
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 // Fuzz_accept_channel is used by go-fuzz.

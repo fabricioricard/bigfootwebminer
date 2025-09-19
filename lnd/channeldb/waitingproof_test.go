@@ -5,8 +5,8 @@ import (
 
 	"reflect"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 // TestWaitingProofStore tests add/get/remove functions of the waiting proof

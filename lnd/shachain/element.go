@@ -3,8 +3,8 @@ package shachain
 import (
 	"crypto/sha256"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
 )
 
 // element represents the entity which contains the hash and index

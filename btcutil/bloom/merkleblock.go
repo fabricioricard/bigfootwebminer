@@ -5,10 +5,10 @@
 package bloom
 
 import (
-	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/blockchain"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // merkleBlock is used to house intermediate information needed to generate a

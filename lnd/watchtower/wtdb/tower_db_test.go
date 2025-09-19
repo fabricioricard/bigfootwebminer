@@ -8,14 +8,14 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/lnd/watchtower"
-	"github.com/pkt-cash/pktd/lnd/watchtower/blob"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtdb"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtmock"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtpolicy"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/lnd/watchtower"
+	"github.com/bigchain/bigchaind/lnd/watchtower/blob"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtdb"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtmock"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtpolicy"
 )
 
 var (

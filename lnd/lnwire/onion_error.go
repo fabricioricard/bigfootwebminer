@@ -10,9 +10,9 @@ import (
 	"bytes"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/lnd/tlv"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/lnd/tlv"
 )
 
 // FailureMessage represents the onion failure object identified by its unique

@@ -6,13 +6,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/txscript"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/txscript"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 const (

@@ -9,24 +9,24 @@ import (
 	"encoding/binary"
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/blockchain/packetcrypt/pcutil"
+	"github.com/bigchain/bigchaind/blockchain/bigcrypt/pcutil"
 )
 
-// PcCoinbaseCommitMagic is the first 4 bytes of the commitment
-const PcCoinbaseCommitMagic uint32 = 0x0211f909
+// BcCoinbaseCommitMagic is the first 4 bytes of the commitment
+const BcCoinbaseCommitMagic uint32 = 0x0211f909
 
-// PcCoinbaseCommit is the commmitment which is placed in the coinbase
-// before beginning to calculate the PacketCrypt proof
-type PcCoinbaseCommit struct {
+// BcCoinbaseCommit is the commmitment which is placed in the coinbase
+// before beginning to calculate the BigCrypt proof
+type BcCoinbaseCommit struct {
 	Bytes [48]byte
 }
 
-// NewPcCoinbaseCommit creates a new coinbase commit with the initial pattern (all fc)
-func NewPcCoinbaseCommit() *PcCoinbaseCommit {
-	out := PcCoinbaseCommit{}
-	binary.LittleEndian.PutUint32(out.Bytes[:4], PcCoinbaseCommitMagic)
+// NewBcCoinbaseCommit creates a new coinbase commit with the initial pattern (all fc)
+func NewBcCoinbaseCommit() *BcCoinbaseCommit {
+	out := BcCoinbaseCommit{}
+	binary.LittleEndian.PutUint32(out.Bytes[:4], BcCoinbaseCommitMagic)
 	for i := 4; i < 48; i++ {
 		out.Bytes[i] = 0xfc
 	}
@@ -34,23 +34,23 @@ func NewPcCoinbaseCommit() *PcCoinbaseCommit {
 }
 
 // AnnCount gets the number of announcements which were claimed in the coinbase commitment
-func (c *PcCoinbaseCommit) AnnCount() uint64 {
+func (c *BcCoinbaseCommit) AnnCount() uint64 {
 	return binary.LittleEndian.Uint64(c.Bytes[40:])
 }
 
 // MerkleRoot gets the root of announcements claimed in the coinbase commitment
-func (c *PcCoinbaseCommit) MerkleRoot() []byte {
+func (c *BcCoinbaseCommit) MerkleRoot() []byte {
 	return c.Bytes[8:40]
 }
 
 // AnnMinDifficulty gets the claimed minimum target of any announcement claimed in the coinbase
 // commitment, the format is in bitcoin compressed bignum form
-func (c *PcCoinbaseCommit) AnnMinDifficulty() uint32 {
+func (c *BcCoinbaseCommit) AnnMinDifficulty() uint32 {
 	return binary.LittleEndian.Uint32(c.Bytes[4:8])
 }
 
-// Magic gets the magic bytes from the coinbase commitment, they should match PcCoinbaseCommitMagic
-func (c *PcCoinbaseCommit) Magic() uint32 {
+// Magic gets the magic bytes from the coinbase commitment, they should match BcCoinbaseCommitMagic
+func (c *BcCoinbaseCommit) Magic() uint32 {
 	return binary.LittleEndian.Uint32(c.Bytes[:4])
 }
 
@@ -60,11 +60,11 @@ const signaturesType = 2
 const contentProofsType = 3
 const versionType = 4
 
-// PacketCryptProof is the in-memory representation of the proof which sits between the header and
+// BigCryptProof is the in-memory representation of the proof which sits between the header and
 // the block content
-type PacketCryptProof struct {
+type BigCryptProof struct {
 	Nonce         uint32
-	Announcements [4]PacketCryptAnn
+	Announcements [4]BigCryptAnn
 	Signatures    [4][]byte
 	ContentProof  []byte
 	AnnProof      []byte
@@ -79,7 +79,7 @@ type PacketCryptProof struct {
 
 // SplitContentProof splits the content proof into the proofs for the
 // 4 individual announcements.
-func (h *PacketCryptProof) SplitContentProof(proofIdx uint32) ([][]byte, er.R) {
+func (h *BigCryptProof) SplitContentProof(proofIdx uint32) ([][]byte, er.R) {
 	if h.ContentProof == nil {
 		return make([][]byte, 4), nil
 	}
@@ -121,26 +121,26 @@ func (h *PacketCryptProof) SplitContentProof(proofIdx uint32) ([][]byte, er.R) {
 	return out, nil
 }
 
-// BtcDecode decodes a PacketCryptProof from a reader
-func (h *PacketCryptProof) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) er.R {
-	return readPacketCryptProof(r, pver, enc, h)
+// BtcDecode decodes a BigCryptProof from a reader
+func (h *BigCryptProof) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) er.R {
+	return readBigCryptProof(r, pver, enc, h)
 }
 
-// BtcEncode encodes a PacketCryptProof to a writer
-func (h *PacketCryptProof) BtcEncode(w io.Writer, pver uint32, enc MessageEncoding) er.R {
-	return writePacketCryptProof(w, pver, enc, h)
+// BtcEncode encodes a BigCryptProof to a writer
+func (h *BigCryptProof) BtcEncode(w io.Writer, pver uint32, enc MessageEncoding) er.R {
+	return writeBigCryptProof(w, pver, enc, h)
 }
 
-// Serialize writes a PacketCryptProof to the on-disk format
-func (h *PacketCryptProof) Serialize(w io.Writer) er.R {
-	return writePacketCryptProof(w, 0, WitnessEncoding, h)
+// Serialize writes a BigCryptProof to the on-disk format
+func (h *BigCryptProof) Serialize(w io.Writer) er.R {
+	return writeBigCryptProof(w, 0, WitnessEncoding, h)
 }
 
 // IsStandard checks whether the encoded length of the PcP is the same
 // as the length that the PcP would be if it were encoded by this node.
 // Any duplicated or extranious entities in the TLV will make the length
 // different and will thus make the PcP non-standard.
-func (h *PacketCryptProof) IsStandard() bool {
+func (h *BigCryptProof) IsStandard() bool {
 	if h.serializeLength == 0 {
 		// 0 length can only possibly happen if it has never been deserialized
 		// so that means we created it ourselves and when we serialize it, it
@@ -150,8 +150,8 @@ func (h *PacketCryptProof) IsStandard() bool {
 	return h.serializeLength == h.SerializeSize()
 }
 
-// SerializeSize gets the size of the PacketCryptProof when serialized
-func (h *PacketCryptProof) SerializeSize() int {
+// SerializeSize gets the size of the BigCryptProof when serialized
+func (h *BigCryptProof) SerializeSize() int {
 	out := 0
 	if h.Version > 0 {
 		out += VarIntSerializeSize(versionType)
@@ -190,7 +190,7 @@ func (h *PacketCryptProof) SerializeSize() int {
 	return out
 }
 
-func readPacketCryptProof(r io.Reader, pver uint32, enc MessageEncoding, pcp *PacketCryptProof) er.R {
+func readBigCryptProof(r io.Reader, pver uint32, enc MessageEncoding, pcp *BigCryptProof) er.R {
 	hasPcp := false
 	totalLen := 0
 	for {
@@ -207,7 +207,7 @@ func readPacketCryptProof(r io.Reader, pver uint32, enc MessageEncoding, pcp *Pa
 		case endType:
 			{
 				if !hasPcp {
-					return messageError("readPacketCryptProof", "Missing PacketCrypt proof")
+					return messageError("readBigCryptProof", "Missing BigCrypt proof")
 				}
 				pcp.serializeLength = totalLen
 				return nil
@@ -215,10 +215,10 @@ func readPacketCryptProof(r io.Reader, pver uint32, enc MessageEncoding, pcp *Pa
 		case pcpType:
 			{
 				if length <= (1024*4)+4 {
-					return er.Errorf("readPacketCryptProof runt pcp, len [%d]", length)
+					return er.Errorf("readBigCryptProof runt pcp, len [%d]", length)
 				}
 				if length > 131072 {
-					return er.Errorf("readPacketCryptProof oversize pcp, len [%d]", length)
+					return er.Errorf("readBigCryptProof oversize pcp, len [%d]", length)
 				}
 				readElement(r, &pcp.Nonce)
 				for i := 0; i < 4; i++ {
@@ -235,7 +235,7 @@ func readPacketCryptProof(r io.Reader, pver uint32, enc MessageEncoding, pcp *Pa
 		case signaturesType:
 			{
 				if !hasPcp {
-					return messageError("readPacketCryptProof", "Signatures came before pcp type")
+					return messageError("readBigCryptProof", "Signatures came before pcp type")
 				}
 				remainingBytes := int(length)
 				for i := 0; i < 4; i++ {
@@ -248,19 +248,19 @@ func readPacketCryptProof(r io.Reader, pver uint32, enc MessageEncoding, pcp *Pa
 					}
 					remainingBytes -= 64
 					if remainingBytes < 0 {
-						return messageError("readPacketCryptProof",
+						return messageError("readBigCryptProof",
 							"Not enough remaining bytes in read announcement signature")
 					}
 				}
 				if remainingBytes != 0 {
-					return messageError("readPacketCryptProof",
+					return messageError("readBigCryptProof",
 						"Dangling bytes after announcement signatures")
 				}
 			}
 		case contentProofsType:
 			{
 				if !hasPcp {
-					return messageError("readPacketCryptProof", "ContentProofs came before pcp type")
+					return messageError("readBigCryptProof", "ContentProofs came before pcp type")
 				}
 				pcp.ContentProof = make([]byte, length)
 				if _, err := io.ReadFull(r, pcp.ContentProof); err != nil {
@@ -275,7 +275,7 @@ func readPacketCryptProof(r io.Reader, pver uint32, enc MessageEncoding, pcp *Pa
 				}
 				pcp.Version = int(ver)
 				if VarIntSerializeSize(ver) != int(length) {
-					return messageError("readPacketCryptProof", "Dangling bytes after version field")
+					return messageError("readBigCryptProof", "Dangling bytes after version field")
 				}
 			}
 		default:
@@ -289,7 +289,7 @@ func readPacketCryptProof(r io.Reader, pver uint32, enc MessageEncoding, pcp *Pa
 	}
 }
 
-func writePacketCryptProof(w io.Writer, pver uint32, enc MessageEncoding, pcp *PacketCryptProof) er.R {
+func writeBigCryptProof(w io.Writer, pver uint32, enc MessageEncoding, pcp *BigCryptProof) er.R {
 
 	if err := WriteVarInt(w, 0, pcpType); err != nil {
 		return err

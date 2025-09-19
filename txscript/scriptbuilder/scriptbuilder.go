@@ -8,11 +8,11 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/txscript/params"
-	"github.com/pkt-cash/pktd/txscript/scriptnum"
-	"github.com/pkt-cash/pktd/txscript/txscripterr"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/txscript/params"
+	"github.com/bigchain/bigchaind/txscript/scriptnum"
+	"github.com/bigchain/bigchaind/txscript/txscripterr"
 )
 
 const (

@@ -4,11 +4,11 @@ import (
 	"encoding/binary"
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/htlcswitch/hop"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/htlcswitch/hop"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 // EmptyCircuitKey is a default value for an outgoing circuit key returned when

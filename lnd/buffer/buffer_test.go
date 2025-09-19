@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/pkt-cash/pktd/lnd/buffer"
+	"github.com/bigchain/bigchaind/lnd/buffer"
 )
 
 // TestRecycleSlice asserts that RecycleSlice always zeros a byte slice.

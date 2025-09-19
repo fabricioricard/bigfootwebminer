@@ -3,12 +3,12 @@ package itest
 import (
 	"context"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
-	"github.com/pkt-cash/pktd/lnd/lntest"
-	"github.com/pkt-cash/pktd/lnd/lntest/wait"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/routerrpc"
+	"github.com/bigchain/bigchaind/lnd/lntest"
+	"github.com/bigchain/bigchaind/lnd/lntest/wait"
 	"github.com/stretchr/testify/require"
 )
 

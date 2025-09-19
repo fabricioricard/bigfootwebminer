@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
 )
 
 // MakeDB creates a new instance of the ChannelDB for testing purposes. A

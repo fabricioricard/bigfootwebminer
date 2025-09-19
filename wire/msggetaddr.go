@@ -7,7 +7,7 @@ package wire
 import (
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // MsgGetAddr implements the Message interface and represents a bitcoin

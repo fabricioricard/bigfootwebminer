@@ -13,13 +13,13 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
-	"github.com/pkt-cash/pktd/txscript/params"
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/wire/constants"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/globalcfg"
+	"github.com/bigchain/bigchaind/txscript/params"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/wire/constants"
 )
 
 // Test vectors from:

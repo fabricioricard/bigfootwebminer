@@ -18,25 +18,25 @@ import (
 	"time"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
-	"github.com/pkt-cash/pktd/lnd/autopilot"
-	"github.com/pkt-cash/pktd/lnd/chainreg"
-	"github.com/pkt-cash/pktd/lnd/chanbackup"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/discovery"
-	"github.com/pkt-cash/pktd/lnd/htlcswitch"
-	"github.com/pkt-cash/pktd/lnd/htlcswitch/hodl"
-	"github.com/pkt-cash/pktd/lnd/input"
-	"github.com/pkt-cash/pktd/lnd/lncfg"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/signrpc"
-	"github.com/pkt-cash/pktd/lnd/routing"
-	"github.com/pkt-cash/pktd/lnd/tor"
-	"github.com/pkt-cash/pktd/neutrino"
-	"github.com/pkt-cash/pktd/pktconfig/version"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/globalcfg"
+	"github.com/bigchain/bigchaind/lnd/autopilot"
+	"github.com/bigchain/bigchaind/lnd/chainreg"
+	"github.com/bigchain/bigchaind/lnd/chanbackup"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/discovery"
+	"github.com/bigchain/bigchaind/lnd/htlcswitch"
+	"github.com/bigchain/bigchaind/lnd/htlcswitch/hodl"
+	"github.com/bigchain/bigchaind/lnd/input"
+	"github.com/bigchain/bigchaind/lnd/lncfg"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/routerrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/signrpc"
+	"github.com/bigchain/bigchaind/lnd/routing"
+	"github.com/bigchain/bigchaind/lnd/tor"
+	"github.com/bigchain/bigchaind/neutrino"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 const (
@@ -128,15 +128,15 @@ var (
 	// DefaultPktDir is the default directory where pkt tries to find its
 	// configuration file and store its data. This is a directory in the
 	// user's application data, for example:
-	//   C:\Users\<username>\AppData\Local\pktwallet on Windows
-	//   ~/.pktwallet on Linux
-	//   ~/Library/Application Support/pktwallet on MacOS
-	defaultPktDir = btcutil.AppDataDir("pktwallet", false)
+	//   C:\Users\<username>\AppData\Local\bigchainwallet on Windows
+	//   ~/.bigchainwallet on Linux
+	//   ~/Library/Application Support/bigchainwallet on MacOS
+	defaultPktDir = btcutil.AppDataDir("bigchainwallet", false)
 	// subdirectory where the wallet.db should be
 	defaultPktWalletDir = filepath.Join(defaultPktDir, "pkt")
 
 	// lnd folder should be under the main defaultPktDir
-	// e.g. ~/.pktwallet/lnd
+	// e.g. ~/.bigchainwallet/lnd
 	DefaultLndDir = filepath.Join(defaultPktDir, "lnd")
 
 	// DefaultConfigFile is the default full path of lnd's configuration
@@ -181,10 +181,10 @@ type Config struct {
 	ShowVersion bool `short:"V" long:"version" description:"Display version information and exit"`
 
 	LndDir       string `long:"lnddir" description:"The base directory that contains lnd's data, logs, configuration file, etc."`
-	PktDir       string `long:"pktdir" description:"The base directory that contains pktwallet's data etc."`
+	PktDir       string `long:"bigchaindir" description:"The base directory that contains bigchainwallet's data etc."`
 	ConfigFile   string `short:"C" long:"configfile" description:"Path to configuration file"`
 	DataDir      string `short:"b" long:"datadir" description:"The directory to store pld's data within"`
-	WalletFile   string `long:"wallet" description:"Wallet file name or path, if a simple word such as 'personal' then pktwallet will look for wallet_personal.db, if prefixed with a / then pktwallet will consider it an absolute path. (default: wallet.db)"`
+	WalletFile   string `long:"wallet" description:"Wallet file name or path, if a simple word such as 'personal' then bigchainwallet will look for wallet_personal.db, if prefixed with a / then bigchainwallet will consider it an absolute path. (default: wallet.db)"`
 	SyncFreelist bool   `long:"sync-freelist" description:"Whether the databases used within pld should sync their freelist to disk. This is disabled by default resulting in improved memory performance during operation, but with an increase in startup time."`
 
 	//	we want to disable the use of macaroons just for the users so,
@@ -1191,7 +1191,7 @@ func ValidateConfig(cfg Config, usageMessage string) (*Config, er.R) {
 	// have specified a safe combo for authentication. If not, we'll bail
 	// out with an error. Since we don't allow disabling TLS for gRPC
 	// connections we pass in tlsActive=true.
-	// pktwallet: we disable tls so tlsActive=false
+	// bigchainwallet: we disable tls so tlsActive=false
 	err = lncfg.EnforceSafeAuthentication(
 		cfg.RPCListeners, !cfg.NoMacaroons, false,
 	)

@@ -8,8 +8,8 @@ import (
 	"github.com/json-iterator/go"
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktconfig/version"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
 )
 
 // RPCErrorCode represents an error code to be used as a part of an RPCError

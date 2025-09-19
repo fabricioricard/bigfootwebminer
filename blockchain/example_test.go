@@ -10,12 +10,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/genesis"
-	"github.com/pkt-cash/pktd/database"
-	_ "github.com/pkt-cash/pktd/database/ffldb"
+	"github.com/bigchain/bigchaind/blockchain"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/genesis"
+	"github.com/bigchain/bigchaind/database"
+	_ "github.com/bigchain/bigchaind/database/ffldb"
 )
 
 // This example demonstrates how to create a new chain instance and use

@@ -14,7 +14,7 @@ import (
 	"testing"
 	"testing/quick"
 
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/testutil"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/testutil"
 )
 
 func TestBatchHeader(t *testing.T) {

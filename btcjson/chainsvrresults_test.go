@@ -8,7 +8,7 @@ import (
 	"github.com/json-iterator/go"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcjson"
+	"github.com/bigchain/bigchaind/btcjson"
 )
 
 // TestChainSvrCustomResults ensures any results that have custom marshalling

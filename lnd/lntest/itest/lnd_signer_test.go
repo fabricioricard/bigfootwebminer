@@ -3,12 +3,12 @@ package itest
 import (
 	"context"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/lnd/keychain"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/signrpc"
-	"github.com/pkt-cash/pktd/lnd/lntest"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/lnd/keychain"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/signrpc"
+	"github.com/bigchain/bigchaind/lnd/lntest"
 	"github.com/stretchr/testify/require"
 )
 

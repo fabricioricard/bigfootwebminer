@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/wire/protocol"
 )
 
 func TestMemPool(t *testing.T) {

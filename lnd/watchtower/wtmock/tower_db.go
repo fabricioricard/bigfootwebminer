@@ -3,10 +3,10 @@ package wtmock
 import (
 	"sync"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/lnd/watchtower/blob"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtdb"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/lnd/watchtower/blob"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtdb"
 )
 
 // TowerDB is a mock, in-memory implementation of a watchtower.DB.

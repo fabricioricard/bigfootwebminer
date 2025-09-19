@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	upnp "github.com/NebulousLabs/go-upnp"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // Compile-time check to ensure UPnP implements the Traversal interface.

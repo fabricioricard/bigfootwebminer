@@ -4,16 +4,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/lnd/keychain"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/lnd/watchtower/blob"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtdb"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtpolicy"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtserver"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtwire"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/lnd/keychain"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/watchtower/blob"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtdb"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtpolicy"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtserver"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtwire"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 // SessionNegotiator is an interface for asynchronously requesting new sessions.

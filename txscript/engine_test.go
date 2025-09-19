@@ -7,10 +7,10 @@ package txscript
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/txscript/txscripterr"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/txscript/txscripterr"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // TestBadPC sets the pc to a deliberately bad result then confirms that Step()

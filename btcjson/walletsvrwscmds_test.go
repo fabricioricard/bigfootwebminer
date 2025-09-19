@@ -11,9 +11,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/btcjson"
+	"github.com/bigchain/bigchaind/btcjson"
 )
 
 // TestWalletSvrWsCmds tests all of the wallet server websocket-specific

@@ -8,7 +8,7 @@ package routerrpc
 
 import (
 	context "context"
-	lnrpc "github.com/pkt-cash/pktd/lnd/lnrpc"
+	lnrpc "github.com/bigchain/bigchaind/lnd/lnrpc"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"

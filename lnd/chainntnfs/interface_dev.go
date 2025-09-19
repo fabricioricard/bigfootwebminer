@@ -3,8 +3,8 @@
 package chainntnfs
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
 )
 
 // TestChainNotifier enables the use of methods that are only present during

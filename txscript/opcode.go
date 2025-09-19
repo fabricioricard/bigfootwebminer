@@ -12,17 +12,17 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/txscript/params"
-	"github.com/pkt-cash/pktd/txscript/parsescript"
-	"github.com/pkt-cash/pktd/txscript/scriptnum"
-	"github.com/pkt-cash/pktd/txscript/txscripterr"
-	"github.com/pkt-cash/pktd/wire/constants"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/txscript/params"
+	"github.com/bigchain/bigchaind/txscript/parsescript"
+	"github.com/bigchain/bigchaind/txscript/scriptnum"
+	"github.com/bigchain/bigchaind/txscript/txscripterr"
+	"github.com/bigchain/bigchaind/wire/constants"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
 )
 
 // Conditional execution constants.

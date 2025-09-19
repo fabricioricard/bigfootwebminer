@@ -3,8 +3,8 @@
 package btcwallet
 
 import (
-	"github.com/pkt-cash/pktd/pktwallet/snacl"
-	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
+	"github.com/bigchain/bigchaind/bigchainwallet/snacl"
+	"github.com/bigchain/bigchaind/bigchainwallet/waddrmgr"
 )
 
 func init() {

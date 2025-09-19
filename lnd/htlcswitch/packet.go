@@ -1,10 +1,10 @@
 package htlcswitch
 
 import (
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/htlcswitch/hop"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/lnd/record"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/htlcswitch/hop"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/record"
 )
 
 // htlcPacket is a wrapper around htlc lnwire update, which adds additional

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/pkt-cash/pktd/lnd/lnwallet/chainfee"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/chainfee"
 )
 
 const (

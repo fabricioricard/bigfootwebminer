@@ -9,9 +9,9 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/txscript/scriptnum"
-	"github.com/pkt-cash/pktd/txscript/txscripterr"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/txscript/scriptnum"
+	"github.com/bigchain/bigchaind/txscript/txscripterr"
 )
 
 // hexToBytes converts the passed hex string into bytes and will panic if there

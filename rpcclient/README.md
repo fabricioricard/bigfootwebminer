@@ -5,7 +5,7 @@ rpcclient
 
 rpcclient implements a Websocket-enabled JSON-RPC client package written
 in [Go](http://golang.org/). It provides a robust and easy-to-use client for
-interfacing with an RPC server that uses the btcd/bitcoin/pktd-compatible
+interfacing with an RPC server that uses the btcd/bitcoin/bigchaind-compatible
 JSON-RPC API.
 
 ## Status
@@ -16,9 +16,9 @@ implement and the API is not stable yet.
 
 ## Major Features
 
-* Supports Websockets (pktd/pktwallet) and HTTP POST mode (Bitcoin Core)
-* Provides callback and registration functions for pktd/pktwallet notifications
-* Supports btcd/pktd extensions
+* Supports Websockets (bigchaind/bigchainwallet) and HTTP POST mode (Bitcoin Core)
+* Provides callback and registration functions for bigchaind/bigchainwallet notifications
+* Supports btcd/bigchaind extensions
 * Translates to and from higher-level and easier to use Go types
 * Offers a synchronous (blocking) and asynchronous API
 * When running in Websockets mode (the default):

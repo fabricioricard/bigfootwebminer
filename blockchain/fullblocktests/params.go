@@ -9,10 +9,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/wire/protocol"
 )
 
 // newHashFromStr converts the passed big-endian hex string into a

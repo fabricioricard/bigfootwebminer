@@ -5,11 +5,11 @@ package neutrinonotify
 import (
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/neutrino"
-	"github.com/pkt-cash/pktd/rpcclient"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/neutrino"
+	"github.com/bigchain/bigchaind/rpcclient"
 )
 
 // UnsafeStart starts the notifier with a specified best height and optional

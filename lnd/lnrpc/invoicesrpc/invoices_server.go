@@ -12,10 +12,10 @@ import (
 	"gopkg.in/macaroon-bakery.v2/bakery"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lntypes"
-	"github.com/pkt-cash/pktd/lnd/macaroons"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lntypes"
+	"github.com/bigchain/bigchaind/lnd/macaroons"
 )
 
 const (

@@ -6,11 +6,11 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/chainfee"
-	"github.com/pkt-cash/pktd/lnd/tlv"
-	"github.com/pkt-cash/pktd/lnd/watchtower/blob"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtwire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/chainfee"
+	"github.com/bigchain/bigchaind/lnd/tlv"
+	"github.com/bigchain/bigchaind/lnd/watchtower/blob"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtwire"
 )
 
 // CreateSessionTLV mirrors the wtwire.CreateSession message, but uses TLV for

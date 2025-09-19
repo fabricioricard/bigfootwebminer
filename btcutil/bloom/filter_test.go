@@ -8,12 +8,12 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/bloom"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/bloom"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/wire/protocol"
 )
 
 // TestFilterLarge ensures a maximum sized filter can be created.

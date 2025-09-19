@@ -6,16 +6,16 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/txscript/opcode"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/txscript/opcode"
 
-	"github.com/pkt-cash/pktd/btcutil/gcs"
-	"github.com/pkt-cash/pktd/btcutil/gcs/builder"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/neutrino/headerfs"
-	"github.com/pkt-cash/pktd/pktwallet/walletdb"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil/gcs"
+	"github.com/bigchain/bigchaind/btcutil/gcs/builder"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/neutrino/headerfs"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 func decodeHashNoError(str string) *chainhash.Hash {

@@ -20,36 +20,36 @@ import (
 	"time"
 
 	proxy "github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/neutrino"
-	"github.com/pkt-cash/pktd/neutrino/headerfs"
-	"github.com/pkt-cash/pktd/pktconfig/version"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/pktwallet/wallet"
-	"github.com/pkt-cash/pktd/pktwallet/walletdb"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/neutrino"
+	"github.com/bigchain/bigchaind/neutrino/headerfs"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/bigchainwallet/wallet"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb"
 	"google.golang.org/grpc"
 	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon.v2"
 
-	"github.com/pkt-cash/pktd/lnd/autopilot"
-	"github.com/pkt-cash/pktd/lnd/chainreg"
-	"github.com/pkt-cash/pktd/lnd/chanacceptor"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/keychain"
-	"github.com/pkt-cash/pktd/lnd/lncfg"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/verrpc"
-	"github.com/pkt-cash/pktd/lnd/lnwallet"
-	"github.com/pkt-cash/pktd/lnd/macaroons"
-	"github.com/pkt-cash/pktd/lnd/metaservice"
-	"github.com/pkt-cash/pktd/lnd/signal"
-	"github.com/pkt-cash/pktd/lnd/tor"
-	"github.com/pkt-cash/pktd/lnd/walletunlocker"
-	"github.com/pkt-cash/pktd/lnd/watchtower"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtdb"
+	"github.com/bigchain/bigchaind/lnd/autopilot"
+	"github.com/bigchain/bigchaind/lnd/chainreg"
+	"github.com/bigchain/bigchaind/lnd/chanacceptor"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/keychain"
+	"github.com/bigchain/bigchaind/lnd/lncfg"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/restrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/verrpc"
+	"github.com/bigchain/bigchaind/lnd/lnwallet"
+	"github.com/bigchain/bigchaind/lnd/macaroons"
+	"github.com/bigchain/bigchaind/lnd/metaservice"
+	"github.com/bigchain/bigchaind/lnd/signal"
+	"github.com/bigchain/bigchaind/lnd/tor"
+	"github.com/bigchain/bigchaind/lnd/walletunlocker"
+	"github.com/bigchain/bigchaind/lnd/watchtower"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtdb"
 )
 
 // WalletUnlockerAuthOptions returns a list of DialOptions that can be used to
@@ -380,7 +380,7 @@ func Main(cfg *Config, lisCfg ListenerCfg, shutdownChan <-chan struct{}) er.R {
 	macaroonFiles := []string{}
 	//Parse filename from --wallet or default
 	walletPath, walletFilename := WalletFilename(cfg.WalletFile)
-	//Get default pkt dir ~/.pktwallet/pkt
+	//Get default pkt dir ~/.bigchainwallet/pkt
 	if walletPath == "" {
 		walletPath = cfg.Pktmode.WalletDir
 	}
@@ -1033,7 +1033,7 @@ func waitForWalletPassword(cfg *Config, restEndpoints []net.Addr,
 
 	//Parse filename from --wallet or default
 	walletPath, walletFilename := WalletFilename(cfg.WalletFile)
-	//Get default pkt dir ~/.pktwallet/pkt
+	//Get default pkt dir ~/.bigchainwallet/pkt
 	if walletPath == "" {
 		walletPath = cfg.Pktmode.WalletDir
 	}

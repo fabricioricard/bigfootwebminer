@@ -7,7 +7,7 @@ import (
 	"compress/zlib"
 	"encoding/binary"
 
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 // Fuzz_query_short_chan_ids_zlib is used by go-fuzz.

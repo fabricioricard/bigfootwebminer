@@ -10,9 +10,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/ticker"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/ticker"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 // Config contains configuration settings for our monitor.

@@ -1,12 +1,12 @@
 package sweep
 
 import (
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/lnd/input"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/chainfee"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/lnd/input"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/chainfee"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // weightEstimator wraps a standard weight estimator instance and adds to that

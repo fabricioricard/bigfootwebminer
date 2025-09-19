@@ -3,9 +3,9 @@ package watchtower
 import (
 	"net"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/watchtower/lookout"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtserver"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/watchtower/lookout"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtserver"
 )
 
 // DB abstracts the persistent functionality required to run the watchtower

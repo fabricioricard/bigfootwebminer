@@ -11,9 +11,9 @@ import (
 	"testing"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/btcjson"
+	"github.com/bigchain/bigchaind/btcjson"
 )
 
 // TestWalletSvrCmds tests all of the wallet server commands marshal and

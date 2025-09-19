@@ -13,8 +13,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/wire/protocol"
 )
 
 // genesisCoinbaseTx is the coinbase transaction for the genesis blocks for

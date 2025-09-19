@@ -3,9 +3,9 @@ package routing
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/lnd/routing/route"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/routing/route"
 )
 
 // TestUnifiedPolicies tests the composition of unified policies for nodes that

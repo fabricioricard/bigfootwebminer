@@ -11,17 +11,17 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/wire/protocol"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/gcs"
-	"github.com/pkt-cash/pktd/btcutil/gcs/builder"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/genesis"
-	"github.com/pkt-cash/pktd/neutrino/cache"
-	"github.com/pkt-cash/pktd/neutrino/cache/lru"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/gcs"
+	"github.com/bigchain/bigchaind/btcutil/gcs/builder"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/genesis"
+	"github.com/bigchain/bigchaind/neutrino/cache"
+	"github.com/bigchain/bigchaind/neutrino/cache/lru"
 )
 
 var (

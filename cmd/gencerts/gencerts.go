@@ -13,8 +13,8 @@ import (
 	"time"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/pktconfig/version"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
 )
 
 type config struct {

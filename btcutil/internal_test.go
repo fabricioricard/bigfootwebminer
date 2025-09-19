@@ -12,9 +12,9 @@ interface. The functions are only exported while the tests are being run.
 package btcutil
 
 import (
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/base58"
-	"github.com/pkt-cash/pktd/btcutil/bech32"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/base58"
+	"github.com/bigchain/bigchaind/btcutil/bech32"
 )
 
 // SetBlockBytes sets the internal serialized block byte buffer to the passed

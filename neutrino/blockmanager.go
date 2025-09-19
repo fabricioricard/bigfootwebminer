@@ -15,26 +15,26 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pkt-cash/pktd/blockchain/packetcrypt"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/pktwallet/walletdb"
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/wire/protocol"
-	"github.com/pkt-cash/pktd/wire/ruleerror"
+	"github.com/bigchain/bigchaind/blockchain/bigcrypt"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/wire/protocol"
+	"github.com/bigchain/bigchaind/wire/ruleerror"
 
-	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/gcs"
-	"github.com/pkt-cash/pktd/btcutil/gcs/builder"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
-	"github.com/pkt-cash/pktd/neutrino/blockntfns"
-	"github.com/pkt-cash/pktd/neutrino/chainsync"
-	"github.com/pkt-cash/pktd/neutrino/headerfs"
-	"github.com/pkt-cash/pktd/neutrino/headerlist"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/blockchain"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/gcs"
+	"github.com/bigchain/bigchaind/btcutil/gcs/builder"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/globalcfg"
+	"github.com/bigchain/bigchaind/neutrino/blockntfns"
+	"github.com/bigchain/bigchaind/neutrino/chainsync"
+	"github.com/bigchain/bigchaind/neutrino/headerfs"
+	"github.com/bigchain/bigchaind/neutrino/headerlist"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 const (
@@ -190,7 +190,7 @@ type blockManager struct {
 	maxRetargetTimespan int64 // target timespan * adjustment factor
 	blocksPerRetarget   int32 // target timespan / target time per block
 
-	// For statistical verification of PacketCrypt (or AuxPoW)
+	// For statistical verification of BigCrypt (or AuxPoW)
 
 	// Probably this is the tip of the chain, deduced using time
 	likelyChainTip int32
@@ -274,7 +274,7 @@ func newBlockManager(s *ChainService,
 	}
 	bm.filterHeaderTipHash = fh.BlockHash()
 
-	// Verification of PacketCrypt or AuxPoW proofs
+	// Verification of BigCrypt or AuxPoW proofs
 	bm.likelyChainTip = int32(time.Since(time.Unix(1566252000, 0)).Minutes())
 	walletdb.View(s.NeutrinoDB.Db, func(tx walletdb.ReadTx) er.R {
 		return bm.updateLikelyChainTip(tx, int32(height))
@@ -2353,12 +2353,12 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 		numI := binary.LittleEndian.Uint32(x[:4])
 		numF := float64(numI) / 4294967296.0
 		if numF <= 20.0/float64(depth) {
-			log.Tracef("Requesting PacketCrypt Proof for block number [%d]", h)
+			log.Tracef("Requesting BigCrypt Proof for block number [%d]", h)
 			needProofs = append(needProofs, hashHeight{hash: header.BlockHash(), height: h})
 		}
 	}
 
-	log.Infof("Headers from [%s] height: [%s] checking [%s] PacketCrypt proofs of total [%s] headers",
+	log.Infof("Headers from [%s] height: [%s] checking [%s] BigCrypt proofs of total [%s] headers",
 		log.IpAddr(hmsg.peer.Addr()),
 		log.Height(int32(backHeight+1)),
 		log.Int(len(needProofs)),
@@ -2366,7 +2366,7 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 	)
 
 	if len(needProofs) == 0 {
-		log.Debugf("No PacketCrypt proofs required for header batch")
+		log.Debugf("No BigCrypt proofs required for header batch")
 		b.handleProvenHeadersMsg(&provenHeadersMsg{hmsg: hmsg, proofs: nil})
 		return
 	}
@@ -2384,7 +2384,7 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 					log.Infof("Unable to get block [%s @ %d]: %s",
 						hh.hash.String(), hh.height, err.String())
 				} else {
-					log.Debugf("Got PacketCrypt proof for block [%s @ %d]",
+					log.Debugf("Got BigCrypt proof for block [%s @ %d]",
 						hh.hash.String(), hh.height)
 					lk.Lock()
 					proofs[hh.height] = h
@@ -2415,17 +2415,17 @@ func blockHashByHeight(needHeight int32,
 		if int(needHeight-newHeadersHeight) >= len(newHeaders) {
 			return chainhash.Hash{}, er.New("height too big")
 		}
-		log.Tracef("PacketCrypt getting header hash [%d] from new headers", needHeight)
+		log.Tracef("BigCrypt getting header hash [%d] from new headers", needHeight)
 		return newHeaders[needHeight-newHeadersHeight].BlockHash(), nil
 	} else if hdr, err := server.NeutrinoDB.FetchBlockHeaderByHeight(uint32(needHeight)); err != nil {
 		return chainhash.Hash{}, err
 	} else {
-		log.Tracef("PacketCrypt getting header hash [%d] from chain", needHeight)
+		log.Tracef("BigCrypt getting header hash [%d] from chain", needHeight)
 		return hdr.BlockHash(), nil
 	}
 }
 
-func checkPacketCryptProof(
+func checkBigCryptProof(
 	block *btcutil.Block,
 	height int32,
 	newHeaders []*wire.BlockHeader,
@@ -2436,8 +2436,8 @@ func checkPacketCryptProof(
 	if pcp == nil {
 		return ruleerror.ErrBadPow.New("pow missing", nil)
 	}
-	if !globalcfg.IsPacketCryptAllowedVersion(pcp.Version, height) {
-		return ruleerror.ErrBadPow.New("Unallowed PacketCrypt proof version", nil)
+	if !globalcfg.IsBigCryptAllowedVersion(pcp.Version, height) {
+		return ruleerror.ErrBadPow.New("Unallowed BigCrypt proof version", nil)
 	}
 	hashes := make([]*chainhash.Hash, len(pcp.Announcements))
 	for i := 0; i < len(pcp.Announcements); i++ {
@@ -2452,10 +2452,10 @@ func checkPacketCryptProof(
 		}
 		hashes[i] = &hash
 	}
-	if _, err := packetcrypt.ValidatePcBlock(
+	if _, err := bigcrypt.ValidateBcBlock(
 		block.MsgBlock(), height, 0, hashes,
 	); err != nil {
-		str := fmt.Sprintf("Error validating PacketCrypt proof [%v]", err)
+		str := fmt.Sprintf("Error validating BigCrypt proof [%v]", err)
 		return ruleerror.ErrBadPow.New(str, nil)
 	}
 	return nil
@@ -2529,11 +2529,11 @@ func (b *blockManager) handleProvenHeadersMsg1(tx walletdb.ReadWriteTx, phmsg *p
 			if blk, ok := phmsg.proofs[thisHeaderHeight]; ok {
 				thisHeaderIndex := int32(i)
 				newHeadersHeight := thisHeaderHeight - thisHeaderIndex
-				log.Tracef("Checking PacketCrypt proof add1")
-				if err := checkPacketCryptProof(
+				log.Tracef("Checking BigCrypt proof add1")
+				if err := checkBigCryptProof(
 					blk, thisHeaderHeight, msg.Headers, newHeadersHeight, b.server,
 				); err != nil {
-					log.Warnf("Failed PacketCrypt proof check on block [%s @ %d]"+
+					log.Warnf("Failed BigCrypt proof check on block [%s @ %d]"+
 						" check: %s -- disconnecting peer",
 						blk.Hash().String(), thisHeaderHeight, err)
 					hmsg.peer.Disconnect()
@@ -2655,11 +2655,11 @@ func (b *blockManager) handleProvenHeadersMsg1(tx walletdb.ReadWriteTx, phmsg *p
 				if blk, ok := phmsg.proofs[thisHeaderHeight]; ok {
 					thisHeaderIndex := int32(i + j)
 					newHeadersHeight := thisHeaderHeight - thisHeaderIndex
-					log.Debugf("Checking PacketCrypt proof reorg")
-					if err := checkPacketCryptProof(
+					log.Debugf("Checking BigCrypt proof reorg")
+					if err := checkBigCryptProof(
 						blk, thisHeaderHeight, msg.Headers, newHeadersHeight, b.server,
 					); err != nil {
-						log.Warnf("Failed PacketCrypt proof check on block [%s @ %d]"+
+						log.Warnf("Failed BigCrypt proof check on block [%s @ %d]"+
 							" check: %s -- disconnecting peer",
 							blk.Hash().String(), thisHeaderHeight, err)
 						hmsg.peer.Disconnect()
@@ -2843,7 +2843,7 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 	if err != nil {
 		return err
 	}
-	// PacketCrypt is checked elsewhere
+	// BigCrypt is checked elsewhere
 	if globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowSha256 {
 		stubBlock := btcutil.NewBlock(&wire.MsgBlock{
 			Header: *blockHeader,

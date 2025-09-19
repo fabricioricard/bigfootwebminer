@@ -3,11 +3,11 @@ package keychain
 import (
 	"crypto/sha256"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktwallet/waddrmgr"
-	"github.com/pkt-cash/pktd/pktwallet/wallet"
-	"github.com/pkt-cash/pktd/pktwallet/walletdb"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainwallet/waddrmgr"
+	"github.com/bigchain/bigchaind/bigchainwallet/wallet"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb"
 )
 
 const (

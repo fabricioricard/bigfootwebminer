@@ -1,9 +1,9 @@
 package shachain
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
 )
 
 // getBit return bit on index at position.

@@ -14,13 +14,13 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/lnd/routing/route"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/routing/route"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 var (

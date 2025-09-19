@@ -12,9 +12,9 @@ import (
 	"github.com/json-iterator/go"
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // AddNodeSubCmd defines the type used in the addnode JSON-RPC command for the
@@ -471,13 +471,13 @@ type CheckPcShareCmd struct {
 	Request *CheckPcShareCmdStructure
 }
 
-type CheckPcAnnCmd struct {
+type CheckBcAnnCmd struct {
 	AnnHex     string  `json:"annhex"`
 	PcVersion  *int    `json:"pcversion"`
 	ParentHash *string `json:"parenthash"`
 }
 
-type CheckPcAnnResult struct {
+type CheckBcAnnResult struct {
 	WorkHash string `json:"workhash"`
 }
 
@@ -891,7 +891,7 @@ func init() {
 	MustRegisterCmd("getpeerinfo", (*GetPeerInfoCmd)(nil), flags)
 	MustRegisterCmd("getrawblocktemplate", (*GetRawBlockTemplateCmd)(nil), flags)
 	MustRegisterCmd("checkpcshare", (*CheckPcShareCmd)(nil), flags)
-	MustRegisterCmd("checkpcann", (*CheckPcAnnCmd)(nil), flags)
+	MustRegisterCmd("checkpcann", (*CheckBcAnnCmd)(nil), flags)
 	MustRegisterCmd("getrawmempool", (*GetRawMempoolCmd)(nil), flags)
 	MustRegisterCmd("getrawtransaction", (*GetRawTransactionCmd)(nil), flags)
 	MustRegisterCmd("gettxout", (*GetTxOutCmd)(nil), flags)

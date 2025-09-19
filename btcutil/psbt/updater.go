@@ -14,12 +14,12 @@ import (
 	"bytes"
 	"crypto/sha256"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/txscript/params"
-	"github.com/pkt-cash/pktd/txscript/scriptbuilder"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/txscript/params"
+	"github.com/bigchain/bigchaind/txscript/scriptbuilder"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // Updater encapsulates the role 'Updater' as specified in BIP174; it accepts

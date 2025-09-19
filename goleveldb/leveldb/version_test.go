@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/onsi/gomega"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/storage"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/testutil"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/storage"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/testutil"
 )
 
 type testFileRec struct {

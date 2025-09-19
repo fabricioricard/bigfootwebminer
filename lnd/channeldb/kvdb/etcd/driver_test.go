@@ -5,8 +5,8 @@ package etcd
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/pktwallet/walletdb"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb"
 	"github.com/stretchr/testify/require"
 )
 

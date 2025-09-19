@@ -1,12 +1,12 @@
 package lnwallet
 
 import (
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/input"
-	"github.com/pkt-cash/pktd/lnd/keychain"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/chainfee"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/input"
+	"github.com/bigchain/bigchaind/lnd/keychain"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/chainfee"
 )
 
 // Config is a struct which houses configuration parameters which modify the

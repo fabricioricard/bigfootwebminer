@@ -5,7 +5,7 @@
 package txscripterr
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // Err identifies a kind of script error.

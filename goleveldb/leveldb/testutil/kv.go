@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/util"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/util"
 )
 
 type KeyValueEntry struct {

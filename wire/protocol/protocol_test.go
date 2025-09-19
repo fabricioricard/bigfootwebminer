@@ -7,7 +7,7 @@ package protocol_test
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/wire/protocol"
 )
 
 // TestServiceFlagStringer tests the stringized output for service flag types.

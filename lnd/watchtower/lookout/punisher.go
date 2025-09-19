@@ -1,10 +1,10 @@
 package lookout
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/labels"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/labels"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // PunisherConfig houses the resources required by the Punisher.

@@ -5,15 +5,15 @@ import (
 	"context"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd"
-	"github.com/pkt-cash/pktd/lnd/chainreg"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
-	"github.com/pkt-cash/pktd/lnd/lntest"
-	"github.com/pkt-cash/pktd/lnd/routing/route"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd"
+	"github.com/bigchain/bigchaind/lnd/chainreg"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/routerrpc"
+	"github.com/bigchain/bigchaind/lnd/lntest"
+	"github.com/bigchain/bigchaind/lnd/routing/route"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // testSendToRouteMultiPath tests that we are able to successfully route a

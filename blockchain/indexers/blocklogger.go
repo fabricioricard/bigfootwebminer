@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 // blockProgressLogger provides periodic logging for other services in order

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/wire/protocol"
 )
 
 func TestLinkNodeEncodeDecode(t *testing.T) {

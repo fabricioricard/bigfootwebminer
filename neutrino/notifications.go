@@ -7,10 +7,10 @@
 package neutrino
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/addrmgr"
-	"github.com/pkt-cash/pktd/connmgr"
+	"github.com/bigchain/bigchaind/addrmgr"
+	"github.com/bigchain/bigchaind/connmgr"
 )
 
 type getConnCountMsg struct {

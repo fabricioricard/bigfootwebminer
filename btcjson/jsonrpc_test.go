@@ -8,9 +8,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcjson"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktconfig/version"
+	"github.com/bigchain/bigchaind/btcjson"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
 )
 
 // TestIsValidIDType ensures the IsValidIDType function behaves as expected.

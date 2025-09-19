@@ -7,7 +7,7 @@
 package filter
 
 import (
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/util"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/util"
 )
 
 func bloomHash(key []byte) uint32 {

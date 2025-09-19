@@ -17,8 +17,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc/help"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/restrpc/help"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -222,7 +222,7 @@ func (conn *websocketConn) HandleProtobufMessage(ctx *RpcContext, req []byte) {
 				RequestId: webSocketReq.RequestId,
 				Payload: &WebSocketProtobufResponse_Ok{
 					Ok: &anypb.Any{
-						TypeUrl: "github.com/pkt-cash/pktd/lnd/" + reflect.TypeOf(rpcFunc.res).String()[1:],
+						TypeUrl: "github.com/bigchain/bigchaind/lnd/" + reflect.TypeOf(rpcFunc.res).String()[1:],
 						Value:   respPayload,
 					},
 				},

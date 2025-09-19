@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtwire"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtwire"
 )
 
 // prefixWithMsgType takes []byte and adds a wire protocol prefix

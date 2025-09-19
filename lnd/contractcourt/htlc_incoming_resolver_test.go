@@ -6,17 +6,17 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	sphinx "github.com/pkt-cash/pktd/lightning-onion"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
-	"github.com/pkt-cash/pktd/lnd/htlcswitch/hop"
-	"github.com/pkt-cash/pktd/lnd/invoices"
-	"github.com/pkt-cash/pktd/lnd/lntest/mock"
-	"github.com/pkt-cash/pktd/lnd/lntypes"
-	"github.com/pkt-cash/pktd/lnd/lnwallet"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	sphinx "github.com/bigchain/bigchaind/lightning-onion"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/lnd/htlcswitch/hop"
+	"github.com/bigchain/bigchaind/lnd/invoices"
+	"github.com/bigchain/bigchaind/lnd/lntest/mock"
+	"github.com/bigchain/bigchaind/lnd/lntypes"
+	"github.com/bigchain/bigchaind/lnd/lnwallet"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 const (

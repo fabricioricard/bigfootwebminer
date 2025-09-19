@@ -3,9 +3,9 @@ package peernotifier
 import (
 	"sync"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/subscribe"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/subscribe"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 // PeerNotifier is a subsystem which observes peer offline and online events.

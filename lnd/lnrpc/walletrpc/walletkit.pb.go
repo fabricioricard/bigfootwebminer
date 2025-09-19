@@ -6,8 +6,8 @@ package walletrpc
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	lnrpc "github.com/pkt-cash/pktd/lnd/lnrpc"
-	signrpc "github.com/pkt-cash/pktd/lnd/lnrpc/signrpc"
+	lnrpc "github.com/bigchain/bigchaind/lnd/lnrpc"
+	signrpc "github.com/bigchain/bigchaind/lnd/lnrpc/signrpc"
 	math "math"
 )
 

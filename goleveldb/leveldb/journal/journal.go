@@ -82,9 +82,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/errors"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/storage"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/util"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/errors"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/storage"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/util"
 )
 
 // These constants are part of the wire format and should not be changed.

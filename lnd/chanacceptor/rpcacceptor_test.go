@@ -4,13 +4,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/lnd/input"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/chancloser"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/lnd/input"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/chancloser"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 	"github.com/stretchr/testify/require"
 )
 

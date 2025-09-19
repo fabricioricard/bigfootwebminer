@@ -14,18 +14,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/wire/protocol"
 
-	"github.com/pkt-cash/pktd/blockchain/testdata"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/genesis"
-	"github.com/pkt-cash/pktd/database"
-	_ "github.com/pkt-cash/pktd/database/ffldb"
-	"github.com/pkt-cash/pktd/txscript"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/blockchain/testdata"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/genesis"
+	"github.com/bigchain/bigchaind/database"
+	_ "github.com/bigchain/bigchaind/database/ffldb"
+	"github.com/bigchain/bigchaind/txscript"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 const (
@@ -64,7 +64,7 @@ func isSupportedDbType(dbType string) bool {
 
 // loadBlocks reads files containing bitcoin block data (gzipped but otherwise
 // in the format bitcoind writes) from disk and returns them as an array of
-// btcutil.Block.  This is largely borrowed from the test code in pktdb.
+// btcutil.Block.  This is largely borrowed from the test code in bigchaindb.
 func loadBlocks(filename string) (blocks []*btcutil.Block, err er.R) {
 	return testdata.LoadBlocks(filepath.Join("testdata/", filename))
 }

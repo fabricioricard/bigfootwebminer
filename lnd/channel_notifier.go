@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/chanbackup"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/channelnotifier"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/chanbackup"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/channelnotifier"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // addrSource is an interface that allow us to get the addresses for a target

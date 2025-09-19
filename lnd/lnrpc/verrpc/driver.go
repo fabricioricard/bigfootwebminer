@@ -3,8 +3,8 @@ package verrpc
 import (
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
 )
 
 func init() {

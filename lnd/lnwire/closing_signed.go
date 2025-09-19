@@ -3,8 +3,8 @@ package lnwire
 import (
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // ClosingSigned is sent by both parties to a channel once the channel is clear

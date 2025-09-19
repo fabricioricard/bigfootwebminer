@@ -1,6 +1,6 @@
 package macaroons
 
-import "github.com/pkt-cash/pktd/pktwallet/waddrmgr"
+import "github.com/bigchain/bigchaind/bigchainwallet/waddrmgr"
 
 func init() {
 	// Below are the reduced scrypt parameters that are used when creating

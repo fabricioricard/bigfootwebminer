@@ -5,7 +5,7 @@ btcutil
 
 Package btcutil provides bitcoin-specific convenience functions and types.
 
-This package was developed for btcd and adapted to pktd, intentionally
+This package was developed for btcd and adapted to bigchaind, intentionally
 designed so it can be used as a standalone package for any projects
 needing the functionality provided.
 

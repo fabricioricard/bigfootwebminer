@@ -9,7 +9,7 @@ import (
 	"github.com/json-iterator/go"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcjson"
+	"github.com/bigchain/bigchaind/btcjson"
 )
 
 // TestBtcdExtCustomResults ensures any results that have custom marshalling

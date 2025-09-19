@@ -3,7 +3,7 @@ package lnwire
 import (
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // UpdateFulfillHTLC is sent by Alice to Bob when she wishes to settle a

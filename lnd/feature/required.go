@@ -3,8 +3,8 @@ package feature
 import (
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 // ErrUnknownRequired signals that a feature vector requires certain features

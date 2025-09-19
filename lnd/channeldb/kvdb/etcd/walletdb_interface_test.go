@@ -5,7 +5,7 @@ package etcd
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/pktwallet/walletdb/walletdbtest"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb/walletdbtest"
 )
 
 // TestWalletDBInterface performs the WalletDB interface test suite for the

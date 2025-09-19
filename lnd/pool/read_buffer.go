@@ -3,7 +3,7 @@ package pool
 import (
 	"time"
 
-	"github.com/pkt-cash/pktd/lnd/buffer"
+	"github.com/bigchain/bigchaind/lnd/buffer"
 )
 
 const (

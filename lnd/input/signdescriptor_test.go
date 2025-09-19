@@ -5,10 +5,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/lnd/keychain"
-	"github.com/pkt-cash/pktd/txscript/params"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/lnd/keychain"
+	"github.com/bigchain/bigchaind/txscript/params"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 func TestSignDescriptorSerialization(t *testing.T) {

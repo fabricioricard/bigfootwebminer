@@ -7,7 +7,7 @@
 package leveldb
 
 import (
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/errors"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/errors"
 )
 
 // Common errors.

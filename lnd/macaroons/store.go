@@ -6,12 +6,12 @@ import (
 	"crypto/rand"
 	"sync"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
 
-	"github.com/pkt-cash/pktd/pktwallet/snacl"
-	"github.com/pkt-cash/pktd/pktwallet/walletdb"
+	"github.com/bigchain/bigchaind/bigchainwallet/snacl"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb"
 )
 
 const (

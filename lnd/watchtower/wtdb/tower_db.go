@@ -3,12 +3,12 @@ package wtdb
 import (
 	"bytes"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
-	"github.com/pkt-cash/pktd/lnd/watchtower/blob"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/lnd/watchtower/blob"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 const (

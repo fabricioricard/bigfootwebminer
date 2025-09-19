@@ -1,7 +1,7 @@
 package leveldb
 
 import (
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/storage"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/storage"
 	"sync/atomic"
 )
 

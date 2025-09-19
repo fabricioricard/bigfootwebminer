@@ -11,8 +11,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/storage"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/util"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/storage"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/util"
 )
 
 // Common errors.

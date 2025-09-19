@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/filter"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/opt"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/storage"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/filter"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/opt"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/storage"
 )
 
 const ctValSize = 1000

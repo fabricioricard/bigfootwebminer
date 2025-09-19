@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/iterator"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/opt"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/util"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/iterator"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/opt"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/util"
 )
 
 var errTransactionDone = errors.New("leveldb: transaction already closed")

@@ -3,7 +3,7 @@
 package lnwirefuzz
 
 import (
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 // Fuzz_closing_signed is used by go-fuzz.

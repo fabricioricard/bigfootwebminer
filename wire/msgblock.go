@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/globalcfg"
 )
 
 // defaultTransactionAlloc is the default size used for the backing array
@@ -46,7 +46,7 @@ type TxLoc struct {
 // response to a getdata message (MsgGetData) for a given block hash.
 type MsgBlock struct {
 	Header       BlockHeader
-	Pcp          *PacketCryptProof
+	Pcp          *BigCryptProof
 	Transactions []*MsgTx
 }
 
@@ -72,11 +72,11 @@ func (msg *MsgBlock) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) er
 		return err
 	}
 
-	if enc&NoPacketCryptEncoding == NoPacketCryptEncoding {
-	} else if enc&PacketCryptEncoding == PacketCryptEncoding ||
-		globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowPacketCrypt {
+	if enc&NoBigCryptEncoding == NoBigCryptEncoding {
+	} else if enc&BigCryptEncoding == BigCryptEncoding ||
+		globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowBigCrypt {
 		if msg.Pcp == nil {
-			msg.Pcp = &PacketCryptProof{}
+			msg.Pcp = &BigCryptProof{}
 		}
 		if err = msg.Pcp.BtcDecode(r, pver, enc); err != nil {
 			return err
@@ -146,8 +146,8 @@ func (msg *MsgBlock) DeserializeTxLoc(r *bytes.Buffer) ([]TxLoc, er.R) {
 		return nil, err
 	}
 
-	if globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowPacketCrypt {
-		pcp := &PacketCryptProof{}
+	if globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowBigCrypt {
+		pcp := &BigCryptProof{}
 		if err = pcp.BtcDecode(r, 0, 0); err != nil {
 			return nil, err
 		}
@@ -196,9 +196,9 @@ func (msg *MsgBlock) BtcEncode(w io.Writer, pver uint32, enc MessageEncoding) er
 		return err
 	}
 
-	if enc&NoPacketCryptEncoding == NoPacketCryptEncoding {
-	} else if enc&PacketCryptEncoding == PacketCryptEncoding ||
-		globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowPacketCrypt {
+	if enc&NoBigCryptEncoding == NoBigCryptEncoding {
+	} else if enc&BigCryptEncoding == BigCryptEncoding ||
+		globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowBigCrypt {
 		if msg.Pcp == nil {
 			return er.Errorf("proof of work is not defined")
 		}
@@ -249,7 +249,7 @@ func (msg *MsgBlock) SerializeSize() int {
 	// transactions.
 	n := blockHeaderLen + VarIntSerializeSize(uint64(len(msg.Transactions)))
 
-	if globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowPacketCrypt {
+	if globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowBigCrypt {
 		if msg.Pcp != nil {
 			n += msg.Pcp.SerializeSize()
 		}
@@ -269,7 +269,7 @@ func (msg *MsgBlock) SerializeSizeStripped() int {
 	// transactions.
 	n := blockHeaderLen + VarIntSerializeSize(uint64(len(msg.Transactions)))
 
-	if globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowPacketCrypt {
+	if globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowBigCrypt {
 		if msg.Pcp != nil {
 			n += msg.Pcp.SerializeSize()
 		}

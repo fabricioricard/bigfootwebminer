@@ -6,8 +6,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktwallet/walletdb"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb"
 )
 
 var Err er.ErrorType = er.NewErrorType("banman.Err")

@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtdb"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtdb"
 )
 
 func init() {

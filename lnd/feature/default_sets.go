@@ -1,6 +1,6 @@
 package feature
 
-import "github.com/pkt-cash/pktd/lnd/lnwire"
+import "github.com/bigchain/bigchaind/lnd/lnwire"
 
 // setDesc describes which feature bits should be advertised in which feature
 // sets.

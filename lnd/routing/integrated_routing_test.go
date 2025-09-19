@@ -3,8 +3,8 @@ package routing
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 // TestProbabilityExtrapolation tests that probabilities for tried channels are

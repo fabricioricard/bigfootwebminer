@@ -1,8 +1,8 @@
 package ruleerror
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // Err identifies a rule violation.  It is used to indicate that
@@ -262,7 +262,7 @@ var (
 		"bad-prevblk")
 )
 
-// The following errors are not aligned with bitcoind, they are unique to pktd
+// The following errors are not aligned with bitcoind, they are unique to bigchaind
 var (
 	// ErrPrevBlockNotBest indicates that the block's previous block is not the
 	// current chain tip. This is not a block validation rule, but is required

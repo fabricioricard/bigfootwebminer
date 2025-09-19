@@ -1,10 +1,10 @@
-# Release version pktd-v1.7.0
+# Release version bigchaind-v1.7.0
 Jan 23, 2024
 
 ## Major changes
 
 ### New voting system!
-This version adds voting capability to pktwallet. It adds a new RPC endpoint `sendvote`
+This version adds voting capability to bigchainwallet. It adds a new RPC endpoint `sendvote`
 which is like `sendfrom` but rather than sending any significant amount of coins, it
 sends a *vote* transaction. It selects enough UTXOs from the "from" address to pay the
 fees, and cycles all the rest back as change.
@@ -12,7 +12,7 @@ fees, and cycles all the rest back as change.
 Example:
 
 ```bash
-./bin/pktctl --wallet sendvote pkt1qj6nldg0klm5pqyam8cg6lvzcuq432kpc5d9scn pkt1qpl48jdwyn3t0uj7lu303f5szejgl5dmc0p2vpu
+./bin/bigchainctl --wallet sendvote pkt1qj6nldg0klm5pqyam8cg6lvzcuq432kpc5d9scn pkt1qpl48jdwyn3t0uj7lu303f5szejgl5dmc0p2vpu
 ```
 
 In this example, `pkt1qj6nldg0klm5pqyam8cg6lvzcuq432kpc5d9scn` is my address, the one
@@ -32,7 +32,7 @@ than this number. Default 0 = no limit
 After you have cast a vote, you will be able to see your current vote for each address
 in your `getaddressbalances` output.
 
-`user@armee pktd % ./bin/pktctl --wallet getaddressbalances`
+`user@armee bigchaind % ./bin/bigchainctl --wallet getaddressbalances`
 ```json
 [
   {
@@ -82,21 +82,21 @@ when scanning over a large utxo set.
 
 There are no user-facing changes to this, but it does irreversibly update the database. This
 update is already present in the PKT-Lightning-Wallet so this update makes it possible to
-switch back and forth between pktwallet and PKT-Lightning-Wallet.
+switch back and forth between bigchainwallet and PKT-Lightning-Wallet.
 
-# Release version pktd-v1.6.3
+# Release version bigchaind-v1.6.3
 Jan 4, 2024
 
 This is a patch release which introduces the `--ignoremined` flag so that exchanges
 and merchants can protect their wallets from micro-transaction spam.
 
-# Release version pktd-v1.6.2
+# Release version bigchaind-v1.6.2
 Jan 2, 2024
 
 This is a patch release to introduce the capability to create a transaction without
 unlocking the wallet, but only if the transaction is unsigned.
 
-# Release version pktd-v1.6.1
+# Release version bigchaind-v1.6.1
 Oct 26, 2022
 
 ## Major changes
@@ -111,14 +111,14 @@ extranious data to a victim's harddrive per-block.
 
 #### Impacts
 
-1. An attacker may be able to expend up to 46 GB of storage space on a victim's pktd server
+1. An attacker may be able to expend up to 46 GB of storage space on a victim's bigchaind server
 per day.
 2. If the victim is syncing a full node for the first time and using the attacker's server,
 the attacker can expend far more than this.
 3. If the attacker includes malware binary samples and the victim uses antivirus, it may be
 possible that they download a malware sample to disk while the antivirus is inactive, and
 then upon activating it, the antivirus quarentines the block file, disrupting the function
-of pktd.
+of bigchaind.
 
 #### Change
 As of 1.6.1, PacketCryptProofs which are "non-standard" (contain any extra data not needed
@@ -136,7 +136,7 @@ Thank you to Rob Daniell for identifying this issue and creating a proof of conc
 * Always check PacketCrypt proofs, even if the block is behind a checkpoint, in order to
 prevent mutation attack.
 
-# Release version pktd-v1.6.0
+# Release version bigchaind-v1.6.0
 July 5, 2022
 
 ## Major changes
@@ -207,14 +207,14 @@ size much smaller.
 With these changes we were able to cut the neutrino.db file size roughly in half. But be
 aware that when you update, the file will not get smaller because bboltdb is unable to
 shrink the file, it can only create free space inside of the file. If you want the file
-to be smaller, you will need to delete the neutrino.db file and allow pktwallet / pld to
+to be smaller, you will need to delete the neutrino.db file and allow bigchainwallet / pld to
 re-create it.
 
 
 ## Minor changes
 
-1. pld: Feature: Add pktdir param to pld - so you can specify the folder where the wallet is - f39d8d0dd8cf27f5ff0858abc0470b24e6903bdf
-2. pktd: Bug: Fixed occasional crash caused by misuse of locks - 15c277ef8aa0c50d271fa68fb1650ce713bced84
+1. pld: Feature: Add bigchaindir param to pld - so you can specify the folder where the wallet is - f39d8d0dd8cf27f5ff0858abc0470b24e6903bdf
+2. bigchaind: Bug: Fixed occasional crash caused by misuse of locks - 15c277ef8aa0c50d271fa68fb1650ce713bced84
 3. pld: Bug: If some necessary directories don't exist, create them rather than crashing. 2a3949932b18a38ae5ca0deb35cc6a5567d3df5c 2a3949932b18a38ae5ca0deb35cc6a5567d3df5c
 4. all: Improvement: Add github build process - c475471eff27c5a7963b5eccd13214c9fdf58013
 5. pld: Bug: Fix how password is specified - 3af1c059a5716f8f0ffab86ed7cffa6c0fde14fb
@@ -225,7 +225,7 @@ re-create it.
 10. pld: Feature: Added ability to generate a wallet seed without creating the wallet.
 
 ## Stats
-The pktd codebase unfortunately contains a fairly significant amount of *generated* code.
+The bigchaind codebase unfortunately contains a fairly significant amount of *generated* code.
 This exists because the tooling to generate it is too awkward to include in the build
 scripts. I have separated the stats for generated code from the stats for hand-written
 code.
@@ -239,8 +239,8 @@ generated code.
 
 A total of 36304 lines, or 6.3% of the codebase, was manually altered.
 
-pktd-v1.5.1 - 575425 lines of written code, 40319 lines of generated code
-pktd-v1.6.0 - 581070 lines of written code, 60692 lines of generated code
+bigchaind-v1.5.1 - 575425 lines of written code, 40319 lines of generated code
+bigchaind-v1.6.0 - 581070 lines of written code, 60692 lines of generated code
 
 ## Future goals
 In coming releases, we will be seeking to:

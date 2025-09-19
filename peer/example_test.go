@@ -10,10 +10,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/peer"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/peer"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // mockRemotePeer creates a basic inbound peer listening on the simnet port for

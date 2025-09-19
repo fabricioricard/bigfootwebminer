@@ -3,16 +3,16 @@ package contractcourt
 import (
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/htlcswitch/hop"
-	"github.com/pkt-cash/pktd/lnd/input"
-	"github.com/pkt-cash/pktd/lnd/invoices"
-	"github.com/pkt-cash/pktd/lnd/lntypes"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/chainfee"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/lnd/sweep"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/htlcswitch/hop"
+	"github.com/bigchain/bigchaind/lnd/input"
+	"github.com/bigchain/bigchaind/lnd/invoices"
+	"github.com/bigchain/bigchaind/lnd/lntypes"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/chainfee"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/sweep"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // Registry is an interface which represents the invoice registry.

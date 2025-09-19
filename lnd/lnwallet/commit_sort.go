@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"sort"
 
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // InPlaceCommitSort performs an in-place sort of a commitment transaction,

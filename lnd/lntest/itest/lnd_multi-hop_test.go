@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/invoicesrpc"
-	"github.com/pkt-cash/pktd/lnd/lntest"
-	"github.com/pkt-cash/pktd/lnd/lntypes"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/invoicesrpc"
+	"github.com/bigchain/bigchaind/lnd/lntest"
+	"github.com/bigchain/bigchaind/lnd/lntypes"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 func testMultiHopHtlcClaims(net *lntest.NetworkHarness, t *harnessTest) {

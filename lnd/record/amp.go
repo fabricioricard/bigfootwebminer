@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/tlv"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/tlv"
 )
 
 // AMPOnionType is the type used in the onion to reference the AMP fields:

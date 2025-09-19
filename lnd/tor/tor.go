@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/miekg/dns"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/connmgr"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/connmgr"
 	"golang.org/x/net/proxy"
 )
 

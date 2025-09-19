@@ -1,11 +1,11 @@
 package mock
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/wire"
 
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
 )
 
 // ChainNotifier is a mock implementation of the ChainNotifier interface.

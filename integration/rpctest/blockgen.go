@@ -10,16 +10,16 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/genesis"
-	"github.com/pkt-cash/pktd/txscript"
-	"github.com/pkt-cash/pktd/txscript/scriptbuilder"
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/wire/constants"
+	"github.com/bigchain/bigchaind/blockchain"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/genesis"
+	"github.com/bigchain/bigchaind/txscript"
+	"github.com/bigchain/bigchaind/txscript/scriptbuilder"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/wire/constants"
 )
 
 // solveBlock attempts to find a nonce which makes the passed block header hash

@@ -3,10 +3,10 @@ package routerrpc
 import (
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/htlcswitch"
-	"github.com/pkt-cash/pktd/lnd/invoices"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/htlcswitch"
+	"github.com/bigchain/bigchaind/lnd/invoices"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
 )
 
 // rpcHtlcEvent returns a rpc htlc event from a htlcswitch event.

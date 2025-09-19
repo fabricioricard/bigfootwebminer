@@ -4,20 +4,20 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/psbt"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/pktwallet/wallet"
-	"github.com/pkt-cash/pktd/pktwallet/wallet/txauthor"
-	"github.com/pkt-cash/pktd/pktwallet/wtxmgr"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/psbt"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/bigchainwallet/wallet"
+	"github.com/bigchain/bigchaind/bigchainwallet/wallet/txauthor"
+	"github.com/bigchain/bigchaind/bigchainwallet/wtxmgr"
+	"github.com/bigchain/bigchaind/wire"
 
-	"github.com/pkt-cash/pktd/lnd/lnwallet"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/chainfee"
+	"github.com/bigchain/bigchaind/lnd/lnwallet"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/chainfee"
 )
 
 var (

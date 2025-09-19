@@ -4,7 +4,7 @@
 package lntest
 
 import (
-	"github.com/pkt-cash/pktd/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg"
 )
 
 // NewBackend starts a bitcoind node without the txindex enabled and returns a

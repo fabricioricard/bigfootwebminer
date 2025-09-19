@@ -1,8 +1,8 @@
 package input
 
 import (
-	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/blockchain"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 const (

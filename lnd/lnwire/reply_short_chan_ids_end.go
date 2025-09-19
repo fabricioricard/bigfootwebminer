@@ -3,8 +3,8 @@ package lnwire
 import (
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
 )
 
 // ReplyShortChanIDsEnd is a message that marks the end of a streaming message

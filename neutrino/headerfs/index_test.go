@@ -1,7 +1,7 @@
 package headerfs
 
 import (
-	_ "github.com/pkt-cash/pktd/pktwallet/walletdb/bdb"
+	_ "github.com/bigchain/bigchaind/bigchainwallet/walletdb/bdb"
 )
 
 /*

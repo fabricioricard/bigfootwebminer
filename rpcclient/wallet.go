@@ -8,16 +8,16 @@ package rpcclient
 import (
 	"github.com/json-iterator/go"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/btcjson"
+	"github.com/bigchain/bigchaind/btcjson"
 )
 
 // ***********************
 // Miscellaneous Functions
 // ***********************
 
-// NOTE: While getinfo is implemented here (in wallet.go), a pktd chain server
+// NOTE: While getinfo is implemented here (in wallet.go), a bigchaind chain server
 // will respond to getinfo requests as well, excluding any wallet information.
 
 // FutureGetInfoResult is a future promise to deliver the result of a

@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/lnd/clock"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/lnd/clock"
+	"github.com/bigchain/bigchaind/wire"
 	"github.com/stretchr/testify/require"
 )
 

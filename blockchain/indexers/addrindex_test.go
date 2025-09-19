@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // addrIndexBucket provides a mock address index database bucket by implementing

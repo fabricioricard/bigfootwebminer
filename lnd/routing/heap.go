@@ -3,9 +3,9 @@ package routing
 import (
 	"container/heap"
 
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/lnd/routing/route"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/routing/route"
 )
 
 // nodeWithDist is a helper struct that couples the distance from the current

@@ -4,13 +4,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/neutrino/blockntfns"
-	"github.com/pkt-cash/pktd/pktwallet/wtxmgr"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/neutrino/blockntfns"
+	"github.com/bigchain/bigchaind/bigchainwallet/wtxmgr"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 var (

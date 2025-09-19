@@ -4,8 +4,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/lnd/routing/route"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/routing/route"
 )
 
 // probabilityEstimator returns node and pair probabilities based on historical

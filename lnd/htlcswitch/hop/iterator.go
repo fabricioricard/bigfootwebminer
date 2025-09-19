@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	sphinx "github.com/pkt-cash/pktd/lightning-onion"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	sphinx "github.com/bigchain/bigchaind/lightning-onion"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 // Iterator is an interface that abstracts away the routing information

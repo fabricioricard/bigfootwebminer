@@ -3,10 +3,10 @@ package migration_test
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
-	"github.com/pkt-cash/pktd/lnd/channeldb/migration"
-	"github.com/pkt-cash/pktd/lnd/channeldb/migtest"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/lnd/channeldb/migration"
+	"github.com/bigchain/bigchaind/lnd/channeldb/migtest"
 )
 
 // TestCreateTLB asserts that a CreateTLB properly initializes a new top-level

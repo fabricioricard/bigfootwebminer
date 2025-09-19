@@ -3,9 +3,9 @@ package wtwire
 import (
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/chainfee"
-	"github.com/pkt-cash/pktd/lnd/watchtower/blob"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/chainfee"
+	"github.com/bigchain/bigchaind/lnd/watchtower/blob"
 )
 
 // CreateSession is sent from a client to tower when to negotiate a session, which

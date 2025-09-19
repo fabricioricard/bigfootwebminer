@@ -8,9 +8,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lncfg"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lncfg"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
 	"github.com/urfave/cli"
 	"gopkg.in/macaroon.v2"
 )
@@ -26,7 +26,7 @@ type profileEntry struct {
 	Name      string `json:"name"`
 	RPCServer string `json:"rpcserver"`
 	LndDir    string `json:"lnddir"`
-	PktDir    string `json:"pktdir"`
+	PktDir    string `json:"bigchaindir"`
 	Chain     string `json:"chain"`
 	Network   string `json:"network"`
 	TLSCert   string `json:"tlscert"`

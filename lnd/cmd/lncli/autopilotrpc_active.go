@@ -5,7 +5,7 @@ package main
 import (
 	"context"
 
-	"github.com/pkt-cash/pktd/lnd/lnrpc/autopilotrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/autopilotrpc"
 	"github.com/urfave/cli"
 )
 

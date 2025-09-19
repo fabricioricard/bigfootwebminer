@@ -5,13 +5,13 @@ import (
 	"net"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/lnd/keychain"
-	"github.com/pkt-cash/pktd/lnd/tor"
-	"github.com/pkt-cash/pktd/lnd/watchtower/lookout"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/lnd/keychain"
+	"github.com/bigchain/bigchaind/lnd/tor"
+	"github.com/bigchain/bigchaind/lnd/watchtower/lookout"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 const (

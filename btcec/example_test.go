@@ -7,9 +7,9 @@ package btcec_test
 import (
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
 )
 
 // This example demonstrates signing a message with a secp256k1 private key that

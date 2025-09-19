@@ -3,8 +3,8 @@ package lnrpc
 import (
 	"sort"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnwallet"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnwallet"
 )
 
 // RPCTransactionDetails returns a set of rpc transaction details.

@@ -1,8 +1,8 @@
 package keychain
 
 import (
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 func NewPubKeyDigestSigner(keyDesc KeyDescriptor,

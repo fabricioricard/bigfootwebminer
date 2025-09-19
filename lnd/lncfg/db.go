@@ -3,8 +3,8 @@ package lncfg
 import (
 	"context"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
 )
 
 const (

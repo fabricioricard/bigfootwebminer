@@ -3,8 +3,8 @@ package channeldb
 import (
 	"time"
 
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
-	"github.com/pkt-cash/pktd/lnd/clock"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/lnd/clock"
 )
 
 const (

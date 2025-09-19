@@ -10,12 +10,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/database/internal/treap"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/iterator"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/util"
+	"github.com/bigchain/bigchaind/database/internal/treap"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/iterator"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/util"
 )
 
 const (

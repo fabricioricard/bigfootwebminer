@@ -14,16 +14,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/channelnotifier"
-	"github.com/pkt-cash/pktd/lnd/clock"
-	"github.com/pkt-cash/pktd/lnd/peernotifier"
-	"github.com/pkt-cash/pktd/lnd/routing/route"
-	"github.com/pkt-cash/pktd/lnd/subscribe"
-	"github.com/pkt-cash/pktd/lnd/ticker"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/channelnotifier"
+	"github.com/bigchain/bigchaind/lnd/clock"
+	"github.com/bigchain/bigchaind/lnd/peernotifier"
+	"github.com/bigchain/bigchaind/lnd/routing/route"
+	"github.com/bigchain/bigchaind/lnd/subscribe"
+	"github.com/bigchain/bigchaind/lnd/ticker"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 const (

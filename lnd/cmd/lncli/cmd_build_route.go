@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/chainreg"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
-	"github.com/pkt-cash/pktd/lnd/routing/route"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/chainreg"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/routerrpc"
+	"github.com/bigchain/bigchaind/lnd/routing/route"
 	"github.com/urfave/cli"
 )
 

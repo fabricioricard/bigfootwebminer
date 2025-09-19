@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/lnd/chanbackup"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/btcwallet"
-	"github.com/pkt-cash/pktd/pktwallet/wallet"
-	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/lnd/chanbackup"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/btcwallet"
+	"github.com/bigchain/bigchaind/bigchainwallet/wallet"
+	"github.com/bigchain/bigchaind/bigchainwallet/wallet/seedwords"
 )
 
 var (

@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/lnd"
-	"github.com/pkt-cash/pktd/lnd/chainreg"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
-	"github.com/pkt-cash/pktd/lnd/lntest"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/lnd"
+	"github.com/bigchain/bigchaind/lnd/chainreg"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/routerrpc"
+	"github.com/bigchain/bigchaind/lnd/lntest"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 func testMultiHopPayments(net *lntest.NetworkHarness, t *harnessTest) {

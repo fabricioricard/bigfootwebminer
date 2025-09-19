@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/wire/protocol"
 
-	"github.com/pkt-cash/pktd/addrmgr"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/addrmgr"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // naTest is used to describe a test to be performed against the NetAddressKey

@@ -17,15 +17,15 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/genesis"
-	"github.com/pkt-cash/pktd/database"
-	"github.com/pkt-cash/pktd/wire/protocol"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb"
-	ldberrors "github.com/pkt-cash/pktd/goleveldb/leveldb/errors"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/genesis"
+	"github.com/bigchain/bigchaind/database"
+	"github.com/bigchain/bigchaind/wire/protocol"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb"
+	ldberrors "github.com/bigchain/bigchaind/goleveldb/leveldb/errors"
 )
 
 var (

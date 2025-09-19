@@ -14,18 +14,18 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/txscript/params"
-	"github.com/pkt-cash/pktd/wire/ruleerror"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/txscript/params"
+	"github.com/bigchain/bigchaind/wire/ruleerror"
 
-	"github.com/pkt-cash/pktd/blockchain/packetcrypt"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
-	"github.com/pkt-cash/pktd/txscript"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/blockchain/bigcrypt"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/globalcfg"
+	"github.com/bigchain/bigchaind/txscript"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 const (
@@ -401,8 +401,8 @@ func (b *BlockChain) pcCheckProofOfWork(block *btcutil.Block) (int32, er.R) {
 		return -1, err
 	}
 
-	if !globalcfg.IsPacketCryptAllowedVersion(pcp.Version, height) {
-		return height, ruleerror.ErrBadPow.New("Unallowed PacketCrypt proof version", nil)
+	if !globalcfg.IsBigCryptAllowedVersion(pcp.Version, height) {
+		return height, ruleerror.ErrBadPow.New("Unallowed BigCrypt proof version", nil)
 	}
 
 	hashes := make([]*chainhash.Hash, len(pcp.Announcements))
@@ -418,8 +418,8 @@ func (b *BlockChain) pcCheckProofOfWork(block *btcutil.Block) (int32, er.R) {
 		}
 		hashes[i] = hash
 	}
-	if _, err := packetcrypt.ValidatePcBlock(block.MsgBlock(), height, 0, hashes); err != nil {
-		str := fmt.Sprintf("Error validating PacketCrypt proof [%v]", err)
+	if _, err := bigcrypt.ValidateBcBlock(block.MsgBlock(), height, 0, hashes); err != nil {
+		str := fmt.Sprintf("Error validating BigCrypt proof [%v]", err)
 		return height, ruleerror.ErrBadPow.New(str, nil)
 	}
 	return height, nil
@@ -510,7 +510,7 @@ func CountP2SHSigOps(tx *btcutil.Tx, isCoinBaseTx bool, utxoView *UtxoViewpoint)
 // The flags do not modify the behavior of this function directly, however they
 // are needed to pass along to checkProofOfWork.
 func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags) er.R {
-	if globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowPacketCrypt {
+	if globalcfg.GetProofOfWorkAlgorithm() == globalcfg.PowBigCrypt {
 		flags |= BFNoPoWCheck
 	}
 

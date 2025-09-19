@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
 )
 
 // MaxMessagePayload is the maximum bytes a message can be regardless of other

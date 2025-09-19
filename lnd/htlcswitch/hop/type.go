@@ -1,6 +1,6 @@
 package hop
 
-import "github.com/pkt-cash/pktd/lnd/lnwire"
+import "github.com/bigchain/bigchaind/lnd/lnwire"
 
 var (
 	// Exit is a special "hop" denoting that an incoming HTLC is meant to

@@ -3,9 +3,9 @@ package neutrinonotify
 import (
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/neutrino"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/neutrino"
 )
 
 // createNewNotifier creates a new instance of the ChainNotifier interface

@@ -17,9 +17,9 @@ package labels
 import (
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/pktwallet/wtxmgr"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/bigchainwallet/wtxmgr"
 )
 
 // External labels a transaction as user initiated via the api. This

@@ -16,8 +16,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/restrpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -349,7 +349,7 @@ func sendProtocCommand(conn *websocket.Conn, endpoint string, requestPayload pro
 		}
 	} else {
 		req.Payload = &anypb.Any{
-			TypeUrl: "github.com/pkt-cash/pktd/lnd/" + reflect.TypeOf(requestPayload).String()[1:],
+			TypeUrl: "github.com/bigchain/bigchaind/lnd/" + reflect.TypeOf(requestPayload).String()[1:],
 			Value:   payload,
 		}
 	}

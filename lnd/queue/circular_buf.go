@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // errInvalidSize is returned when an invalid size for a buffer is provided.

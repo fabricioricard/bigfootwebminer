@@ -10,20 +10,20 @@ import (
 	"container/heap"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/txscript/scriptbuilder"
-	"github.com/pkt-cash/pktd/wire/constants"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/txscript/scriptbuilder"
+	"github.com/bigchain/bigchaind/wire/constants"
 
-	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/blockchain/packetcrypt"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
-	"github.com/pkt-cash/pktd/txscript"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/blockchain"
+	"github.com/bigchain/bigchaind/blockchain/bigcrypt"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/globalcfg"
+	"github.com/bigchain/bigchaind/txscript"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 const (
@@ -33,8 +33,8 @@ const (
 
 	// DefaultCoinbaseFlags is added to the coinbase script of a generated block
 	// and is used to monitor BIP16 support as well as blocks that are
-	// generated via pktd.
-	DefaultCoinbaseFlags = "/P2SH/pktd/"
+	// generated via bigchaind.
+	DefaultCoinbaseFlags = "/P2SH/bigchaind/"
 )
 
 // MinHighPriority is the minimum priority value that allows a
@@ -485,7 +485,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 //  |  transactions (while block size   |   |
 //  |  <= policy.BlockMinSize)          |   |
 //   -----------------------------------  --
-func (g *BlkTmplGenerator) NewBlockTemplate(payToAddresses map[btcutil.Address]float64, cbc *wire.PcCoinbaseCommit) (*BlockTemplate, er.R) {
+func (g *BlkTmplGenerator) NewBlockTemplate(payToAddresses map[btcutil.Address]float64, cbc *wire.BcCoinbaseCommit) (*BlockTemplate, er.R) {
 	// Extend the most recently known best block.
 	best := g.chain.BestSnapshot()
 	nextBlockHeight := best.Height + 1
@@ -510,7 +510,7 @@ func (g *BlkTmplGenerator) NewBlockTemplate(payToAddresses map[btcutil.Address]f
 	}
 
 	if cbc != nil {
-		packetcrypt.InsertCoinbaseCommit(coinbaseTx.MsgTx(), cbc)
+		bigcrypt.InsertCoinbaseCommit(coinbaseTx.MsgTx(), cbc)
 	}
 
 	coinbaseSigOpCost := int64(blockchain.CountSigOps(coinbaseTx)) * blockchain.WitnessScaleFactor

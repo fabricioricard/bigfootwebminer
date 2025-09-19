@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // TestParsePkScript ensures that the supported script types can be parsed

@@ -1,6 +1,6 @@
 package wtclient
 
-import "github.com/pkt-cash/pktd/btcutil/er"
+import "github.com/bigchain/bigchaind/btcutil/er"
 
 var (
 	Err = er.NewErrorType("wtclient")

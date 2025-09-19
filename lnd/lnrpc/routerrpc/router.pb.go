@@ -6,7 +6,7 @@ package routerrpc
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	lnrpc "github.com/pkt-cash/pktd/lnd/lnrpc"
+	lnrpc "github.com/bigchain/bigchaind/lnd/lnrpc"
 	math "math"
 )
 

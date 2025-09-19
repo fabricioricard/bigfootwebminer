@@ -11,10 +11,10 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/comparer"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/errors"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/iterator"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/util"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/comparer"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/errors"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/iterator"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/util"
 )
 
 // Common errors.

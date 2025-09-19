@@ -8,8 +8,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/txscript/params"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/txscript/params"
 )
 
 // TestScriptBuilderAddOp tests that pushing opcodes to a script via the

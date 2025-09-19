@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
 	"github.com/urfave/cli"
 )
 

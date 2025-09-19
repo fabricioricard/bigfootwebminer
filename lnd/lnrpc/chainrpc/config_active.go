@@ -3,8 +3,8 @@
 package chainrpc
 
 import (
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/lnd/macaroons"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/lnd/macaroons"
 )
 
 // Config is the primary configuration struct for the chain notifier RPC server.

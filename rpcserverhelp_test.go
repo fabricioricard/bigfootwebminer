@@ -7,7 +7,7 @@ package main
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 // TestHelp ensures the help is reasonably accurate by checking that every

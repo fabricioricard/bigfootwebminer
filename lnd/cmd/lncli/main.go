@@ -11,11 +11,11 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lncfg"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/pktconfig/version"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lncfg"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
 	"github.com/urfave/cli"
 
 	"golang.org/x/crypto/ssh/terminal"
@@ -33,7 +33,7 @@ const (
 
 var (
 	defaultLndDir      = btcutil.AppDataDir("lnd", false)
-	defaultPktDir      = btcutil.AppDataDir("pktwallet", false)
+	defaultPktDir      = btcutil.AppDataDir("bigchainwallet", false)
 	defaultTLSCertPath = filepath.Join(defaultLndDir, defaultTLSCertFilename)
 
 	// maxMsgRecvSize is the largest message our client will receive. We
@@ -132,7 +132,7 @@ func extractPathArgs(ctx *cli.Context) (string, string, string, er.R) {
 	// user.
 	lndDir := lncfg.CleanAndExpandPath(ctx.GlobalString("lnddir"))
 
-	pktDir := lncfg.CleanAndExpandPath(ctx.GlobalString("pktdir"))
+	pktDir := lncfg.CleanAndExpandPath(ctx.GlobalString("bigchaindir"))
 
 	// If the macaroon path as been manually provided, then we'll only
 	// target the specified file.
@@ -184,9 +184,9 @@ func main() {
 			Usage: "The path to lnd's base directory.",
 		},
 		cli.StringFlag{
-			Name:  "pktdir",
+			Name:  "bigchaindir",
 			Value: defaultPktDir,
-			Usage: "The path to pktwallet's base directory.",
+			Usage: "The path to bigchainwallet's base directory.",
 		},
 		cli.BoolFlag{
 			Name:  "notls",

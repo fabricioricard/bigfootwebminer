@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/walletrpc"
-	"github.com/pkt-cash/pktd/lnd/lntest"
-	"github.com/pkt-cash/pktd/lnd/lntest/wait"
-	"github.com/pkt-cash/pktd/lnd/sweep"
-	"github.com/pkt-cash/pktd/txscript"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/walletrpc"
+	"github.com/bigchain/bigchaind/lnd/lntest"
+	"github.com/bigchain/bigchaind/lnd/lntest/wait"
+	"github.com/bigchain/bigchaind/lnd/sweep"
+	"github.com/bigchain/bigchaind/txscript"
 )
 
 // testCPFP ensures that the daemon can bump an unconfirmed  transaction's fee

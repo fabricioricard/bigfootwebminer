@@ -3,9 +3,9 @@ package autopilot
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/util"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/util"
 )
 
 // testGraphDesc is a helper type to describe a test graph.

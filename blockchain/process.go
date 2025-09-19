@@ -9,14 +9,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/wire/ruleerror"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/wire/ruleerror"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
-	"github.com/pkt-cash/pktd/database"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/globalcfg"
+	"github.com/bigchain/bigchaind/database"
 )
 
 // BehaviorFlags is a bitmask defining tweaks to the normal behavior when
@@ -183,7 +183,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 
 	blockHeader := &block.MsgBlock().Header
 
-	if globalcfg.GetProofOfWorkAlgorithm() != globalcfg.PowPacketCrypt {
+	if globalcfg.GetProofOfWorkAlgorithm() != globalcfg.PowBigCrypt {
 	} else if flags&BFNoPoWCheck == BFNoPoWCheck {
 	} else if h, err := b.pcCheckProofOfWork(block); err != nil {
 		prevHashExists, _ := b.blockExists(&blockHeader.PrevBlock)

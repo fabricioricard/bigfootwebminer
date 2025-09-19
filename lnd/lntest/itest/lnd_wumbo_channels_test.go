@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/lnd"
-	"github.com/pkt-cash/pktd/lnd/lntest"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/lnd"
+	"github.com/bigchain/bigchaind/lnd/lntest"
 )
 
 // testWumboChannels tests that only a node that signals wumbo channel

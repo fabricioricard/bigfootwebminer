@@ -1,6 +1,6 @@
 package lncfg
 
-import "github.com/pkt-cash/pktd/btcutil/er"
+import "github.com/bigchain/bigchaind/btcutil/er"
 
 // Validator is a generic interface for validating sub configurations.
 type Validator interface {

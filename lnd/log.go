@@ -3,7 +3,7 @@ package lnd
 import (
 	"context"
 
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 	"google.golang.org/grpc"
 )
 

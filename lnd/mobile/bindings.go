@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/pkt-cash/pktd/lnd"
-	"github.com/pkt-cash/pktd/lnd/signal"
+	"github.com/bigchain/bigchaind/lnd"
+	"github.com/bigchain/bigchaind/lnd/signal"
 )
 
 // Start starts lnd in a new goroutine.

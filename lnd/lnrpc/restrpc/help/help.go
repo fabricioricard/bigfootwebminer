@@ -6,7 +6,7 @@
 
 package help
 
-import "github.com/pkt-cash/pktd/lnd/pkthelp"
+import "github.com/bigchain/bigchaind/lnd/pkthelp"
 
 const (
 	URI_prefix = "/api/v1"
@@ -48,7 +48,7 @@ var (
 		CategoryMeta:       {"API endpoints which are relevant to the entire pld node, not any specific part"},
 		CategoryWallet: {"APIs for management of on-chain (non-Lightning) payments,",
 			"seed export and recovery, and on-chain transaction detection"},
-		SubCategoryNetworkStewardVote: {"Control how this wallet votes on PKT Network Steward"},
+		SubCategoryNetworkStewardVote: {"Control how this wallet votes on BigChain Network Steward"},
 		SubCategoryTransaction:        {"Create and manage on-chain transactions with the wallet"},
 		SubCategoryUnspent:            {"Detected unspent transactions associated with one of our wallet addresses"},
 		SubSubCategoryLock: {"Manipulation of unspent outputs which are 'locked'",

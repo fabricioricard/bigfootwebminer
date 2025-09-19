@@ -1,13 +1,13 @@
 package wtserver
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/watchtower/blob"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtdb"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtpolicy"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtwire"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/txscript"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/watchtower/blob"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtdb"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtpolicy"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtwire"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/txscript"
 )
 
 // handleCreateSession processes a CreateSession message from the peer, and returns

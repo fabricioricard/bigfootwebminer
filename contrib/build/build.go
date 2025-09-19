@@ -97,7 +97,7 @@ func buildStr() string {
 }
 
 func ldflags() string {
-	return "-X github.com/pkt-cash/pktd/pktconfig/version.appBuild=" + buildStr()
+	return "-X github.com/bigchain/bigchaind/bigchainconfig/version.appBuild=" + buildStr()
 }
 
 func test() {
@@ -125,9 +125,9 @@ func main() {
 		os.Setenv(a[0:i], a[i+1:])
 	}
 
-	build("pktd", ".", &conf)
-	build("pktwallet", "./pktwallet", &conf)
-	build("pktctl", "./cmd/pktctl", &conf)
+	build("bigchaind", ".", &conf)
+	build("bigchainwallet", "./bigchainwallet", &conf)
+	build("bigchainctl", "./cmd/bigchainctl", &conf)
 	build("checksig", "./cmd/checksig", &conf)
 	build("pld", "./lnd/cmd/lnd", &conf)
 	//	no need to compile and build the old version of pldctl
@@ -138,5 +138,5 @@ func main() {
 	} else {
 		fmt.Println("Pass the --test flag if you want to run the tests as well")
 	}
-	fmt.Println("Everything looks good, type `./bin/pktwallet --create` to make a wallet")
+	fmt.Println("Everything looks good, type `./bin/bigchainwallet --create` to make a wallet")
 }

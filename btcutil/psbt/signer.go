@@ -10,8 +10,8 @@ package psbt
 // is in the correct state.
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/txscript"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/txscript"
 )
 
 // SignOutcome is a enum-like value that expresses the outcome of a call to the

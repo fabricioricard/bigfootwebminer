@@ -1,9 +1,9 @@
 package cache
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/gcs"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/gcs"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
 )
 
 // FilterCacheKey represents the key used to access filters in the FilterCache.

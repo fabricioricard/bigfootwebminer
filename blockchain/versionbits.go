@@ -7,10 +7,10 @@ package blockchain
 import (
 	"math"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 
-	"github.com/pkt-cash/pktd/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg"
 )
 
 const (

@@ -3,9 +3,9 @@ package htlcswitch
 import (
 	"sync"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
 )
 
 // defaultSequenceBatchSize specifies the window of sequence numbers that are

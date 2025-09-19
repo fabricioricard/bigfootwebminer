@@ -3,12 +3,12 @@
 package walletrpc
 
 import (
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/lnd/keychain"
-	"github.com/pkt-cash/pktd/lnd/lnwallet"
-	"github.com/pkt-cash/pktd/lnd/lnwallet/chainfee"
-	"github.com/pkt-cash/pktd/lnd/macaroons"
-	"github.com/pkt-cash/pktd/lnd/sweep"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/lnd/keychain"
+	"github.com/bigchain/bigchaind/lnd/lnwallet"
+	"github.com/bigchain/bigchaind/lnd/lnwallet/chainfee"
+	"github.com/bigchain/bigchaind/lnd/macaroons"
+	"github.com/bigchain/bigchaind/lnd/sweep"
 )
 
 // Config is the primary configuration struct for the WalletKit RPC server. It

@@ -3,8 +3,8 @@ package hodl_test
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/lnd/build"
-	"github.com/pkt-cash/pktd/lnd/htlcswitch/hodl"
+	"github.com/bigchain/bigchaind/lnd/build"
+	"github.com/bigchain/bigchaind/lnd/htlcswitch/hodl"
 )
 
 var hodlMaskTests = []struct {

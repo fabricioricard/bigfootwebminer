@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 // headerProgressLogger provides periodic logging for other services in order

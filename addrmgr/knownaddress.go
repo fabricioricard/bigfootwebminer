@@ -7,8 +7,8 @@ package addrmgr
 import (
 	"time"
 
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/wire/protocol"
 )
 
 // KnownAddress tracks information about a known network address that is used

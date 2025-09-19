@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"time"
 
-	"github.com/pkt-cash/pktd/lnd/ticker"
+	"github.com/bigchain/bigchaind/lnd/ticker"
 )
 
 // GCQueue is garbage collecting queue, which dynamically grows and contracts

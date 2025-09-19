@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // MsgGetData implements the Message interface and represents a bitcoin

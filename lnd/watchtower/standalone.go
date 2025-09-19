@@ -4,13 +4,13 @@ import (
 	"net"
 	"sync/atomic"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/brontide"
-	"github.com/pkt-cash/pktd/lnd/tor"
-	"github.com/pkt-cash/pktd/lnd/watchtower/lookout"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtserver"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/brontide"
+	"github.com/bigchain/bigchaind/lnd/tor"
+	"github.com/bigchain/bigchaind/lnd/watchtower/lookout"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtserver"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 // Standalone encapsulates the server-side functionality required by watchtower

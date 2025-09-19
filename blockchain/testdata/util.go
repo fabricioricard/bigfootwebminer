@@ -20,16 +20,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/wire/protocol"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // LoadBlocks reads files containing bitcoin block data (gzipped but otherwise
 // in the format bitcoind writes) from disk and returns them as an array of
-// btcutil.Block.  This is largely borrowed from the test code in pktdb.
+// btcutil.Block.  This is largely borrowed from the test code in bigchaindb.
 func LoadBlocks(filename string) ([]*btcutil.Block, er.R) {
 	var network = protocol.MainNet
 	var dr io.Reader
@@ -73,7 +73,7 @@ func LoadBlocks(filename string) ([]*btcutil.Block, er.R) {
 		dr.Read(rbytes)
 
 		mb := wire.MsgBlock{}
-		err = mb.BtcDecode(bytes.NewBuffer(rbytes), 0, wire.NoPacketCryptEncoding)
+		err = mb.BtcDecode(bytes.NewBuffer(rbytes), 0, wire.NoBigCryptEncoding)
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +125,7 @@ func OutputBlock(mb *wire.MsgBlock, name string) er.R {
 
 // LoadAnnouncements reads a file containing a sequence of announcements
 // 1024 byte irreducible header followed by content
-func LoadAnnouncements(filename string) ([]*wire.PacketCryptAnn, er.R) {
+func LoadAnnouncements(filename string) ([]*wire.BigCryptAnn, er.R) {
 	var fi io.ReadCloser
 
 	fi, errr := os.Open(filename)
@@ -134,9 +134,9 @@ func LoadAnnouncements(filename string) ([]*wire.PacketCryptAnn, er.R) {
 	}
 	defer fi.Close()
 
-	anns := make([]*wire.PacketCryptAnn, 0)
+	anns := make([]*wire.BigCryptAnn, 0)
 	for {
-		ann := wire.PacketCryptAnn{}
+		ann := wire.BigCryptAnn{}
 		if err := ann.BtcDecode(fi, 0, 0); err != nil {
 			if er.Wrapped(err) == io.EOF {
 				return anns, nil

@@ -22,27 +22,27 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pkt-cash/pktd/addrmgr"
-	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/blockchain/indexers"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/bloom"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/connmgr"
-	"github.com/pkt-cash/pktd/connmgr/banmgr"
-	"github.com/pkt-cash/pktd/database"
-	"github.com/pkt-cash/pktd/mempool"
-	"github.com/pkt-cash/pktd/mining"
-	"github.com/pkt-cash/pktd/mining/cpuminer"
-	"github.com/pkt-cash/pktd/netsync"
-	"github.com/pkt-cash/pktd/peer"
-	"github.com/pkt-cash/pktd/pktconfig/version"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/txscript"
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/addrmgr"
+	"github.com/bigchain/bigchaind/blockchain"
+	"github.com/bigchain/bigchaind/blockchain/indexers"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/bloom"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/connmgr"
+	"github.com/bigchain/bigchaind/connmgr/banmgr"
+	"github.com/bigchain/bigchaind/database"
+	"github.com/bigchain/bigchaind/mempool"
+	"github.com/bigchain/bigchaind/mining"
+	"github.com/bigchain/bigchaind/mining/cpuminer"
+	"github.com/bigchain/bigchaind/netsync"
+	"github.com/bigchain/bigchaind/peer"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/txscript"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/wire/protocol"
 )
 
 const (
@@ -2086,7 +2086,7 @@ func (s *server) peerHandler() {
 	if !cfg.DisableDNSSeed {
 		// Add peers discovered through DNS to the address manager.
 		connmgr.SeedFromDNS(activeNetParams.Params, defaultRequiredServices,
-			pktdLookup, func(addrs []*wire.NetAddress) {
+			bigchaindLookup, func(addrs []*wire.NetAddress) {
 				// Bitcoind uses a lookup of the dns seeder here. This
 				// is rather strange since the values looked up by the
 				// DNS seed lookups will vary quite a lot.
@@ -2426,7 +2426,7 @@ out:
 			// listen port?
 			// XXX this assumes timeout is in seconds.
 			listenPort, err := s.nat.AddPortMapping("tcp", int(lport), int(lport),
-				"pktd listen port", 20*60)
+				"bigchaind listen port", 20*60)
 			if err != nil {
 				log.Warnf("can't add UPnP port mapping: %v", err)
 			}
@@ -2518,7 +2518,7 @@ func setupRPCListeners() ([]net.Listener, er.R) {
 	return listeners, nil
 }
 
-// newServer returns a new pktd server configured to listen on addr for the
+// newServer returns a new bigchaind server configured to listen on addr for the
 // bitcoin network type specified by chainParams.  Use start to begin accepting
 // connections from peers.
 func newServer(listenAddrs, agentBlacklist, agentWhitelist []string,
@@ -2533,7 +2533,7 @@ func newServer(listenAddrs, agentBlacklist, agentWhitelist []string,
 		services &^= protocol.SFNodeCF
 	}
 
-	amgr := addrmgr.New(cfg.DataDir, pktdLookup)
+	amgr := addrmgr.New(cfg.DataDir, bigchaindLookup)
 
 	var listeners []net.Listener
 	var nat NAT
@@ -2811,7 +2811,7 @@ func newServer(listenAddrs, agentBlacklist, agentWhitelist []string,
 		OnAccept:       s.inboundPeerConnected,
 		RetryDuration:  connectionRetryInterval,
 		TargetOutbound: uint32(targetOutbound),
-		Dial:           pktdDial,
+		Dial:           bigchaindDial,
 		OnConnection:   s.outboundPeerConnected,
 		GetNewAddress:  newAddressFunc,
 	})
@@ -2981,7 +2981,7 @@ func addrStringToNetAddr(addr string) (net.Addr, er.R) {
 	}
 
 	// Attempt to look up an IP address associated with the parsed host.
-	ips, err := pktdLookup(host)
+	ips, err := bigchaindLookup(host)
 	if err != nil {
 		return nil, err
 	}

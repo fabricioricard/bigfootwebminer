@@ -11,9 +11,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/btcjson"
+	"github.com/bigchain/bigchaind/btcjson"
 )
 
 // TestWalletSvrWsNtfns tests all of the chain server websocket-specific
@@ -45,14 +45,14 @@ func TestWalletSvrWsNtfns(t *testing.T) {
 			},
 		},
 		{
-			name: "pktdconnected",
+			name: "bigchaindconnected",
 			newNtfn: func() (interface{}, er.R) {
-				return btcjson.NewCmd("pktdconnected", true)
+				return btcjson.NewCmd("bigchaindconnected", true)
 			},
 			staticNtfn: func() interface{} {
 				return btcjson.NewBtcdConnectedNtfn(true)
 			},
-			marshalled: `{"jsonrpc":"1.0","method":"pktdconnected","params":[true],"id":null}`,
+			marshalled: `{"jsonrpc":"1.0","method":"bigchaindconnected","params":[true],"id":null}`,
 			unmarshalled: &btcjson.BtcdConnectedNtfn{
 				Connected: true,
 			},

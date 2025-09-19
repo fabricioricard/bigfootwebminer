@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/wtclientrpc"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/wtclientrpc"
 	"github.com/urfave/cli"
 )
 

@@ -3,7 +3,7 @@ package lnwire
 import (
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // Init is the first message reveals the features supported or required by this

@@ -3,7 +3,7 @@ package macaroons
 import (
 	"context"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 var (

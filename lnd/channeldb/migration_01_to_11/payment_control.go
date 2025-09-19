@@ -1,6 +1,6 @@
 package migration_01_to_11
 
-import "github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
+import "github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
 
 // fetchPaymentStatus fetches the payment status of the payment. If the payment
 // isn't found, it will default to "StatusUnknown".

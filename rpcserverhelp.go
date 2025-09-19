@@ -11,17 +11,17 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 
-	"github.com/pkt-cash/pktd/btcjson"
+	"github.com/bigchain/bigchaind/btcjson"
 )
 
 // helpDescsEnUS defines the English descriptions used for the help strings.
 var helpDescsEnUS = map[string]string{
-	// CheckPcAnnCmd help.
-	"checkpcann--synopsis":      "Validate a single PacketCrypt announcement",
-	"checkpcann-parenthash":     "The hash of the most recent block when this announcement was mined, if nil then pktd will use the current chain",
-	"checkpcann-pcversion":      "The version of PacketCrypt to consider for this announcement",
+	// CheckBcAnnCmd help.
+	"checkpcann--synopsis":      "Validate a single BigCrypt announcement",
+	"checkpcann-parenthash":     "The hash of the most recent block when this announcement was mined, if nil then bigchaind will use the current chain",
+	"checkpcann-pcversion":      "The version of BigCrypt to consider for this announcement",
 	"checkpcann-annhex":         "The announcement body as hex",
 	"checkpcannresult-workhash": "The result hash from validating the announcement, this is used to assess difficulty",
 
@@ -204,10 +204,10 @@ var helpDescsEnUS = map[string]string{
 	"getblock--synopsis":   "Returns information about a block given its hash.",
 	"getblock-hash":        "The hash of the block",
 	"getblock-verbose":     "Specifies the block is returned as a JSON object instead of hex-encoded string",
-	"getblock-verbosetx":   "Specifies that each transaction is returned as a JSON object and only applies if the verbose flag is true (pktd extension)",
+	"getblock-verbosetx":   "Specifies that each transaction is returned as a JSON object and only applies if the verbose flag is true (bigchaind extension)",
 	"getblock--condition0": "verbose=false",
 	"getblock--condition1": "verbose=true",
-	"getblock-verbosepcp":  "If true then the hex content of the PacketCrypt proof will also be included",
+	"getblock-verbosepcp":  "If true then the hex content of the BigCrypt proof will also be included",
 	"getblock--result0":    "Hex-encoded bytes of the serialized block",
 
 	// GetBlockChainInfoCmd help.
@@ -285,18 +285,18 @@ var helpDescsEnUS = map[string]string{
 	"getblockverboseresult-nextblockhash":            "The hash of the next block (only if there is one)",
 	"getblockverboseresult-strippedsize":             "The size of the block without witness data",
 	"getblockverboseresult-weight":                   "The weight of the block",
-	"getblockverboseresult-packetcryptproof":         "The hex content of the PacketCrypt proof for this block",
-	"getblockverboseresult-packetcryptblkdifficulty": "The estimated number of encryptions needed by the block miner",
-	"getblockverboseresult-packetcryptanndifficulty": "The estimated number of encryptions needed for each announcement",
-	"getblockverboseresult-packetcryptannbits":       "The bits which represent minimum announcement difficulty",
-	"getblockverboseresult-packetcryptanncount":      "The number of announcements which the winning miner was using",
-	"getblockverboseresult-packetcryptversion":       "The version of the PacketCrypt proof",
-	"getblockverboseresult-packetcryptblkbits":       "The bits which represent effective block difficulty (what the block miner must meet)",
+	"getblockverboseresult-bigcryptproof":         "The hex content of the BigCrypt proof for this block",
+	"getblockverboseresult-bigcryptblkdifficulty": "The estimated number of encryptions needed by the block miner",
+	"getblockverboseresult-bigcryptanndifficulty": "The estimated number of encryptions needed for each announcement",
+	"getblockverboseresult-bigcryptannbits":       "The bits which represent minimum announcement difficulty",
+	"getblockverboseresult-bigcryptanncount":      "The number of announcements which the winning miner was using",
+	"getblockverboseresult-bigcryptversion":       "The version of the BigCrypt proof",
+	"getblockverboseresult-bigcryptblkbits":       "The bits which represent effective block difficulty (what the block miner must meet)",
 	"getblockverboseresult-sblockreward":             "The amount of atomic units of coins in this block height block reward",
 	"getblockverboseresult-networksteward":           "The address of the current network steward, if using the PKT chain or one which has one",
 	"getblockverboseresult-blocksuntilretarget":      "The number of blocks until the next difficulty retarget",
 	"getblockverboseresult-retargetestimate":         "A number which multiplied by the current difficulty gives the extimated next difficulty",
-	"getblockverboseresult-packetcryptorigannwork":   "The amount of work that was done on the announcement at the time when it was new",
+	"getblockverboseresult-bigcryptorigannwork":   "The amount of work that was done on the announcement at the time when it was new",
 
 	// GetBlockCountCmd help.
 	"getblockcount--synopsis": "Returns the number of blocks in the longest block chain.",
@@ -554,9 +554,9 @@ var helpDescsEnUS = map[string]string{
 	"checkpcsharecmdstructure-hexblock":     "The hex encoded block",
 	"checkpcsharecmdstructure-height":       "The height of the share to check",
 	"checkpcsharecmdstructure-sharetarget":  "Difficulty target for the share to validate against",
-	"checkpcshare--result0":                 "OK or RESUBMIT_AS_BLOCK, or an error in case the packetcrypt share was not valid",
+	"checkpcshare--result0":                 "OK or RESUBMIT_AS_BLOCK, or an error in case the bigcrypt share was not valid",
 	"checkpcshare-request":                  "The share to validate",
-	"checkpcshare--synopsis":                "Check a PacketCrypt work share against a given share target",
+	"checkpcshare--synopsis":                "Check a BigCrypt work share against a given share target",
 
 	// GetRawMempoolVerboseResult help.
 	"getrawmempoolverboseresult-size":             "Transaction size in bytes",
@@ -643,7 +643,7 @@ var helpDescsEnUS = map[string]string{
 	// SendRawTransactionCmd help.
 	"sendrawtransaction--synopsis":     "Submits the serialized, hex-encoded transaction to the local peer and relays it to the network.",
 	"sendrawtransaction-hextx":         "Serialized, hex-encoded signed transaction",
-	"sendrawtransaction-allowhighfees": "Whether or not to allow insanely high fees (pktd does not yet implement this parameter, so it has no effect)",
+	"sendrawtransaction-allowhighfees": "Whether or not to allow insanely high fees (bigchaind does not yet implement this parameter, so it has no effect)",
 	"sendrawtransaction--result0":      "The hash of the transaction",
 
 	// SetGenerateCmd help.
@@ -652,8 +652,8 @@ var helpDescsEnUS = map[string]string{
 	"setgenerate-genproclimit": "The number of processors (cores) to limit generation to or -1 for default",
 
 	// StopCmd help.
-	"stop--synopsis": "Shutdown pktd.",
-	"stop--result0":  "The string 'pktd stopping.'",
+	"stop--synopsis": "Shutdown bigchaind.",
+	"stop--result0":  "The string 'bigchaind stopping.'",
 
 	// SubmitBlockOptions help.
 	"submitblockoptions-workid": "This parameter is currently ignored",
@@ -677,7 +677,7 @@ var helpDescsEnUS = map[string]string{
 	// VerifyChainCmd help.
 	"verifychain--synopsis": "Verifies the block chain database.\n" +
 		"The actual checks performed by the checklevel parameter are implementation specific.\n" +
-		"For pktd this is:\n" +
+		"For bigchaind this is:\n" +
 		"checklevel=0 - Look up each block and ensure it can be loaded from the database.\n" +
 		"checklevel=1 - Perform basic context-free sanity checks on each block.",
 	"verifychain-checklevel": "How thorough the block verification is",
@@ -724,7 +724,7 @@ var helpDescsEnUS = map[string]string{
 	"outpoint-index": "The index of the outpoint",
 
 	// NotifySpentCmd help.
-	"notifyspent--synopsis": "Send a redeemingtx notification when a transaction spending an outpoint appears in mempool (if relayed to this pktd instance) and when such a transaction first appears in a newly-attached block.",
+	"notifyspent--synopsis": "Send a redeemingtx notification when a transaction spending an outpoint appears in mempool (if relayed to this bigchaind instance) and when such a transaction first appears in a newly-attached block.",
 	"notifyspent-outpoints": "List of transaction outpoints to monitor.",
 
 	// StopNotifySpentCmd help.
@@ -782,7 +782,7 @@ var rpcResultTypes = map[string][]interface{}{
 	"addnode":                nil,
 	"configureminingpayouts": nil,
 	"createrawtransaction":   {(*string)(nil)},
-	"checkpcann":             {(*btcjson.CheckPcAnnResult)(nil)},
+	"checkpcann":             {(*btcjson.CheckBcAnnResult)(nil)},
 	"debuglevel":             {(*string)(nil), (*string)(nil)},
 	"decoderawtransaction":   {(*btcjson.TxRawDecodeResult)(nil)},
 	"decodescript":           {(*btcjson.DecodeScriptResult)(nil)},

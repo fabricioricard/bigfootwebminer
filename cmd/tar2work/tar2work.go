@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/pkt-cash/pktd/blockchain/packetcrypt/difficulty"
-	"github.com/pkt-cash/pktd/pktconfig/version"
+	"github.com/bigchain/bigchaind/blockchain/bigcrypt/difficulty"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
 )
 
 func usage() {

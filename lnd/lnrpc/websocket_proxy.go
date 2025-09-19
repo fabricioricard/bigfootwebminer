@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/websocket"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 	"golang.org/x/net/context"
 )
 

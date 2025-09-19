@@ -11,9 +11,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcjson"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcjson"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // TestChainSvrCmds tests all of the chain server commands marshal and unmarshal

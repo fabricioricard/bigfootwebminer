@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/wire/protocol"
 )
 
 // randAddr generates a *wire.NetAddress backed by a random IPv4/IPv6 address.

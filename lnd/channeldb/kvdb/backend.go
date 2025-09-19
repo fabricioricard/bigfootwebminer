@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	_ "github.com/pkt-cash/pktd/pktwallet/walletdb/bdb" // Import to register backend.
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	_ "github.com/bigchain/bigchaind/bigchainwallet/walletdb/bdb" // Import to register backend.
 )
 
 const (

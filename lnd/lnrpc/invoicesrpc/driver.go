@@ -5,7 +5,7 @@ package invoicesrpc
 import (
 	"fmt"
 
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
 )
 
 // createNewSubServer is a helper method that will create the new sub server

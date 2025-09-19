@@ -3,12 +3,12 @@
 package invoicesrpc
 
 import (
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/lnd/invoices"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/lnd/macaroons"
-	"github.com/pkt-cash/pktd/lnd/netann"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/lnd/invoices"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/macaroons"
+	"github.com/bigchain/bigchaind/lnd/netann"
 )
 
 // Config is the primary configuration struct for the invoices RPC server. It

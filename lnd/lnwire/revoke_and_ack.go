@@ -3,8 +3,8 @@ package lnwire
 import (
 	"io"
 
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // RevokeAndAck is sent by either side once a CommitSig message has been

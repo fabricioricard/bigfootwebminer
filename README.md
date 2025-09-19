@@ -1,72 +1,43 @@
-pktd
-====
+# BigChain
 
-[![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://Copyfree.org)
-![Master branch build Status](https://github.com/pkt-cash/pktd/actions/workflows/go.yml/badge.svg?branch=master)
-![Develop branch build Status](https://github.com/pkt-cash/pktd/actions/workflows/go.yml/badge.svg?branch=develop)
+BigChain é uma implementação completa de blockchain com mineração proof-of-work de largura de rede ociosa, baseada no algoritmo BigCrypt.
 
-`pktd` is the primary full node *PKT Cash* implementation, written in Go.
+## O que é BigChain
 
-The PKT Cash project is currently under active development and considered 
-to be beta quality software.
+BigChain é uma blockchain de camada 1 que utiliza o algoritmo BigCrypt para proof-of-work baseado em largura de banda. O projeto é um fork do PKT Cash, adaptado para implementar melhorias no algoritmo de mineração de largura de rede ociosa.
 
-In particular, the development branch of `pktd` is highly experimental, 
-and should generally not be used in a production environment or on the
-PKT Cash mainnet.
+## Componentes
 
-`pktd` is the primary mainnet node software for the PKT blockchain.
-It is known to correctly download, validate, and serve the chain,
-using rules for block acceptance based on Bitcoin Core, with the
-addition of PacketCrypt Proofs. 
+- **bigchaind** - Nó completo da blockchain BigChain
+- **bigchainwallet** - Carteira para a blockchain BigChain  
+- **bigchainctl** - Ferramenta de linha de comando para interagir com a blockchain
 
-It relays newly mined blocks, and individual transactions that have 
-not yet made it into a block, as well as maintaining a transaction pool.
-All individual transactions admitted to the pool follow rules defined by 
-the network operators, which include strict checks to filter transactions
-based on miner requirements ("standard" vs "non-standard" transactions).
+## Algoritmo BigCrypt
 
-Unlike other similar software, `pktd` does *NOT* directly include wallet
-functionality - this was an intentional design decision.  You will not be
-able to make or receive payments with `pktd` directly.
+O BigCrypt é um algoritmo de proof-of-work que:
+- Utiliza largura de banda de rede ociosa
+- Incentiva a infraestrutura de rede descentralizada
+- Recompensa mineradores pela transferência de dados
+- Implementa validação baseada em anúncios (announcements)
 
-Example wallet functionality is provided in the included, separate,
-[pktwallet](https://github.com/pkt-cash/pktd/tree/master/pktwallet) package.
+## Instalação
 
-## Requirements
+### Requisitos
+- Go 1.14 ou superior
+- Git
 
-* Google [Go](http://golang.org) (Golang) version 1.14 or higher.
-* A somewhat recent release of Git.
+### Compilação
 
-## Issue Tracker
+```bash
+git clone https://github.com/bigchain/bigchaind
+cd bigchaind
+./do
+```
 
-* The GitHub [integrated GitHub issue tracker](https://github.com/pkt-cash/pktd/issues) is used for this project.  
+## Mineração
 
-## Building
+Para minerar na rede BigChain, você precisará do minerador BigCrypt separado (implementado em Rust).
 
-Using `git`, clone the project from the repository:
+## Licença
 
-`git clone https://github.com/pkt-cash/pktd`
-
-Use the `./do` shell script to build `pktd`, `pktwallet`, and `pktctl`.
-
-NOTE: It is highly recommended to use only the toolchain Google distributes
-at the [official Go homepage](https://golang.org/dl). Go toolchains provided
-by Linux distributions often use different defaults or apply non-standard
-patches to the official sources, usually to meet distribution-specific
-requirements (for example, Red Hat backports, security fixes, and provides
-a different default linker configuration vs. the upstream Google Go package.)
-
-Support can only be provided for binaries compiled from unmodified sources,
-using the official (upstream) Google Golang toolchain. We unfortunately are
-unable to test and support every distribution specific combination. 
-
-The official Google Golang installer for Linux is always available 
-for download [here](https://storage.googleapis.com/golang/getgo/installer_linux).
-
-## Documentation
-
-The documentation for `pktd` is work-in-progress, and available in the [docs](https://github.com/pkt-cash/pktd/tree/master/docs) folder.
-
-## License
-
-`pktd` is licensed under the [Copyfree](http://Copyfree.org) ISC License.
+BigChain é licenciado sob a licença ISC Copyfree.

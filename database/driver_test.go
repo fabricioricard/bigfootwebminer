@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/database"
-	_ "github.com/pkt-cash/pktd/database/ffldb"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/database"
+	_ "github.com/bigchain/bigchaind/database/ffldb"
 )
 
 // TestAddDuplicateDriver ensures that adding a duplicate driver does not

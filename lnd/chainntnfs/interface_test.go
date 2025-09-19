@@ -12,19 +12,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
-	"github.com/pkt-cash/pktd/integration/rpctest"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs/btcdnotify"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs/neutrinonotify"
-	"github.com/pkt-cash/pktd/lnd/channeldb"
-	"github.com/pkt-cash/pktd/neutrino"
-	_ "github.com/pkt-cash/pktd/pktwallet/walletdb/bdb" // Required to auto-register the boltdb walletdb implementation.
-	"github.com/pkt-cash/pktd/rpcclient"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/globalcfg"
+	"github.com/bigchain/bigchaind/integration/rpctest"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs/btcdnotify"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs/neutrinonotify"
+	"github.com/bigchain/bigchaind/lnd/channeldb"
+	"github.com/bigchain/bigchaind/neutrino"
+	_ "github.com/bigchain/bigchaind/bigchainwallet/walletdb/bdb" // Required to auto-register the boltdb walletdb implementation.
+	"github.com/bigchain/bigchaind/rpcclient"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 func testSingleConfirmationNotification(miner *rpctest.Harness,

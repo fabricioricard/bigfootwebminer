@@ -8,9 +8,9 @@ import (
 	"unsafe"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd"
-	"github.com/pkt-cash/pktd/lnd/signal"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd"
+	"github.com/bigchain/bigchaind/lnd/signal"
 )
 
 func main() {

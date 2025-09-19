@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // UsageFlag define flags that specify additional properties about the

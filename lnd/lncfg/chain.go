@@ -1,8 +1,8 @@
 package lncfg
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 // Chain holds the configuration options for the daemon's chain settings.

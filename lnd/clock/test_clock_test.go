@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 	"github.com/stretchr/testify/assert"
 )
 

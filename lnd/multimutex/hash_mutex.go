@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pkt-cash/pktd/lnd/lntypes"
+	"github.com/bigchain/bigchaind/lnd/lntypes"
 )
 
 // HashMutex is a struct that keeps track of a set of mutexes with a given hash.

@@ -10,10 +10,10 @@ import (
 	"io"
 	"unicode/utf8"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/wire/protocol"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/wire/protocol"
 
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
 )
 
 // MessageHeaderSize is the number of bytes in a bitcoin message header.
@@ -74,13 +74,13 @@ const (
 	// messages, the new encoding format detailed in BIP0144 will be used.
 	WitnessEncoding
 
-	// PacketCryptEncoding indicates that we should force decoding of the
-	// PacketCrypt proof.
-	PacketCryptEncoding
+	// BigCryptEncoding indicates that we should force decoding of the
+	// BigCrypt proof.
+	BigCryptEncoding
 
-	// NoPacketCryptEncoding indicates that we should avoid encoding of the
-	// PacketCrypt proof.
-	NoPacketCryptEncoding
+	// NoBigCryptEncoding indicates that we should avoid encoding of the
+	// BigCrypt proof.
+	NoBigCryptEncoding
 
 	// EptfEncoding indicates that we should encode using electrum partial
 	// transaction encoding, if Additional is present but incomplete then this

@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/journal"
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/storage"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/journal"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/storage"
 )
 
 // Logging.

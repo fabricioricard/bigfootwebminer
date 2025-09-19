@@ -5,8 +5,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/tlv"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/tlv"
 )
 
 type varIntTest struct {

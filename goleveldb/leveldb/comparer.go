@@ -7,7 +7,7 @@
 package leveldb
 
 import (
-	"github.com/pkt-cash/pktd/goleveldb/leveldb/comparer"
+	"github.com/bigchain/bigchaind/goleveldb/leveldb/comparer"
 )
 
 type iComparer struct {

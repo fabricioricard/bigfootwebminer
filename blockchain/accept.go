@@ -7,11 +7,11 @@ package blockchain
 import (
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/wire/ruleerror"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/wire/ruleerror"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/database"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/database"
 )
 
 // maybeAcceptBlock potentially accepts a block into the block chain and, if

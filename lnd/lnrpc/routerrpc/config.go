@@ -1,8 +1,8 @@
 package routerrpc
 
 import (
-	"github.com/pkt-cash/pktd/lnd/macaroons"
-	"github.com/pkt-cash/pktd/lnd/routing"
+	"github.com/bigchain/bigchaind/lnd/macaroons"
+	"github.com/bigchain/bigchaind/lnd/routing"
 )
 
 // Config is the main configuration file for the router RPC server. It contains

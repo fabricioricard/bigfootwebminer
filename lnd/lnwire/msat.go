@@ -3,7 +3,7 @@ package lnwire
 import (
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil"
+	"github.com/bigchain/bigchaind/btcutil"
 )
 
 const (

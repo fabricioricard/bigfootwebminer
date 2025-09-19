@@ -7,10 +7,10 @@ import (
 	"math"
 	"time"
 
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/btcutil/psbt"
-	"github.com/pkt-cash/pktd/pktwallet/wtxmgr"
-	"github.com/pkt-cash/pktd/lnd/lnwallet"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/btcutil/psbt"
+	"github.com/bigchain/bigchaind/bigchainwallet/wtxmgr"
+	"github.com/bigchain/bigchaind/lnd/lnwallet"
 )
 
 const (

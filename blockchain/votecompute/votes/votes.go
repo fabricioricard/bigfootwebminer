@@ -1,8 +1,8 @@
 package votes
 
 import (
-	"github.com/pkt-cash/pktd/txscript/opcode"
-	"github.com/pkt-cash/pktd/txscript/parsescript"
+	"github.com/bigchain/bigchaind/txscript/opcode"
+	"github.com/bigchain/bigchaind/txscript/parsescript"
 )
 
 const (

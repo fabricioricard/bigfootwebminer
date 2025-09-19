@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/routerrpc"
-	"github.com/pkt-cash/pktd/lnd/lntest"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/routerrpc"
+	"github.com/bigchain/bigchaind/lnd/lntest"
 )
 
 // testSendMultiPathPayment tests that we are able to successfully route a

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pkt-cash/pktd/lnd/tlv"
+	"github.com/bigchain/bigchaind/lnd/tlv"
 )
 
 type parsedTypeTest struct {

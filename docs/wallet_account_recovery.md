@@ -12,11 +12,11 @@ btcctl -u x -P x --wallet dumpprivkey myaccount
 
 You may need to use walletpassphrase to unlock your wallet first.
 
-Now that you have the private key(s), you will need to stop the pktwallet daemon and create a new wallet. Once pktwallet daemon is stopped, you should *move* your wallet to safety, for example:
+Now that you have the private key(s), you will need to stop the bigchainwallet daemon and create a new wallet. Once bigchainwallet daemon is stopped, you should *move* your wallet to safety, for example:
 
 ```
 # Linux
-mv ~/.pktwallet/pkt/wallet.db ~/.pktwallet/pkt/wallet_personal.db
+mv ~/.bigchainwallet/pkt/wallet.db ~/.bigchainwallet/pkt/wallet_personal.db
 
 # Apple
 mv ~/Library/Application\ Support/Pktwallet/pkt/wallet.db ~/Library/Application\ Support/Pktwallet/pkt/wallet_personal.db
@@ -25,13 +25,13 @@ mv ~/Library/Application\ Support/Pktwallet/pkt/wallet.db ~/Library/Application\
 Now that these are out of the way, you can create a new wallet:
 
 ```
-pktwallet --create
+bigchainwallet --create
 ```
 
-After you have followed all of the steps, you then launch the pktwallet daemon:
+After you have followed all of the steps, you then launch the bigchainwallet daemon:
 
 ```
-pktwallet -u x -P x
+bigchainwallet -u x -P x
 ```
 
 Now that the daemon is launched, you need to *import* the private keys which you exported earlier:
@@ -41,7 +41,7 @@ Now that the daemon is launched, you need to *import* the private keys which you
 btcctl -u x -P x --wallet importprivkey <secret private key>
 ```
 
-Now that you have imported all of your private keys, you must use the resync command to cause pktwallet to search the blockchain for any funds associated with those keys.
+Now that you have imported all of your private keys, you must use the resync command to cause bigchainwallet to search the blockchain for any funds associated with those keys.
 
 ```
 btcctl -u x -P x --wallet resync

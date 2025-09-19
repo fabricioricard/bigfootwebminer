@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/lnclipb"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/verrpc"
-	"github.com/pkt-cash/pktd/pktconfig/version"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/lnclipb"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/verrpc"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
 	"github.com/urfave/cli"
 )
 

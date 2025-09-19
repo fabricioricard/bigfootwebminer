@@ -3,9 +3,9 @@ package routerrpc
 import (
 	"context"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
 )
 
 // legacyTrackPaymentServer is a wrapper struct that transforms a stream of main

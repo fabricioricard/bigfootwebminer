@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/macaroon.v2"
 )

@@ -6,10 +6,10 @@ import (
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/gorilla/mux"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnrpc/restrpc/help"
-	"github.com/pkt-cash/pktd/lnd/pkthelp"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnrpc/restrpc/help"
+	"github.com/bigchain/bigchaind/lnd/pkthelp"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 )
 
 const (

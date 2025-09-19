@@ -30,30 +30,30 @@ import (
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/gorilla/websocket"
-	"github.com/pkt-cash/pktd/blockchain"
-	"github.com/pkt-cash/pktd/blockchain/indexers"
-	"github.com/pkt-cash/pktd/blockchain/packetcrypt"
-	"github.com/pkt-cash/pktd/blockchain/packetcrypt/difficulty"
-	"github.com/pkt-cash/pktd/btcec"
-	"github.com/pkt-cash/pktd/btcjson"
-	"github.com/pkt-cash/pktd/btcutil"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/chaincfg/globalcfg"
-	"github.com/pkt-cash/pktd/database"
-	"github.com/pkt-cash/pktd/mempool"
-	"github.com/pkt-cash/pktd/mining"
-	"github.com/pkt-cash/pktd/mining/cpuminer"
-	"github.com/pkt-cash/pktd/peer"
-	"github.com/pkt-cash/pktd/pktconfig/version"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/txscript"
-	"github.com/pkt-cash/pktd/txscript/scriptbuilder"
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/wire/constants"
-	"github.com/pkt-cash/pktd/wire/protocol"
-	"github.com/pkt-cash/pktd/wire/ruleerror"
+	"github.com/bigchain/bigchaind/blockchain"
+	"github.com/bigchain/bigchaind/blockchain/indexers"
+	"github.com/bigchain/bigchaind/blockchain/bigcrypt"
+	"github.com/bigchain/bigchaind/blockchain/bigcrypt/difficulty"
+	"github.com/bigchain/bigchaind/btcec"
+	"github.com/bigchain/bigchaind/btcjson"
+	"github.com/bigchain/bigchaind/btcutil"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/chaincfg/globalcfg"
+	"github.com/bigchain/bigchaind/database"
+	"github.com/bigchain/bigchaind/mempool"
+	"github.com/bigchain/bigchaind/mining"
+	"github.com/bigchain/bigchaind/mining/cpuminer"
+	"github.com/bigchain/bigchaind/peer"
+	"github.com/bigchain/bigchaind/bigchainconfig/version"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/txscript"
+	"github.com/bigchain/bigchaind/txscript/scriptbuilder"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/wire/constants"
+	"github.com/bigchain/bigchaind/wire/protocol"
+	"github.com/bigchain/bigchaind/wire/ruleerror"
 )
 
 // API version constants
@@ -156,7 +156,7 @@ var rpcHandlersBeforeInit = map[string]commandHandler{
 	"getrawmempool":          handleGetRawMempool,
 	"getrawblocktemplate":    handleGetRawBlockTemplate,
 	"checkpcshare":           handleCheckPcShare,
-	"checkpcann":             handleCheckPcAnn,
+	"checkpcann":             handleCheckBcAnn,
 	"getrawtransaction":      handleGetRawTransaction,
 	"gettxout":               handleGetTxOut,
 	"help":                   handleHelp,
@@ -175,9 +175,9 @@ var rpcHandlersBeforeInit = map[string]commandHandler{
 	"version":                handleVersion,
 }
 
-// list of commands that we recognize, but for which pktd has no support because
+// list of commands that we recognize, but for which bigchaind has no support because
 // it lacks support for wallet functionality. For these commands the user
-// should ask a connected instance of pktwallet.
+// should ask a connected instance of bigchainwallet.
 var rpcAskWallet = map[string]struct{}{
 	"addmultisigaddress":     {},
 	"addp2shscript":          {},
@@ -340,7 +340,7 @@ func handleUnimplemented(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 
 // handleAskWallet is the handler for commands that are recognized as valid, but
 // are unable to answer correctly since it involves wallet state.
-// These commands will be implemented in pktwallet.
+// These commands will be implemented in bigchainwallet.
 func handleAskWallet(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, er.R) {
 	return nil, btcjson.NewRPCError(
 		btcjson.ErrRPCNoWallet,
@@ -973,7 +973,7 @@ func handleGetAddedNodeInfo(s *rpcServer, cmd interface{}, closeChan <-chan stru
 			ipList = make([]string, 1)
 			ipList[0] = host
 		default:
-			ips, err := pktdLookup(host)
+			ips, err := bigchaindLookup(host)
 			if err != nil {
 				ipList = make([]string, 1)
 				ipList[0] = host
@@ -1112,7 +1112,7 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 	pcBlkBits := ""
 	if blk.MsgBlock().Pcp != nil {
 		pcVer = &blk.MsgBlock().Pcp.Version
-		commit := packetcrypt.ExtractCoinbaseCommit(blk.MsgBlock().Transactions[0])
+		commit := bigcrypt.ExtractCoinbaseCommit(blk.MsgBlock().Transactions[0])
 		pac := commit.AnnCount()
 		pcAnnCount = &pac
 		pcOrigAnnWork0 := make([]int32, 0, 4)
@@ -1189,9 +1189,9 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		NextHash:            nextHashString,
 		PcpVersion:          pcVer,
 		PcOrigAnnWork:       pcOrigAnnWork,
-		PcAnnCount:          pcAnnCount,
-		PcAnnBits:           pcAnnBits,
-		PcAnnDifficulty:     pcAnnDifficulty,
+		BcAnnCount:          pcAnnCount,
+		BcAnnBits:           pcAnnBits,
+		BcAnnDifficulty:     pcAnnDifficulty,
 		PcBlkDifficulty:     pcBlkDifficulty,
 		PcBlkBits:           pcBlkBits,
 		BlockReward:         strconv.FormatInt(blockReward, 10),
@@ -2096,7 +2096,7 @@ func handleGetRawBlockTemplate(s *rpcServer, cmd interface{}, closeChan <-chan s
 
 	// Mutate the coinbase but then put it back after
 	coinbase := msgBlock.Transactions[0]
-	packetcrypt.InsertCoinbaseCommit(coinbase, wire.NewPcCoinbaseCommit())
+	bigcrypt.InsertCoinbaseCommit(coinbase, wire.NewBcCoinbaseCommit())
 	defer func() { coinbase.TxOut = coinbase.TxOut[:len(coinbase.TxOut)-1] }()
 
 	block := btcutil.NewBlock(msgBlock)
@@ -2225,7 +2225,7 @@ func handleCheckPcShare(s *rpcServer, cmd interface{}, closeChan <-chan struct{}
 	}
 
 	// Check #3, does it hash?
-	blockOk, err := packetcrypt.ValidatePcBlock(mb, c.Height, c.ShareTarget, parentHashes[:])
+	blockOk, err := bigcrypt.ValidateBcBlock(mb, c.Height, c.ShareTarget, parentHashes[:])
 	if err != nil {
 		return nil, err
 	}
@@ -2235,14 +2235,14 @@ func handleCheckPcShare(s *rpcServer, cmd interface{}, closeChan <-chan struct{}
 	return "OK", nil
 }
 
-func handleCheckPcAnn(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, er.R) {
-	cx := cmd.(*btcjson.CheckPcAnnCmd)
+func handleCheckBcAnn(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, er.R) {
+	cx := cmd.(*btcjson.CheckBcAnnCmd)
 	annBytes, errr := hex.DecodeString(cx.AnnHex)
 	if errr != nil {
 		return nil, rpcDecodeHexError(cx.AnnHex)
 	}
 	annBuf := bytes.NewBuffer(annBytes)
-	ann := wire.PacketCryptAnn{}
+	ann := wire.BigCryptAnn{}
 	if err := ann.BtcDecode(annBuf, 0, 0); err != nil {
 		return nil, err
 	}
@@ -2269,11 +2269,11 @@ func handleCheckPcAnn(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) 
 	if cx.PcVersion != nil {
 		version = *cx.PcVersion
 	}
-	workHash, err := packetcrypt.ValidatePcAnn(&ann, parentHash, version)
+	workHash, err := bigcrypt.ValidateBcAnn(&ann, parentHash, version)
 	if err != nil {
 		return nil, err
 	}
-	return &btcjson.CheckPcAnnResult{WorkHash: workHash.String()}, nil
+	return &btcjson.CheckBcAnnResult{WorkHash: workHash.String()}, nil
 }
 
 // handleGetBlockTemplateProposal is a helper for handleGetBlockTemplate which
@@ -3733,7 +3733,7 @@ func handleStop(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (inter
 	case s.requestProcessShutdown <- struct{}{}:
 	default:
 	}
-	return "pktd stopping.", nil
+	return "bigchaind stopping.", nil
 }
 
 // handleSubmitBlock implements the submitblock command.
@@ -3914,7 +3914,7 @@ func handleVerifyMessage(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 // NOTE: This is a btcsuite extension ported from github.com/decred/dcrd.
 func handleVersion(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, er.R) {
 	result := map[string]btcjson.VersionResult{
-		"pktdjsonrpcapi": {
+		"bigchaindjsonrpcapi": {
 			VersionString: jsonrpcSemverString,
 			Major:         jsonrpcSemverMajor,
 			Minor:         jsonrpcSemverMinor,
@@ -4384,7 +4384,7 @@ func (s *rpcServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 
 // jsonAuthFail sends a message back to the client if the http auth is rejected.
 func jsonAuthFail(w http.ResponseWriter) {
-	w.Header().Add("WWW-Authenticate", `Basic realm="pktd RPC"`)
+	w.Header().Add("WWW-Authenticate", `Basic realm="bigchaind RPC"`)
 	http.Error(w, "401 Unauthorized.", http.StatusUnauthorized)
 }
 
@@ -4469,7 +4469,7 @@ func (s *rpcServer) Start() {
 func genCertPair(certFile, keyFile string) er.R {
 	log.Infof("Generating TLS certificates...")
 
-	org := "pktd autogenerated cert"
+	org := "bigchaind autogenerated cert"
 	validUntil := time.Now().Add(10 * 365 * 24 * time.Hour)
 	cert, key, err := btcutil.NewTLSCertPair(org, validUntil, nil)
 	if err != nil {

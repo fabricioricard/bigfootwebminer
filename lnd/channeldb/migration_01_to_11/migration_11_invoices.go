@@ -5,14 +5,14 @@ import (
 	"io"
 
 	litecoinCfg "github.com/ltcsuite/ltcd/chaincfg"
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	bitcoinCfg "github.com/pkt-cash/pktd/chaincfg"
-	"github.com/pkt-cash/pktd/lnd/channeldb/kvdb"
-	"github.com/pkt-cash/pktd/lnd/channeldb/migration_01_to_11/zpay32"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
-	"github.com/pkt-cash/pktd/pktlog/log"
-	"github.com/pkt-cash/pktd/wire"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	bitcoinCfg "github.com/bigchain/bigchaind/chaincfg"
+	"github.com/bigchain/bigchaind/lnd/channeldb/kvdb"
+	"github.com/bigchain/bigchaind/lnd/channeldb/migration_01_to_11/zpay32"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
+	"github.com/bigchain/bigchaind/wire"
 )
 
 // MigrateInvoices adds invoice htlcs and a separate cltv delta field to the

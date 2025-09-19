@@ -8,11 +8,11 @@ import (
 	"bytes"
 	"encoding/hex"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktlog/log"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainlog/log"
 
-	"github.com/pkt-cash/pktd/database"
-	"github.com/pkt-cash/pktd/txscript"
+	"github.com/bigchain/bigchaind/database"
+	"github.com/bigchain/bigchaind/txscript"
 )
 
 func electionIsVoteAgainst(pkScript, networkSteward []byte) bool {

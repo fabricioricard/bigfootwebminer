@@ -3,7 +3,7 @@ package lnwire
 import (
 	"io"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // OpaqueReason is an opaque encrypted byte slice that encodes the exact

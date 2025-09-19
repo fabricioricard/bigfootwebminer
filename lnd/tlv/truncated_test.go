@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pkt-cash/pktd/lnd/tlv"
+	"github.com/bigchain/bigchaind/lnd/tlv"
 )
 
 var tuint16Tests = []struct {

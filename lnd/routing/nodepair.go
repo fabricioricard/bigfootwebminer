@@ -3,7 +3,7 @@ package routing
 import (
 	"fmt"
 
-	"github.com/pkt-cash/pktd/lnd/routing/route"
+	"github.com/bigchain/bigchaind/lnd/routing/route"
 )
 
 // DirectedNodePair stores a directed pair of nodes.

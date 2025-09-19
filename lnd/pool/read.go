@@ -3,8 +3,8 @@ package pool
 import (
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/buffer"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/buffer"
 )
 
 // Read is a worker pool specifically designed for sharing access to buffer.Read

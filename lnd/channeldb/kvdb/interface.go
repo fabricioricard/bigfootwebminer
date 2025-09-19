@@ -1,9 +1,9 @@
 package kvdb
 
 import (
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/pktwallet/walletdb"
-	_ "github.com/pkt-cash/pktd/pktwallet/walletdb/bdb" // Import to register backend.
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/bigchainwallet/walletdb"
+	_ "github.com/bigchain/bigchaind/bigchainwallet/walletdb/bdb" // Import to register backend.
 )
 
 // Update opens a database read/write transaction and executes the function f

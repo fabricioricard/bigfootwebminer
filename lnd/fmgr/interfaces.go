@@ -1,8 +1,8 @@
 package fmgr
 
 import (
-	"github.com/pkt-cash/pktd/lnd/lnpeer"
-	"github.com/pkt-cash/pktd/lnd/lnwire"
+	"github.com/bigchain/bigchaind/lnd/lnpeer"
+	"github.com/bigchain/bigchaind/lnd/lnwire"
 )
 
 // Manager is an interface that describes the basic operation of a funding

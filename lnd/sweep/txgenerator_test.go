@@ -3,9 +3,9 @@ package sweep
 import (
 	"testing"
 
-	"github.com/pkt-cash/pktd/chaincfg/chainhash"
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/lnd/input"
+	"github.com/bigchain/bigchaind/chaincfg/chainhash"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/lnd/input"
 )
 
 var (

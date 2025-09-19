@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/lnd/lnrpc"
-	"github.com/pkt-cash/pktd/pktwallet/wallet/seedwords"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/lnd/lnrpc"
+	"github.com/bigchain/bigchaind/bigchainwallet/wallet/seedwords"
 	"github.com/urfave/cli"
 )
 

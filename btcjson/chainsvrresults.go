@@ -8,7 +8,7 @@ package btcjson
 import (
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/er"
 )
 
 // GetBlockHeaderVerboseResult models the data from the getblockheader command when
@@ -50,14 +50,14 @@ type GetBlockVerboseResult struct {
 	Difficulty          float64       `json:"difficulty"`
 	PreviousHash        string        `json:"previousblockhash"`
 	NextHash            string        `json:"nextblockhash,omitempty"`
-	PcpHex              string        `json:"packetcryptproof,omitempty"`
-	PcpVersion          *int          `json:"packetcryptversion,omitempty"`
-	PcAnnCount          *uint64       `json:"packetcryptanncount,omitempty"`
-	PcOrigAnnWork       *[]int32      `json:"packetcryptorigannwork,omitempty"`
-	PcAnnBits           string        `json:"packetcryptannbits,omitempty"`
-	PcAnnDifficulty     *float64      `json:"packetcryptanndifficulty,omitempty"`
-	PcBlkDifficulty     *float64      `json:"packetcryptblkdifficulty,omitempty"`
-	PcBlkBits           string        `json:"packetcryptblkbits,omitempty"`
+	PcpHex              string        `json:"bigcryptproof,omitempty"`
+	PcpVersion          *int          `json:"bigcryptversion,omitempty"`
+	BcAnnCount          *uint64       `json:"bigcryptanncount,omitempty"`
+	PcOrigAnnWork       *[]int32      `json:"bigcryptorigannwork,omitempty"`
+	BcAnnBits           string        `json:"bigcryptannbits,omitempty"`
+	BcAnnDifficulty     *float64      `json:"bigcryptanndifficulty,omitempty"`
+	PcBlkDifficulty     *float64      `json:"bigcryptblkdifficulty,omitempty"`
+	PcBlkBits           string        `json:"bigcryptblkbits,omitempty"`
 	BlockReward         string        `json:"sblockreward"`
 	NetworkSteward      string        `json:"networksteward,omitempty"`
 	BlocksUntilRetarget int32         `json:"blocksuntilretarget"`

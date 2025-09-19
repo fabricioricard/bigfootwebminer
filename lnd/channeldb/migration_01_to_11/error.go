@@ -1,6 +1,6 @@
 package migration_01_to_11
 
-import "github.com/pkt-cash/pktd/btcutil/er"
+import "github.com/bigchain/bigchaind/btcutil/er"
 
 var (
 	Err = er.NewErrorType("migration_01_to_11")

@@ -7,16 +7,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkt-cash/pktd/btcutil/er"
-	"github.com/pkt-cash/pktd/btcutil/util"
-	"github.com/pkt-cash/pktd/lnd/chainntnfs"
-	"github.com/pkt-cash/pktd/lnd/watchtower/blob"
-	"github.com/pkt-cash/pktd/lnd/watchtower/lookout"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtdb"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtmock"
-	"github.com/pkt-cash/pktd/lnd/watchtower/wtpolicy"
-	"github.com/pkt-cash/pktd/wire"
-	"github.com/pkt-cash/pktd/wire/constants"
+	"github.com/bigchain/bigchaind/btcutil/er"
+	"github.com/bigchain/bigchaind/btcutil/util"
+	"github.com/bigchain/bigchaind/lnd/chainntnfs"
+	"github.com/bigchain/bigchaind/lnd/watchtower/blob"
+	"github.com/bigchain/bigchaind/lnd/watchtower/lookout"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtdb"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtmock"
+	"github.com/bigchain/bigchaind/lnd/watchtower/wtpolicy"
+	"github.com/bigchain/bigchaind/wire"
+	"github.com/bigchain/bigchaind/wire/constants"
 )
 
 type mockPunisher struct {

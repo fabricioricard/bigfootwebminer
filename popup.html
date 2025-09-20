@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIGFOOT PKT Miner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="popup-container">
+        <h1>BIGFOOT PKT Miner</h1>
+        <p>Ajude a minerar PKT diretamente do navegador.</p>
+        
+        <!-- Botão com acessibilidade -->
+        <button 
+            id="start-btn" 
+            aria-label="Iniciar a mineração de PKT"
+            aria-busy="false"
+        >
+            Conectar e Minerar
+        </button>
+        
+        <!-- Botão para parar a mineração -->
+        <button 
+            id="stop-btn" 
+            disabled 
+            aria-label="Parar a mineração de PKT"
+        >
+            Parar Mineração
+        </button>
+
+        <!-- Status com acessibilidade -->
+        <p 
+            id="status" 
+            role="status" 
+            aria-live="polite"
+        >
+            Aguardando ação...
+        </p>
+
+        <!-- Spinner de carregamento -->
+        <div id="loading-spinner" class="hidden" aria-hidden="true">
+            <svg class="spinner" viewBox="0 0 50 50">
+                <circle cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke="#000"></circle>
+            </svg>
+        </div>
+    </main>
+    <script type="module" src="popup.js"></script>
+</body>
+</html>

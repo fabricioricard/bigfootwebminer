@@ -1,0 +1,60 @@
+/* Estilos gerais para o popup */
+.popup-container {
+    font-family: sans-serif;
+    text-align: center;
+    padding: 1rem;
+    width: 300px;
+}
+
+.popup-container h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.popup-container p {
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+.popup-container button {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s;
+}
+
+.popup-container button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.popup-container button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Spinner de carregamento */
+.spinner {
+    width: 24px;
+    height: 24px;
+    margin: 0.5rem auto;
+    animation: spin 1s linear infinite;
+}
+
+.spinner circle {
+    stroke: #000;
+    stroke-dasharray: 80;
+    stroke-dashoffset: 60;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none;
+}

@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "BIGFOOT Connect",
+  "short_name": "BIGFOOT Miner",
+  "description": "Extensão que inicia mineração de PKT ao acessar sites parceiros, como o BIGFOOT WebMiner.",
+  "version": "1.0",
+  "author": "BIGFOOT Team",
+  "minimum_chrome_version": "88",
+
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://bigfootwebminer.vercel.app/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://bigfootwebminer.vercel.app/*"],
+      "js": ["injected.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icons/icon32.png",
+    "default_title": "BIGFOOT Connect - Iniciar Mineração"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["wasm/packetcrypt.wasm"],
+      "matches": ["https://bigfootwebminer.vercel.app/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';",
+    "sandbox": "sandbox allow-scripts; script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  }
+}
